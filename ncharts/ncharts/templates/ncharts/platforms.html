@@ -1,0 +1,20 @@
+{% extends "ncharts/base.html" %}
+
+{% block title %}Platforms{% endblock %}
+
+{% block content %}
+
+{% if platforms %}
+<p>Platforms</p>
+    <ul>
+    {% for platform in platforms %}
+        <!--
+        <li>{{ platform.name }}</li>
+        -->
+        <li><a href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a></li>
+    {% endfor %}
+{% else %}
+    <p>No platforms are available.</p>
+{% endif %}
+
+{% endblock %}

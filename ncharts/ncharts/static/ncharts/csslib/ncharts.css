@@ -1,0 +1,107 @@
+.date {
+	width: 200px;
+}
+/*
+.input-group {
+	width: 200px;
+}
+#id_start_time.form-control {
+	width: 100px;
+}
+
+#id_end_time.form-control {
+	width: 100px;
+}
+
+
+#id_start_time {
+	width: 20%;
+}
+
+#id_end_time {
+	width: 20%;
+}
+
+xinput-group.input {
+	color: green;
+	width: 30%;
+	background-color: #06C;
+}
+
+date.input {
+	color: green;
+	width: 30%;
+	background-color: #06C;
+}
+
+xid_end_time {
+	color: red;
+	width: 30%;
+	background-color: #06C;
+}
+
+.container {
+	width: 80%;
+	background-color: #B3C7DB;
+	margin: 0 auto;
+}
+.clear {
+	clear:both;
+}
+.chart {
+	width: 90%;
+	border-style: solid;
+	border-width: 3px;
+	margin: 0 auto;
+}
+
+.checkbox {
+}
+
+#header {
+	width: 100%;
+	background-color: #06C;
+}
+
+#field {
+	margin: 0 auto;
+}
+
+#logo {
+	width: 100%;
+}
+
+#title {
+	width: 100%;
+	color: white;
+	font-size: 200%;
+	text-align: center;
+}
+
+#nav-bar {
+	list-style-type:none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	width: 100%;
+	background-color: #06C;
+}
+
+#nav-bar li {
+	float: left;
+	display: inline;
+	border-style: solid;
+	border-color: #06C;
+    background-color: #FFF;
+}
+
+#nav-bar li a, #nav-bar li a:link, #nav-bar li a:visited {
+    width: 20%;
+    font-weight: bold;
+    color: #06C;
+    padding: 4px;
+    text-align: center;
+    text-decoration: none;
+}
+
+*/

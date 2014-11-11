@@ -1,0 +1,64 @@
+{% extends "ncharts/base.html" %}
+
+{% block title %}Dataset{% endblock %}
+
+{% block head %}
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+
+<p>{{ dataset.project.name }} {{ dataset.name}} </p>
+
+{% if form %}
+    <form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% comment %}
+        {% for v in form.variables.field.choices %}
+        <p>{{ v }}</p>
+        {% endfor %}
+        {{ form.variables.as_table }}   does nothing
+        <table style="width: 100%">
+            <tr>
+            </tr>
+        </table>
+        {{ form.as_p }}
+        {% endcomment %}
+
+        <div class="variable">
+            {% for var in form.variables %}
+                            {{ var }}
+            {% endfor %}
+        </div>
+        {{ form.start_time }}{{ form.start_time.errors }}
+        {{ form.end_time }}{{ form.end_time.errors }}
+        
+        <input type="submit" value="choose"/>
+    </form>
+{% endif %}
+<script>
+    var time = jQuery.parseJSON('{{ time }}');
+    var data = jQuery.parseJSON('{{ data }}');
+    // var chart_data = [];
+    // for (var i = 0; i < time.length; i++) {
+        // chart_data.push([time[i]*1000, data[i]]);
+    // } 
+    // var chart_title = 'zippie';
+</script>
+
+
+{% if plot_type %}
+    {% for variable in variables.keys %}
+        <div id="{{ plot_type }}_{{ variable }}" class="do_plot">
+        hello
+        </div>
+        <script>
+            var div = $("#{{ plot_type }}_{{ variable }}")[0];
+            // jQuery.data(div,"variable","bozo");
+            jQuery.data(div,"variable","{{ variable }}");
+        </script>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

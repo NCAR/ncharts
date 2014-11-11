@@ -1,0 +1,22 @@
+{% extends "ncharts/base.html" %}
+
+{% block title %}Platform and Project{% endblock %}
+
+{% block content %}
+
+<p>Datasets for {{ platform }}, {{ project }}</p>
+{% if datasets %}
+    <ul>
+    {% for dataset in datasets %}
+        <!--
+        <li><a href="/ncharts/projects/{{ project.name }}/{{ site.name }}/{{ dataset.name }}">{{ project.name }} {{ site.name }} {{ dataset.name }}</a></li>
+        -->
+
+        <li><a href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ project.name }} {{ dataset.name }}</a></li>
+
+    {% endfor %}
+{% else %}
+<p>No datasets for platform {{ platform.name }}, project {{ project.name }}.</p>
+{% endif %}
+
+{% endblock %}
