@@ -1,5 +1,11 @@
-
-# from django.contrib.formtools.preview import FormPreview
+# -*- mode: C++; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
+# vim: set shiftwidth=4 softtabstop=4 expandtab:
+#
+# 2014 Copyright University Corporation for Atmospheric Research
+# 
+# This file is part of the "django-ncharts" package.
+# The license and distribution terms for this file may be found in the
+# file LICENSE in this package.
 
 from django import forms
 from datetimewidget.widgets import DateTimeWidget
@@ -55,7 +61,9 @@ class DatasetSelectionForm(forms.Form):
 
 
         super().__init__(*args,**kwargs)
+        '''
         print('DatasetSelectionForm __init__ dir(self)=',dir(self))
+        '''
 
         self.dataset = dataset
 
@@ -63,15 +71,19 @@ class DatasetSelectionForm(forms.Form):
 
         # choices is a list of tuples: (value,label)
         self.fields['variables'].choices = [ (v,v) for v in dvars ]
+        '''
         print(["%s,%s" % (t1,t2) for (t1,t2) in self.fields['variables'].choices])
+        '''
 
         # initial selected variables
         self.fields['variables'].initial = selected
 
+        '''
         print('start_time=',start_time)
 
         print('DatasetSelectionForm __init__ dir(self.fields start_time)=',dir(self.fields['start_time']))
         print('DatasetSelectionForm __init__ type(self.fields start_time)=',type(self.fields['start_time']))
+        '''
 
         self.fields['start_time'].initial = start_time
 
@@ -85,7 +97,9 @@ class DatasetSelectionForm(forms.Form):
         self.files = []
 
     def clean(self):
+        '''
         print('DatasetSelectionForm clean')
+        '''
         cleaned_data = super().clean()
         if cleaned_data['start_time'] < self.dataset.start_time:
             msg = u'start time too early'
@@ -106,10 +120,13 @@ class DatasetSelectionForm(forms.Form):
         fset = self.dataset.get_fileset()
 
         self.files = [f.path for f in fset.scan(cleaned_data['start_time'],cleaned_data['end_time'])]
+        # TODO: improve this error
         if len(self.files) == 0:
             raise forms.ValidationError('no files within times')
 
+        '''
         print('type(self.files[0])=',type(self.files[0]))
+        '''
 
         return cleaned_data
 

@@ -1,16 +1,26 @@
+# -*- mode: C++; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
+# vim: set shiftwidth=4 softtabstop=4 expandtab:
+#
+# 2014 Copyright University Corporation for Atmospheric Research
+# 
+# This file is part of the "django-ncharts" package.
+# The license and distribution terms for this file may be found in the
+# file LICENSE in this package.
 
 import netCDF4
 from datetime import datetime
 import pytz
 import numpy
+import logging
+
+logger = logging.getLogger(__name__)
 
 class NetCDFDataset:
-    ''' crude alternative to netCDF4.MFDataset, allowing for a variable to be missing in
+    ''' alternative to netCDF4.MFDataset, allowing for a variable to be missing in
     one or more files.
     '''
 
     def __init__(self, files, time_names=['time','time_offset']):
-
         """
         """
 
@@ -19,13 +29,13 @@ class NetCDFDataset:
 
         for file in self.files:
             try:
-                print("file=",file)
+                logger.debug("file=%s",file)
                 ds = netCDF4.Dataset(file)
 
-                if not "base_time" in self.__dict__ and "base_time" in ds.variables:
+                if not hasattr(self,"base_time") and "base_time" in ds.variables:
                     self.base_time = "base_time"
 
-                if not "time_dim" in self.__dict__ and "time" in ds.dimensions:
+                if not hasattr(self,"time_dim") and "time" in ds.dimensions:
                     tdim = ds.dimensions["time"]
                     # tdim.is_unlimited
                     self.time_dim = "time"
@@ -33,36 +43,38 @@ class NetCDFDataset:
                     continue
 
                 if "station" in ds.dimensions:
-                    if not "nstations" in self.__dict__:
+                    if not hasattr(self,"nstations"):
                         self.nstations = len(ds.dimensions["station"])
                         self.station_dim = "station"
                     elif not self.nstations == len(ds.dimensions["station"]):
-                        print("station dimension is changing")
+                        logger.warning("%s: station dimension (%d) is different than that of other files (%d)",
+                                file,len(ds.dimensions["station"]),self.nstations)
 
                     if not "station_names" in self and "station" in ds.variables:
                         var = ds.variables["station"]
                         if var.datatype == numpy.dtype('S1'):
                             self.station_names = [str(netCDF4.chartostring(v)) for v in var]
 
-                if not "time_name" in self.__dict__:
+                if not hasattr(self,"time_name"):
                     for (n,v) in ds.variables.items():
                         if n in time_names and tdim._name in v.dimensions:
                             self.time_name = n
                             break
-                    if not "time_name" in self.__dict__:
+                    if not hasattr(self,"time_name"):   # time variable not found in file
                         continue
 
                 for (n,v) in ds.variables.items():
                     if tdim._name in v.dimensions:
                         if not n in self.variables:
-                            self.variables[n] = {}
-                            self.variables[n]["shape"] = v.shape
-                            for a in ["units","long_name","short_name"]:
-                                if hasattr(v,a):
-                                    self.variables[n][a] = getattr(v,a)
-
-                        elif not self.variables[n] == v.shape:
-                            print("shape of variable ",n," is not constant")
+                            if not n == self.time_name:
+                                self.variables[n] = {}
+                                self.variables[n]["shape"] = v.shape
+                                for a in ["units","long_name","short_name"]:
+                                    if hasattr(v,a):
+                                        self.variables[n][a] = getattr(v,a)
+                        elif not self.variables[n]["shape"][1:] == v.shape[1:]:
+                            logger.warning("%s: %s: shape (%s) is different than in other files (%s). Skipping this variable.",
+                                file,n,repr(v.shape),repr(self.variables[n]["shape"]))
                             del(self.variables[n])
                             continue
 
@@ -71,40 +83,13 @@ class NetCDFDataset:
 
     def read(self,variables=[],start_time=datetime.min,end_time=datetime.max,
             selectdim={}):
-        """
-            utime 1403454068 +%c
-            Sun Jun 22 16:21:08 2014
-
-        http://momentjs.com/
-        http://momentjs.com/timezone/docs/#/use-it/
-        In javascript (with moment.tz):
-            var timestamp = 1403454068850
-            date = new Date(timestamp);
-
-            moment.tz(timestamp, "America/Los_Angeles").format();
-                // 2014-06-22T09:21:08-07:00
-            moment(timestamp).tz("America/Los_Angeles").format();
-                // 2014-06-22T09:21:08-07:00
-            moment.tz(date, "America/Los_Angeles").format();
-                // 2014-06-22T09:21:08-07:00
-            moment(date).tz("America/Los_Angeles").format();
-                // 2014-06-22T09:21:08-07:00'
-
-        highcharts
-            series: [{
-                data: [
-                    [Date.UTC(1970,  9, 27), 0   ],
-                    [Date.UTC(1970, 10, 10), 0.6 ],
-                    [Date.UTC(1970, 10, 18), 0.7 ],
-
-
-        netCDF4.num2date([i for i in range(10)],'seconds since 1970-01-01 00:00:00 00:00','standard')
-
+        """ Read a list of variables from this fileset.
         """
 
         data = {}
         times = []
         for file in self.files:
+            logger.debug("file=%s",file)
             try:
                 ds = netCDF4.Dataset(file)
 
@@ -112,12 +97,15 @@ class NetCDFDataset:
 
                 base_time = 0
 
-                if "base_time" in self.__dict__ and self.base_time in ds.variables and len(ds.variables[self.base_time].dimensions) == 0:
+                if hasattr(self,"base_time") and self.base_time in ds.variables and len(ds.variables[self.base_time].dimensions) == 0:
                     base_time = ds.variables[self.base_time].getValue()
+
+                if not hasattr(self,"time_name"):
+                    continue
 
                 if self.time_name in ds.variables:
                     var = ds.variables[self.time_name]
-                    if 'units' in var.__dict__ and 'since' in var.units:
+                    if hasattr(self,"units") and 'since' in var.units:
                         tv = [d.replace(tzinfo=pytz.UTC) for d in netCDF4.num2date(var[:],var.units,'standard')]
                         # tv = [d.timestamp() for d in netCDF4.num2date(var[:],var.units,'standard')]
                     else:
@@ -133,7 +121,7 @@ class NetCDFDataset:
                         vshape = self.variables[vname]["shape"]
                         var = ds.variables[vname]
 
-                        if var.shape != vshape:
+                        if var.shape[1:] != vshape[1:]:
                             continue
 
                         # if len(var.dimensions) < 1 or not var.dimensions[0] == self.time_dim:
@@ -159,6 +147,7 @@ class NetCDFDataset:
                             else:
                                 idx += (0)
 
+                        # logger.debug("%s: %s: idx=%s",file,vname,repr(idx))
                         dsdata[vname] = var[idx]
             finally:
                 ds.close()

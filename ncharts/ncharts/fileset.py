@@ -1,7 +1,7 @@
 # -*- mode: python; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
 # vim: set shiftwidth=4 softtabstop=4 expandtab:
 #
-# 2013,2014, Copyright University Corporation for Atmospheric Research
+# 2014, Copyright University Corporation for Atmospheric Research
 # 
 # This file is part of the "django-ncharts" package.
 # The license and distribution terms for this file may be found in the
@@ -56,7 +56,7 @@ def globifyTimeDescriptors(path):
     return path
 
 def pathsplit(path):
-    """ Like os.path.split, but the first value is the leading portion of the path.
+    """ Like os.path.split, but the first value returned is the leading portion of the path.
     For 'a/b/c/d.txt' return ('a','b/c/d.txt"), whereas os.path.split() returns
     ('a/b/c','d.txt')
     """
@@ -95,7 +95,7 @@ class File:
             raise
 
         # strptime chokes when there are two time descriptors for
-        # the same time quantity, e.g. two %y in 'dir/data_%Y/file_%Y%m%d.dat'
+        # the same time quantity, e.g. two %Y in 'dir/data_%Y/file_%Y%m%d.dat'
         # convert the first %Y, %m etc to '' pathexpr, and use
         # reg expressions to convert those characters to '' in path.
 
@@ -123,7 +123,9 @@ class File:
         #   so that this process happens only once?
         #   but path must be changed at the same time. Difficult
         #   need a re that is applied to remove unneeded fields
-        #       
+        #
+        # this still needs work...
+
         pref = os.path.commonprefix([path,pathexpr])
         path = path.replace(pref,'')
         pathexpr = pathexpr.replace(pref,'')
@@ -156,13 +158,13 @@ class File:
             raise
 
 class Dir:
-    """
+    """ A path to a directory, and a string, such as 'data/prelim/acme_%Y%m%d.nc' , containing possible time format descriptors and eventually regular expressions, describing a set of files relative to this directory.
     """
 
     def __init__(self,path,pathexpr,pathrem):
         """
         """
-        self.path = path    # path with no time or regular expressions
+        self.path = path    # real path with no time or regular expressions
         self.pathexpr = pathexpr    # current path with expressions
         self.pathrem = pathrem      # remainder of path, with possible expressions
         self.modtime = datetime.min # modification time of current path
@@ -180,7 +182,7 @@ class Dir:
             return Dir(path,pathexpr,pathrem)
 
     def scan(self,start_time=datetime.min ,end_time=datetime.max) -> 'list of matching files':
-        """ Scan this directory for matching subdirectories and files, returning the list of all files found. 
+        """ Scan this Dir for matching subdirectories and files, returning the list of all files found. 
         Matching subdirectories are scanned recursively.
         """
 

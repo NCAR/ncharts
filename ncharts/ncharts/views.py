@@ -1,4 +1,11 @@
-# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+# -*- mode: C++; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
+# vim: set shiftwidth=4 softtabstop=4 expandtab:
+#
+# 2014 Copyright University Corporation for Atmospheric Research
+# 
+# This file is part of the "django-ncharts" package.
+# The license and distribution terms for this file may be found in the
+# file LICENSE in this package.
 
 from django.http import HttpResponse, Http404
 from django.template import RequestContext, loader
@@ -13,7 +20,8 @@ from ncharts.forms import DatasetSelectionForm
 from ncharts import netcdf
 
 import json
-import simplejson
+import numpy
+# import simplejson
 
 from pytz import timezone
 
@@ -98,6 +106,31 @@ def platformProject(request,platform_name,project_name):
     except (Project.DoesNotExist, Platform.DoesNotExist):
         raise Http404
 
+class MyJSONEncoder(json.JSONEncoder):
+    '''
+    A JSON encoder for numpy.ndarray, which also uses
+    float(format(obj,'.5g')) on each element to reduce
+    the number of significant digits.
+    Because converting to ascii and back isn't slow
+    enough, we do it twice :-).
+
+    The only other method found on the web to reduce the digits
+    is to use an expression like
+        round(v,-int(floor(log10(abs(v))+n)))
+    where you also have to treat 0 specially. That still might
+    be faster than
+        float(format(v,'.5g'))
+    '''
+    def default(self,obj):
+        if isinstance(obj,numpy.ndarray):
+            if len(obj.shape) > 1:
+                # this should reduce the rank by one
+                return [v for v in obj[:]]
+            else:
+                return [float(format(v,'.5g')) for v in obj]
+        else:
+            return json.JSONEncoder.default(self,obj)
+
 class DatasetView(View):
     ''' '''
     template_name = 'ncharts/dataset.html'
@@ -156,6 +189,7 @@ class DatasetView(View):
         form = DatasetSelectionForm(dataset=dataset,selected=svars,
                 start_time=usersel.start_time,end_time=usersel.end_time)
 
+        '''
         print('DatasetView get, dir(form)=', dir(form))
         print('DatasetView get, dir(form.fields.keys())=',
                 ['%s' % k for k in form.fields.keys()])
@@ -180,9 +214,11 @@ class DatasetView(View):
         # form.fields['variables'].choices = tuple( (usersel.variables[k],k) for k in usersel.variables.all() )
 
         # return render(request,self.template_name, { 'form': form, 'usersel': usersel })
+        '''
         return render(request,self.template_name, { 'form': form , 'dataset': dataset})
 
     def post(self, request, *args, project_name, dataset_name, **kwargs):
+        '''
         print('DatasetView post')
         print('DatasetView post, self.kwargs.keys=',
                 ['%s' % k for k in self.kwargs.keys()])
@@ -206,6 +242,7 @@ class DatasetView(View):
             print('DatasetView POST.values start_time =',
                     request.POST['start_time'])
 
+        '''
         usersel = UserSelection.objects.get(id=request.session['request_id'])
 
         '''
@@ -224,88 +261,53 @@ class DatasetView(View):
         # vars = [ v.name for v in dataset.variables.all() ]
         form = DatasetSelectionForm(request.POST,dataset=dataset)
 
-        svars = []
-
-        variables = None
-        data = None
-        time = None
-
-        if form.is_valid():
-            # validated data is in form.cleaned_data
-            print('DatasetView post, form.cleaned_data.keys=',
-                    ['%s' % k for k in form.cleaned_data.keys()])
-            print('DatasetView post, type(form.cleaned_data[variables])=',
-                    type(form.cleaned_data['variables']))
-            svars = form.cleaned_data['variables']
-
-            print('svars=',svars)
-            usersel.variables = json.dumps(svars)
-            usersel.start_time = form.cleaned_data['start_time']
-            usersel.end_time = form.cleaned_data['end_time']
-            usersel.save()
-
-            files = form.get_files()
-
-            ncdset = netcdf.NetCDFDataset(files)
-
-            variables = { k:ncdset.variables[k] for k in svars }
-
-            ncdata = ncdset.read(svars,start_time=form.cleaned_data['start_time'],
-                    end_time=form.cleaned_data['end_time'])
-
-            time = json.dumps([x.timestamp() for x in ncdata['time']])
-
-            data = {}
-            # how to remove significant digits
-            for (k,v) in ncdata['data'].items():
-                # data[k] = json.dumps([round(float(d),5) for d in v])
-                data[k] = [round(float(d),5) for d in v]
-
-            data = simplejson.dumps(data)
-
-            # form = DatasetSelectionForm(dataset=dataset,selected=svars,
-            #         start_time=usersel.start_time,end_time=usersel.end_time)
-
-            # tz = timezone(dataset.timezone)
-            # start_time = tz.localize(usersel.start_time,is_dst=True)
-            # end_time = tz.localize(usersel.end_time,is_dst=True)
-
-            # fset = dataset.get_fileset()
-            # files = fset.scan(dataset.start_time,dataset.end_time)
-
-            # if len(files) == 0:
-            # perhaps create a second form, which has 
-            #     validation error
-            # read TS variables from files for time period
-            # json it and put it in context
-            # return HttpResponseRedirect('/thanks/')
-
-            # read netcdf files of selected variables over selected times
-            # also return variables in netcdf files over selected times
-
-        else:
+        if not form.is_valid():
             print('form ain\'t valid!')
-            # print('dir(form)=',dir(form))
-            # print('form.non_field_errors()=',
-            #         form.non_field_errors())
-            # print('invalid choice=',form.fields['variables'].error_messages['invalid_choice'])
+            return render(request,self.template_name, { 'form': form,
+                'dataset': dataset})
+
+        # validated data is in form.cleaned_data
+        '''
+        print('DatasetView post, form.cleaned_data.keys=',
+                ['%s' % k for k in form.cleaned_data.keys()])
+        print('DatasetView post, type(form.cleaned_data[variables])=',
+                type(form.cleaned_data['variables']))
+        '''
+
+        svars = form.cleaned_data['variables']
 
         '''
-        if 'usersel' not in request.session or not request.session['usersel']:
-            print('DatasetView post, no usersel')
-            return HttpResponseRedirect('/error/')
-            '''
+        print('svars=',svars)
+        '''
+        usersel.variables = json.dumps(svars)
+        usersel.start_time = form.cleaned_data['start_time']
+        usersel.end_time = form.cleaned_data['end_time']
+        usersel.save()
 
+        # files from a valid form will always have len > 0.
+        # See the DatasetSelectionForm clean method.
+        files = form.get_files()
 
-        # form = DatasetSelectionForm()
-        # form.fields['variables'].choices = usersel.variables
+        ncdset = netcdf.NetCDFDataset(files)
 
-        # form.fields['variables'].choices = dict( (k,True) for k in usersel.variables)
+        variables = { k:ncdset.variables[k] for k in svars }
 
-        # return render(request,self.template_name, { 'form': form, 'usersel': usersel })
+        ncdata = ncdset.read(svars,start_time=form.cleaned_data['start_time'],
+                end_time=form.cleaned_data['end_time'])
+
+        # As an easy compression, subtract first time from all times,
+        # reducing the number of characters sent.
+        time0 = 0
+        if len(ncdata['time']) > 0:
+            time0 = ncdata['time'][0].timestamp()
+        time = json.dumps([x.timestamp() - time0 for x in ncdata['time']])
+
+        data = json.dumps(ncdata['data'],cls=MyJSONEncoder)
+
         return render(request,self.template_name, { 'form': form,
             'dataset': dataset, 'plot_type': 'time-series',
-            'variables': variables, 'time': mark_safe(time), 'data': mark_safe(data) })
+            'variables': variables, 'time0': time0, 'time': mark_safe(time),
+            'data': mark_safe(data) })
 
 def dataset(request,project_name,dataset_name):
     try:

@@ -46,11 +46,17 @@
                 console.log(index + ": " + $( this ).data("variable"));
 
                 var vname =  $( this ).data("variable");
-                console.log("im here, vname=",vname);
+                var units =  $( this ).data("units");
+                var long_name =  $( this ).data("long_name");
+                if (long_name.length == 0) {
+                    long_name = vname;
+                }
+
+                // console.log("im here, vname=",vname);
 
                 var chart_data = [];
                 for (var i = 0; i < time.length; i++) {
-                    chart_data.push([time[i]*1000, data[vname][i]]);
+                    chart_data.push([(time0 + time[i])*1000, data[vname][i]]);
                 } 
 
                 $( this ).highcharts({
@@ -61,7 +67,7 @@
                         panKey: 'shift',
                     },
                     title: {
-                        text: vname
+                        text: long_name
                     },
                     xAxis: {
                         type: 'datetime',
@@ -80,7 +86,7 @@
                     },
                     yAxis: {
                         title: {
-                            text: vname
+                            text: vname + '(' + units + ')'
                         },
                     },
                     series:[{

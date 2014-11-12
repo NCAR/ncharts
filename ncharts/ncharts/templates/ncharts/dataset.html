@@ -38,6 +38,7 @@
     </form>
 {% endif %}
 <script>
+    var time0 = {{ time0 }};
     var time = jQuery.parseJSON('{{ time }}');
     var data = jQuery.parseJSON('{{ data }}');
     // var chart_data = [];
@@ -47,16 +48,16 @@
     // var chart_title = 'zippie';
 </script>
 
-
 {% if plot_type %}
-    {% for variable in variables.keys %}
-        <div id="{{ plot_type }}_{{ variable }}" class="do_plot">
+    {% for vname,val in variables.items %}
+        <div id="{{ plot_type }}_{{ vname }}" class="do_plot">
         hello
         </div>
         <script>
-            var div = $("#{{ plot_type }}_{{ variable }}")[0];
-            // jQuery.data(div,"variable","bozo");
-            jQuery.data(div,"variable","{{ variable }}");
+            var div = $("#{{ plot_type }}_{{ vname }}")[0];
+            jQuery.data(div,"variable","{{ vname }}");
+            jQuery.data(div,"units","{{ val.units }}");
+            jQuery.data(div,"long_name","{{ val.long_name }}");
         </script>
     {% endfor %}
 {% endif %}
