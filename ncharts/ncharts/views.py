@@ -15,7 +15,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic.edit import View
 from django.utils.safestring import mark_safe
 
-from ncharts.models import Root, Project, Platform, Dataset, UserSelection
+from ncharts.models import  Project, Platform, Dataset, UserSelection
 from ncharts.forms import DatasetSelectionForm
 from ncharts import netcdf
 
@@ -34,9 +34,11 @@ def projects(request):
 
     # get_object_or_404(name='projects')
     # get_list_or_404(name='projects') uses filter()
-    root = Root.objects.get(name='projects')
+    # root = Root.objects.get(name='projects')
+    # projects = root.project_set.all()
 
-    projects = root.project_set.all()
+    projects = Project.objects.all()
+
     print('projects len=%d' % len(projects))
 
     context = { 'projects': projects }
@@ -63,9 +65,11 @@ def project(request,project_name):
 def platforms(request):
     ''' request for list of platforms '''
 
-    root = Root.objects.get(name='platforms')
+    # root = Root.objects.get(name='platforms')
+    # platforms = root.platform_set.all()
 
-    platforms = root.platform_set.all()
+    platforms = Platform.objects.all()
+
     print('platforms len=%d'  % len(platforms))
 
     context = { 'platforms': platforms }
@@ -243,6 +247,7 @@ class DatasetView(View):
                     request.POST['start_time'])
 
         '''
+
         usersel = UserSelection.objects.get(id=request.session['request_id'])
 
         '''
@@ -262,7 +267,7 @@ class DatasetView(View):
         form = DatasetSelectionForm(request.POST,dataset=dataset)
 
         if not form.is_valid():
-            print('form ain\'t valid!')
+            # print('form ain\'t valid!')
             return render(request,self.template_name, { 'form': form,
                 'dataset': dataset})
 
@@ -290,7 +295,16 @@ class DatasetView(View):
 
         ncdset = netcdf.NetCDFDataset(files)
 
-        variables = { k:ncdset.variables[k] for k in svars }
+        if len(dataset.variables.all()) > 0:
+            for k in svars:
+                print("k=",k,',var.name=',dataset.variables.get(name=k).name)
+
+            # variables = { }
+            variables = { k:{'units': dataset.variables.get(name=k).units,
+                'long_name': dataset.variables.get(name=k).long_name }
+                    for k in svars }
+        else:
+            variables = { k:ncdset.variables[k] for k in svars }
 
         ncdata = ncdset.read(svars,start_time=form.cleaned_data['start_time'],
                 end_time=form.cleaned_data['end_time'])

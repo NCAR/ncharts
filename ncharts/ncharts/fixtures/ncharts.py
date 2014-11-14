@@ -1,5 +1,4 @@
-from ncharts.models import Root, Project, Platform, Dataset, UserSelection, Variable
-# from ncharts.forms import UserSelectionForm
+from ncharts.models import Project, Platform, Dataset, UserSelection, Variable
 
 from pytz import timezone, utc
 from datetime import datetime, timedelta
@@ -7,12 +6,14 @@ from datetime import datetime, timedelta
 mttz = timezone("US/Mountain")
 aztz = timezone("US/Arizona")
 
-projroot = Root.objects.create(name='projects')
-platroot = Root.objects.create(name='platforms')
+proj = Project.objects.create(name='Weather')
 
-proj = Project.objects.create(name='Weather', projects=projroot)
+wx = Platform.objects.create(name='Weather Station')
 
-wx = Platform.objects.create(name='Weather Station',platforms=platroot)
+wxvars = []
+for v in ['tdry','rh','pres','cpres0','dp','wdir','wspd','wmax','wchill','raina','raina24']:
+    var = Variable.objects.create(name=v)
+    wxvars.append(var)
 
 dset = Dataset.objects.create(name='flab-5min',
     location='NCAR Foothills Lab, Boulder CO',
@@ -23,9 +24,8 @@ dset = Dataset.objects.create(name='flab-5min',
     end_time = datetime.now(mttz),
     project=proj)
 
-# for v in ['tdry','rh','pres','cpres0','dp','wdir','wspd','wmax','wchill','raina','raina24']:
-#     var = Variable.objects.create(name=v)
-#     dset.variables.add(var)
+for var in wxvars:
+    dset.variables.add(var)
 
 dset.add_platform(wx)
 # dset.platforms.add(wx)
@@ -41,36 +41,18 @@ dset = Dataset.objects.create(name='nwsc-5min',
     end_time = datetime.now(mttz),
     project=proj)
 
-for v in ['tdry','rh','pres','cpres0','dp','wdir','wspd','wmax','wchill','raina','raina24']:
-    var = Variable.objects.create(name=v)
-    dset.variables.add(var)
-
 dset.add_platform(wx)
 # dset.platforms.add(wx)
 # dset.project.platforms.add(wx)
 # dset.save()
 
-dset = Dataset.objects.create(name='nwsc-10min',
-    location='NCAR Wyoming Supercomputer Center, Cheyenne WY',
-    timezone='US/Mountain',
-    directory='/home/maclean/www/weather/nwsc10/data',
-    filenames='nwsc.%Y%m%d.cdf',
-    start_time = mttz.localize(datetime(2009,1,1,0,0,0),is_dst=True),
-    end_time = datetime.now(mttz),
-    project=proj)
-
-for v in ['tdry','rh','pres','cpres0','dp','wdir','wspd','wmax','wchill','raina','raina24']:
-    var = Variable.objects.create(name=v)
+for var in wxvars:
     dset.variables.add(var)
 
-dset.add_platform(wx)
-# dset.platforms.add(wx)
-# dset.project.platforms.add(wx)
-# dset.save()
 
-proj = Project.objects.create(name='METCRAXII', projects=projroot)
+proj = Project.objects.create(name='METCRAXII')
 
-isfs = Platform.objects.create(name='ISFS',platforms=platroot)
+isfs = Platform.objects.create(name='ISFS')
 
 tz = timezone("US/Arizona")
 
@@ -95,10 +77,6 @@ dset = Dataset.objects.create(name='hr',
     start_time = aztz.localize(datetime(2013,9,27,0,0,0),is_dst=True),
     end_time = aztz.localize(datetime(2013,11,2,0,0,0),is_dst=True),
     project=proj)
-
-for v in ['tdry','rh','pres','cpres0','dp','wdir','wspd','wmax','wchill','raina','raina24']:
-    var = Variable.objects.create(name=v)
-    dset.variables.add(var)
 
 dset.add_platform(isfs)
 # dset.platforms.add(isfs)

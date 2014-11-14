@@ -1,0 +1,161 @@
+[
+{
+    "fields": {
+        "units": "Celsius", 
+        "name": "tdry", 
+        "long_name": "Temperature"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 1
+},
+{
+    "fields": {
+        "units": "percent", 
+        "name": "rh", 
+        "long_name": "Relative Humidity"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 2
+},
+{
+    "fields": {
+        "units": "hPa", 
+        "name": "pres", 
+        "long_name": "Barometric Pressure"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 3
+},
+{
+    "fields": {
+        "units": "hPa", 
+        "name": "cpres0", 
+        "long_name": "Pressure Corrected to Sea Level"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 4
+},
+{
+    "fields": {
+        "units": "Celsius", 
+        "name": "dp", 
+        "long_name": "Dew Point"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 5
+},
+{
+    "fields": {
+        "units": "degrees", 
+        "name": "wdir", 
+        "long_name": "Wind Direction"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 6
+},
+{
+    "fields": {
+        "units": "meters/second", 
+        "name": "wspd", 
+        "long_name": "Wind Speed"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 7
+},
+{
+    "fields": {
+        "units": "meters/second", 
+        "name": "wmax", 
+        "long_name": "Peak Gust"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 8
+},
+{
+    "fields": {
+        "units": "celsius", 
+        "name": "wchill", 
+        "long_name": "Wind Chill Temperature"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 9
+},
+{
+    "fields": {
+        "units": "millimeters", 
+        "name": "raina", 
+        "long_name": "Rain Accumulation"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 10
+},
+{
+    "fields": {
+        "units": "millimeters", 
+        "name": "raina24", 
+        "long_name": "24 hour Rain Accumulation"
+    }, 
+    "model": "ncharts.variable", 
+    "pk": 11
+},
+{
+    "fields": {
+        "timezone": "US/Mountain", 
+        "end_time": "2014-11-14T21:29:29.613Z", 
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "location": "NCAR Foothills Lab, Boulder CO", 
+        "directory": "/home/maclean/www/weather/flab/data", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2009-01-01T07:00:00Z", 
+        "name": "flab-5min", 
+        "project": "Weather", 
+        "filenames": "flab.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 1
+},
+{
+    "fields": {
+        "timezone": "US/Mountain", 
+        "end_time": "2014-11-14T21:29:31.101Z", 
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "location": "NCAR Wyoming Supercomputer Center, Cheyenne WY", 
+        "directory": "/home/maclean/www/weather/nwsc/data", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2009-01-01T07:00:00Z", 
+        "name": "nwsc-5min", 
+        "project": "Weather", 
+        "filenames": "nwsc.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 2
+}
+]

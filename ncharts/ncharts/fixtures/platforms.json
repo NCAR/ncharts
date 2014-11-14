@@ -1,0 +1,20 @@
+[
+{
+    "fields": {
+        "projects": [
+            "METCRAXII"
+        ]
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "ISFS"
+},
+{
+    "fields": {
+        "projects": [
+            "Weather"
+        ]
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "Weather Station"
+}
+]

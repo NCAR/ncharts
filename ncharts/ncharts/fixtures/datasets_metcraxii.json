@@ -1,0 +1,38 @@
+[
+{
+    "fields": {
+        "timezone": "US/Arizona", 
+        "end_time": "2013-11-02T07:00:00Z", 
+        "variables": [], 
+        "location": "Meteor Crater", 
+        "directory": "/home/maclean/isfs/projects/METCRAXII/netcdf", 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2013-09-27T07:00:00Z", 
+        "name": "5min", 
+        "project": "METCRAXII", 
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 3
+},
+{
+    "fields": {
+        "timezone": "US/Arizona", 
+        "end_time": "2013-11-02T07:00:00Z", 
+        "variables": [], 
+        "location": "Meteor Crater", 
+        "directory": "/home/maclean/isfs/projects/METCRAXII/netcdf_hr", 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2013-09-27T07:00:00Z", 
+        "name": "hr", 
+        "project": "METCRAXII", 
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 4
+}
+]

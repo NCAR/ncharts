@@ -13,19 +13,11 @@ from django.db import models
 
 from ncharts import fileset
 
-class Root(models.Model):
-    ''' '''
-    name = models.CharField(max_length=16)
-
-    def __str__(self):
-        return 'Root: ' + self.name
-
 class Project(models.Model):
     ''' '''
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=64,primary_key=True)
 
-    # To get all projects:  Root.project_set.all()
-    projects = models.ForeignKey(Root)
+    # To get all projects:  Project.objects.all()
 
     # To find all platforms of a project:
     # Platform.objects.filter(projects__name__exact='METCRAXII')
@@ -42,10 +34,9 @@ class Project(models.Model):
 
 class Platform(models.Model):
     ''' '''
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=64,primary_key=True)
 
-    # To get all platforms:  Root.platform_set.all()
-    platforms = models.ForeignKey(Root)
+    # To get all platforms:  Platform.objects.all()
 
     projects = models.ManyToManyField(Project)
 
@@ -103,7 +94,7 @@ class Dataset(models.Model):
         if len(self.variables.values()) > 0:
             res = {}
             for v in self.variables.all():
-                res[v.name] = {"units": v.units, "long_name": long_name}
+                res[v.name] = {"units": v.units, "long_name": v.long_name}
             return res
         return self.get_fileset().get_variables(self.start_time, self.end_time)
 
