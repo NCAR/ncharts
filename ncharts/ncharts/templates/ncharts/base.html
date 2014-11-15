@@ -14,39 +14,33 @@
     <link rel="stylesheet"
         href="{% static "ncharts/csslib/ncharts.css" %}">
 
+    <!-- bootstrap -->
+    <!--
     <link rel="stylesheet" type="text/css"
         href="{% static "ncharts/css/bootstrap.min.css" %}"/>
-
-    <!--
-    href="{{STATIC_URL}}ncharts/css/bootstrap.min.css"
+    <script src="{% static "ncharts/js/bootstrap.min.js" %}"></script>
     -->
+
+    <link rel="stylesheet" type="text/css"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 
     <!--
     <link rel="stylesheet"
         href="{{ STATIC_URL }}ncharts/jquery_mobile/jquery.mobile-1.3.1.min.css"/>
     -->
 
-    <!-- adding jslib/jquery.js results in some adornments:
-        blue box around it all
-        checkbox labels to left of box
-        choose label before choose button
-    -->
-    <!-- Placed at the end of the document so pages load faster -->
-    <!--
-    <script type="text/javascript"
-        src="{{ STATIC_URL }}ncharts/jslib/jquery.js">
-    </script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    -->
     <!--
     <script src="{% static "ncharts/js/jquery-2.1.1.min.js" %}"></script>
-    -->
     <script src="{% static "ncharts/js/jquery.js" %}"></script>
-    <script src="{% static "ncharts/js/bootstrap.min.js" %}"></script>
-
-    <!--
-        src="{{ STATIC_URL }}ncharts/js/bootstrap.min.js"></script>
     -->
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 
     <!--
         adding mobile stylesheet with this adds a bunch of adornments:
@@ -56,19 +50,19 @@
     </script>
     -->
 
+    <!--
     <script type="text/javascript"
         src="{% static "ncharts/js/highcharts.js" %}"></script>
     </script>
-    <!--
-        src="{{ STATIC_URL }}ncharts/js/highcharts.js"
     -->
+    <script
+        src="http://code.highcharts.com/highcharts.js">
+    </script>
 
+    <!-- finally, ncharts.js -->
     <script type="text/javascript"
         src="{% static "ncharts/jslib/ncharts.js" %}">
     </script>
-    <!--
-        src="{{ STATIC_URL }}ncharts/jslib/ncharts.js">
-    -->
 
     {% block head %}{% endblock %}
 
