@@ -15,21 +15,6 @@ from ncharts.models import Variable
 from pytz import timezone, utc
 from datetime import datetime
 
-'''
-CHOICES = (('blue','Blue'),('green','Green'),('black','Black'))
-# class DatasetFormPreview(FormPreview):
-#     def done(self,request,cleaned_data):
-#         return HttpResponseRedirect('ncharts')
-'''
-
-class VariablesFormField(forms.MultipleChoiceField):
-    ''' MultipleChoiceField which uses a CheckboxSelectMultiple widget. '''
-
-    def __init__(self,**kwargs):
-        defaults = {'widget': forms.CheckboxSelectMultiple }
-        defaults.update(kwargs)
-        super().__init__(**defaults)
-
 class DatasetSelectionForm(forms.Form):
     ''' '''
 
@@ -49,21 +34,8 @@ class DatasetSelectionForm(forms.Form):
     def __init__(self,*args,dataset=None,selected=[],
             start_time=None,end_time=None,
              **kwargs):
-        '''
-        print('dir(self)=',dir(self))
-        vars = []
-        svars = []
-        if 'variables' in kwargs:
-            vars = kwargs.pop('variables')
-        if 'selected' in kwargs:
-            svars = kwargs.pop('selected')
-        '''
-
 
         super().__init__(*args,**kwargs)
-        '''
-        print('DatasetSelectionForm __init__ dir(self)=',dir(self))
-        '''
 
         self.dataset = dataset
 
@@ -71,36 +43,24 @@ class DatasetSelectionForm(forms.Form):
 
         # choices is a list of tuples: (value,label)
         self.fields['variables'].choices = [ (v,v) for v in dvars ]
-        '''
-        print(["%s,%s" % (t1,t2) for (t1,t2) in self.fields['variables'].choices])
-        '''
 
         # initial selected variables
         self.fields['variables'].initial = selected
 
-        '''
-        print('start_time=',start_time)
-
-        print('DatasetSelectionForm __init__ dir(self.fields start_time)=',dir(self.fields['start_time']))
-        print('DatasetSelectionForm __init__ type(self.fields start_time)=',type(self.fields['start_time']))
-        '''
-
         self.fields['start_time'].initial = start_time
 
         self.fields['end_time'].initial = end_time
-
-        # self.dataset_start = dataset.start_time
-        # self.dataset_end = dataset.end_time
-        # self.files = None
-        # self.fileset = fileset.Fileset.get(
 
         self.files = []
 
     def clean(self):
         '''
         print('DatasetSelectionForm clean')
+        print("cleaned_data=",cleaned_data)
         '''
+
         cleaned_data = super().clean()
+
         if cleaned_data['start_time'] < self.dataset.start_time:
             msg = u'start time too early'
             self._errors['start_time'] = self.error_class([msg])
@@ -120,13 +80,10 @@ class DatasetSelectionForm(forms.Form):
         fset = self.dataset.get_fileset()
 
         self.files = [f.path for f in fset.scan(cleaned_data['start_time'],cleaned_data['end_time'])]
+
         # TODO: improve this error
         if len(self.files) == 0:
             raise forms.ValidationError('no files within times')
-
-        '''
-        print('type(self.files[0])=',type(self.files[0]))
-        '''
 
         return cleaned_data
 

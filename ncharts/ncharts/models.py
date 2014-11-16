@@ -44,9 +44,12 @@ class Platform(models.Model):
         return 'Platform: %s' % self.name
 
 class Variable(models.Model):
+
     name = models.CharField(max_length=64)
-    units = models.CharField(max_length=64)
-    long_name = models.CharField(max_length=256)
+
+    units = models.CharField(max_length=64,blank=True)
+
+    long_name = models.CharField(max_length=256,blank=True)
 
 class Dataset(models.Model):
     ''' '''
@@ -75,7 +78,7 @@ class Dataset(models.Model):
 
     end_time = models.DateTimeField()
 
-    variables = models.ManyToManyField(Variable,related_name='dataset+')
+    variables = models.ManyToManyField(Variable,related_name='dataset+',blank=True)
 
     def __str__(self):
         return 'Dataset: %s of %s' % (self.name,self.project)
