@@ -14,18 +14,6 @@
     <form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        {% comment %}
-        {% for v in form.variables.field.choices %}
-        <p>{{ v }}</p>
-        {% endfor %}
-        {{ form.variables.as_table }}   does nothing
-        <table style="width: 100%">
-            <tr>
-            </tr>
-        </table>
-        {{ form.as_p }}
-        {% endcomment %}
-
         <div class="variable">
             {% for var in form.variables %}
                             {{ var }}
@@ -37,24 +25,21 @@
         <input type="submit" value="choose"/>
     </form>
 {% endif %}
-<script>
-    var time0 = {{ time0 }};
-    var time = jQuery.parseJSON('{{ time }}');
-    var data = jQuery.parseJSON('{{ data }}');
-    // var chart_data = [];
-    // for (var i = 0; i < time.length; i++) {
-        // chart_data.push([time[i]*1000, data[i]]);
-    // } 
-    // var chart_title = 'zippie';
-</script>
 
-{% if plot_type %}
+{% if data %}
+    <script>
+        var time0 = {{ time0 }};
+        var time = jQuery.parseJSON('{{ time }}');
+        var data = jQuery.parseJSON('{{ data }}');
+    </script>
+
     {% for vname,val in variables.items %}
-        <div id="{{ plot_type }}_{{ vname }}" class="do_plot">
-        hello
+
+    <p> {{ val.plot_type }}</p>
+        <div id="{{ val.plot_type }}_{{ vname }}" class="do_plot">
         </div>
         <script>
-            var div = $("#{{ plot_type }}_{{ vname }}")[0];
+            var div = $("#{{ val.plot_type }}_{{ vname }}")[0];
             jQuery.data(div,"variable","{{ vname }}");
             jQuery.data(div,"units","{{ val.units }}");
             jQuery.data(div,"long_name","{{ val.long_name }}");

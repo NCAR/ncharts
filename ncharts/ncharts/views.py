@@ -10,8 +10,6 @@
 from django.http import HttpResponse, Http404
 from django.template import RequestContext, loader
 from django.shortcuts import render, get_object_or_404
-# from django.views.generic.base import TemplateView
-# from django.views.generic.edit import FormView
 from django.views.generic.edit import View
 from django.utils.safestring import mark_safe
 
@@ -19,12 +17,11 @@ from ncharts.models import  Project, Platform, Dataset, UserSelection
 from ncharts.forms import DatasetSelectionForm
 from ncharts import netcdf
 
-import json
-import numpy
-# import simplejson
-
+import json, numpy, math, logging
 from pytz import timezone
 
+
+logger = logging.getLogger(__name__)
 
 def index(request):
     return HttpResponse("Hello world, ncharts index")
@@ -39,7 +36,7 @@ def projects(request):
 
     projects = Project.objects.all()
 
-    print('projects len=%d' % len(projects))
+    # print('projects len=%d' % len(projects))
 
     context = { 'projects': projects }
     return render(request,'ncharts/projects.html',context)
@@ -48,7 +45,7 @@ def project(request,project_name):
     ''' request for list of platforms and datasets of a project'''
     try:
         project = Project.objects.get(name=project_name)
-        print('project.name=' + str(project))
+        # print('project.name=' + str(project))
 
         datasets = project.dataset_set.all()
 
@@ -70,7 +67,7 @@ def platforms(request):
 
     platforms = Platform.objects.all()
 
-    print('platforms len=%d'  % len(platforms))
+    # print('platforms len=%d'  % len(platforms))
 
     context = { 'platforms': platforms }
     return render(request,'ncharts/platforms.html',context)
@@ -80,7 +77,7 @@ def platform(request,platform_name):
     try:
         platform = Platform.objects.get(name=platform_name)
         projects = platform.projects.all()
-        print('projects len=%d' % len(projects))
+        # print('projects len=%d' % len(projects))
 
         context = {
             'platform': platform,
@@ -99,7 +96,7 @@ def platformProject(request,platform_name,project_name):
 
         datasets = Dataset.objects.filter(project__name__exact=project_name).filter(platforms__name__exact=platform_name)
 
-        print('datasets len=%d' % len(datasets))
+        # print('datasets len=%d' % len(datasets))
 
         context = {
             'project': project,
@@ -124,14 +121,25 @@ class MyJSONEncoder(json.JSONEncoder):
     where you also have to treat 0 specially. That still might
     be faster than
         float(format(v,'.5g'))
+
+    Also generate a None if data is a nan.
     '''
     def default(self,obj):
+        def roundcheck(v):
+            if math.isnan(v):
+                return None
+            else:
+                return float(format(v,'.5g'))
+
+        # print("type(obj)=",type(obj))
         if isinstance(obj,numpy.ndarray):
             if len(obj.shape) > 1:
                 # this should reduce the rank by one
+                # print("Encoder, default, len(obj.shape)=",len(obj.shape))
                 return [v for v in obj[:]]
             else:
-                return [float(format(v,'.5g')) for v in obj]
+                # print("Encoder, default, len(obj.shape)=",len(obj.shape))
+                return [roundcheck(v) for v in obj]
         else:
             return json.JSONEncoder.default(self,obj)
 
@@ -143,28 +151,20 @@ class DatasetView(View):
     # fields = ['variables']
 
     def get(self, request, *args, project_name, dataset_name, **kwargs):
-        '''
-        print('DatasetView get, type(self)=',type(self))
-        print('DatasetView get, dir(self)=',dir(self))
-        print('DatasetView get, len(args)=',len(args))
-        print('DatasetView get, len(kwargs)=',len(kwargs))
-        print('DatasetView get, project_name=',project_name)
-        print('DatasetView get, dataset_name=',dataset_name)
-        print('DatasetView get, request.session.keys=',
-                ['%s' % k for k in request.session.keys()])
-
-        # somehow self.kwargs is set here
-        print('DatasetView get, self.kwargs.keys=',
-                ['%s' % k for k in self.kwargs.keys()])
-        print('DatasetView get, kwargs.keys=',
-                ['%s' % k for k in kwargs.keys()])
-        '''
 
         project = Project.objects.get(name=project_name)
         dataset = project.dataset_set.get(name=dataset_name)
 
-        if 'request_id' not in request.session or not request.session['request_id']:
-            print('DatasetView get, dataset.variables=',dataset.variables)
+        usersel = None
+
+        if 'request_id' in request.session and request.session['request_id']:
+            try:
+                usersel = UserSelection.objects.get(id=request.session['request_id'])
+            except UserSelection.DoesNotExist:
+                pass
+
+        if not usersel:
+            # print('DatasetView get, dataset.variables=',dataset.variables)
             # Initial user selection times need more thought:
             #   real-time project (end_time near now):
             #       start_time, end_time a day at end of dataset
@@ -176,16 +176,35 @@ class DatasetView(View):
                     end_time=dataset.end_time,
                     )
             request.session['request_id'] = usersel.id
+            logger.info("get, new session, request_id=%d, project=%d,dataset=%s",
+                    request_id,project_name,dataset_name)
+
         else:
-            # print("request.session['request_id']=",request.session['request_id'])
-            usersel = UserSelection.objects.get(id=request.session['request_id'])
+
+            if usersel.dataset.pk == dataset.pk:
+                logger.info("get, old session, request_id=%d, project=%d,dataset=%s",
+                        request_id,project_name,dataset_name)
+                # could check that usersel.dataset.name == dataset_name and
+                # usersel.dataset.project.name == project_name
+                # but I believe that is unnecessary, since the pk members
+                # are unique.
+            else:
+                # User has changed dataset of interest
+                logger.info("get, old session, request_id=%d, dataset.pk=%d, old dataset.pk=%d, project=%s, dataset=%s",
+                        request.session['request_id'],dataset.pk,usersel.dataset.pk,
+                        project_name,dataset_name)
+                usersel.dataset = dataset
+                usersel.variables = []
+                usersel.start_time = dataset.start_time
+                usersel.end_time = dataset.end_time
+                usersel.save()
 
         # print('DatasetView get, dir(usersel)=', dir(usersel))
-        print('DatasetView get, dir(usersel.variables)=', dir(usersel.variables))
+        # print('DatasetView get, dir(usersel.variables)=', dir(usersel.variables))
 
         # variables selected previously by user
         if usersel.variables:
-            print('DatasetView get, usersel.variables=', usersel.variables)
+            # print('DatasetView get, usersel.variables=', usersel.variables)
             svars = json.loads(usersel.variables)
         else:
             svars = []
@@ -193,77 +212,40 @@ class DatasetView(View):
         form = DatasetSelectionForm(dataset=dataset,selected=svars,
                 start_time=usersel.start_time,end_time=usersel.end_time)
 
-        '''
-        print('DatasetView get, dir(form)=', dir(form))
-        print('DatasetView get, dir(form.fields.keys())=',
-                ['%s' % k for k in form.fields.keys()])
-        print('DatasetView get, type(form.fields[variables]=',
-            type(form.fields['variables']))
-        print('DatasetView get, type(form.fields[variables].widget)=',
-            type(form.fields['variables'].widget))
-        print('DatasetView get, form.fields[variables].widget.choices=',
-            form.fields['variables'].widget.choices)
-        print('DatasetView get, type(form.fields[variables].widget_attrs)=',
-            type(form.fields['variables'].widget_attrs))
-        
-        attrs = form.fields['variables'].widget_attrs(form.fields['variables'].widget)
-        print('DatasetView get, type(attrs)=',type(attrs))
-
-        print('DatasetView get, attrs keys=',
-                ['%s' % k for k in attrs.keys()])
-
-        print('DatasetView get, dir(form.fields[variables])=',
-                dir(form.fields['variables']))
-
-        # form.fields['variables'].choices = tuple( (usersel.variables[k],k) for k in usersel.variables.all() )
-
-        # return render(request,self.template_name, { 'form': form, 'usersel': usersel })
-        '''
         return render(request,self.template_name, { 'form': form , 'dataset': dataset})
 
     def post(self, request, *args, project_name, dataset_name, **kwargs):
-        '''
-        print('DatasetView post')
-        print('DatasetView post, self.kwargs.keys=',
-                ['%s' % k for k in self.kwargs.keys()])
-        print('DatasetView post, request.session.keys=',
-                ['%s' % k for k in request.session.keys()])
 
-        # request.POST is a QueryDict object
-        print('DatasetView dir(request.POST)=',
-                dir(request.POST))
-        print('DatasetView POST keys=',
-                ['%s' % k for k in request.POST.keys()])
-        if 'variables' in request.POST.keys():
-            print('DatasetView POST type(variables)=',
-                    type(request.POST['variables']))
-            print('DatasetView POST len(variables)=',
-                    len(request.POST['variables']))
-            print('DatasetView POST getlist variables=',
-                    ['%s' % v for v in request.POST.getlist('variables')])
+        if 'request_id' not in request.session or not request.session['request_id']:
+            # not sure if it is possible for a post to come in without
+            # a session id.
+            logger.error("post but no request_id, redirecting to get")
+            return get(request, *args, project_name=project_name,
+                    dataset_name=dataset_name, **kwargs)
 
-        if 'start_time' in request.POST.keys():
-            print('DatasetView POST.values start_time =',
-                    request.POST['start_time'])
-
-        '''
-
+        # what if this get fails?
         usersel = UserSelection.objects.get(id=request.session['request_id'])
-
-        '''
-        if 'variables' in request.POST:
-            print('DatasetView POST["variables"]=',
-                    ['%s' % type(v) for v in request.POST['variables']])
-            print('DatasetView POST["variables"]=',
-                    ['%s' % v for v in request.POST['variables']])
-            for var in dataset.variables.all():
-                usersel.variables.add(var)
-        '''
 
         # project = Project.objects.get(name=project_name)
         dataset = usersel.dataset
 
+        logger.info("post, old session, request_id=%d, project=%s,dataset=%s",
+                request.session['request_id'],dataset.project.name,dataset.name)
+
+        # dataset name and project name from URL should agree with
+        # session values. There are probably situations where that may
+        # be violated such as a user re-posting an old form.
+        if dataset.name != dataset_name or dataset.project.name != project_name:
+            logger.error("post, old session, request_id=%d, project=%s,dataset=%s, url project=%s, dataset=%d",
+
+                request.session['request_id'],dataset.project.name,dataset.name,
+                project_name,dataset_name)
+            return get(request, *args, project_name=project_name,
+                    dataset_name=dataset_name, **kwargs)
+
         # vars = [ v.name for v in dataset.variables.all() ]
+
+        # print("request.POST=",request.POST)
         form = DatasetSelectionForm(request.POST,dataset=dataset)
 
         if not form.is_valid():
@@ -272,18 +254,8 @@ class DatasetView(View):
                 'dataset': dataset})
 
         # validated data is in form.cleaned_data
-        '''
-        print('DatasetView post, form.cleaned_data.keys=',
-                ['%s' % k for k in form.cleaned_data.keys()])
-        print('DatasetView post, type(form.cleaned_data[variables])=',
-                type(form.cleaned_data['variables']))
-        '''
-
         svars = form.cleaned_data['variables']
 
-        '''
-        print('svars=',svars)
-        '''
         usersel.variables = json.dumps(svars)
         usersel.start_time = form.cleaned_data['start_time']
         usersel.end_time = form.cleaned_data['end_time']
@@ -296,10 +268,6 @@ class DatasetView(View):
         ncdset = netcdf.NetCDFDataset(files)
 
         if len(dataset.variables.all()) > 0:
-            for k in svars:
-                print("k=",k,',var.name=',dataset.variables.get(name=k).name)
-
-            # variables = { }
             variables = { k:{'units': dataset.variables.get(name=k).units,
                 'long_name': dataset.variables.get(name=k).long_name }
                     for k in svars }
@@ -316,10 +284,33 @@ class DatasetView(View):
             time0 = ncdata['time'][0].timestamp()
         time = json.dumps([x.timestamp() - time0 for x in ncdata['time']])
 
+        def type_by_dimension(d):
+            if len(d.shape) == 1:
+                return 'time-series'
+            elif len(d.shape) == 2:
+                return 'time-heat-map'
+            else:
+                return 'none'
+
+        for n,v in variables.items():
+            v['plot_type'] = type_by_dimension(ncdata['data'][n])
+            # print("n, shape=",ncdata['data'][n].shape)
+
         data = json.dumps(ncdata['data'],cls=MyJSONEncoder)
 
+        ''' for variables with 2 dimensions: the second dimension should
+            be the same. Need values for points on that dimension.
+            Check name of second dimension. Look for variable with that name.
+            If no variable, look for "height". grap first slice
+            '''
+
+        '''
+        print(type(plot_types))
+        print([(n,v) for n,v in plot_types.items()])
+        '''
+
         return render(request,self.template_name, { 'form': form,
-            'dataset': dataset, 'plot_type': 'time-series',
+            'dataset': dataset, 
             'variables': variables, 'time0': time0, 'time': mark_safe(time),
             'data': mark_safe(data) })
 
