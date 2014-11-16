@@ -156,10 +156,12 @@ class DatasetView(View):
         dataset = project.dataset_set.get(name=dataset_name)
 
         usersel = None
+        request_id = None
 
         if 'request_id' in request.session and request.session['request_id']:
+            request_id = request.session['request_id']
             try:
-                usersel = UserSelection.objects.get(id=request.session['request_id'])
+                usersel = UserSelection.objects.get(id=request_id)
             except UserSelection.DoesNotExist:
                 pass
 
@@ -175,7 +177,8 @@ class DatasetView(View):
                     start_time=dataset.start_time,
                     end_time=dataset.end_time,
                     )
-            request.session['request_id'] = usersel.id
+            request_id = usersel.id
+            request.session['request_id'] = request_id
             logger.info("get, new session, request_id=%d, project=%d,dataset=%s",
                     request_id,project_name,dataset_name)
 
@@ -191,7 +194,7 @@ class DatasetView(View):
             else:
                 # User has changed dataset of interest
                 logger.info("get, old session, request_id=%d, dataset.pk=%d, old dataset.pk=%d, project=%s, dataset=%s",
-                        request.session['request_id'],dataset.pk,usersel.dataset.pk,
+                        request_id,dataset.pk,usersel.dataset.pk,
                         project_name,dataset_name)
                 usersel.dataset = dataset
                 usersel.variables = []
@@ -288,31 +291,25 @@ class DatasetView(View):
             if len(d.shape) == 1:
                 return 'time-series'
             elif len(d.shape) == 2:
-                return 'time-heat-map'
+                return 'heatmap'
             else:
                 return 'none'
 
         for n,v in variables.items():
-            v['plot_type'] = type_by_dimension(ncdata['data'][n])
             # print("n, shape=",ncdata['data'][n].shape)
+            v['plot_type'] = type_by_dimension(ncdata['data'][n])
+            if v['plot_type'] == 'heatmap':
+                # TODO get this from the netcdf
+                v['dim2_name'] = 'y'
 
         data = json.dumps(ncdata['data'],cls=MyJSONEncoder)
 
-        ''' for variables with 2 dimensions: the second dimension should
-            be the same. Need values for points on that dimension.
-            Check name of second dimension. Look for variable with that name.
-            If no variable, look for "height". grap first slice
-            '''
-
-        '''
-        print(type(plot_types))
-        print([(n,v) for n,v in plot_types.items()])
-        '''
+        dim2 = json.dumps(ncdata['dim2'])
 
         return render(request,self.template_name, { 'form': form,
             'dataset': dataset, 
             'variables': variables, 'time0': time0, 'time': mark_safe(time),
-            'data': mark_safe(data) })
+            'data': mark_safe(data), 'dim2': mark_safe(dim2) })
 
 def dataset(request,project_name,dataset_name):
     try:

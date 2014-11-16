@@ -164,12 +164,16 @@ class NetCDFDataset:
             finally:
                 ds.close()
 
+            dim2 = []
             for vname in variables:
 
                 # change length of time dimension in variable shape.
                 shape = list(self.variables[vname]['shape'])
                 shape[time_index] = len(tindex)
                 shape = tuple(shape)
+
+                if len(shape) > 1:
+                    dim2 = [ i for i in range(shape[1])]
 
                 if not vname in dsdata:
                     if not vname in data:
@@ -191,6 +195,6 @@ class NetCDFDataset:
             logger.debug("data[%s].shape=%s",vname,repr(data[vname].shape))
 
 
-        return {"time" : times, "data": data }
+        return {"time" : times, "data": data, "dim2": dim2 }
 
 
