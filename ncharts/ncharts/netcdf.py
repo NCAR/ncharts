@@ -7,6 +7,7 @@
 # The license and distribution terms for this file may be found in the
 # file LICENSE in this package.
 
+import os
 import netCDF4
 from datetime import datetime
 import pytz
@@ -29,7 +30,7 @@ class NetCDFDataset:
 
         for file in self.files:
             try:
-                logger.debug("file=%s",file)
+                # logger.debug("file=%s",file)
                 ds = netCDF4.Dataset(file)
 
                 if not hasattr(self,"base_time") and "base_time" in ds.variables:
@@ -69,6 +70,7 @@ class NetCDFDataset:
                             if not n == self.time_name:
                                 self.variables[n] = {}
                                 self.variables[n]["shape"] = v.shape
+                                # don't need _FillValue
                                 for a in ["units","long_name","short_name"]:
                                     if hasattr(v,a):
                                         self.variables[n][a] = getattr(v,a)
@@ -89,7 +91,7 @@ class NetCDFDataset:
         data = {}
         times = []
         for file in self.files:
-            logger.debug("file=%s",file)
+            # logger.debug("file=%s",file)
             try:
                 ds = netCDF4.Dataset(file)
 
@@ -115,7 +117,7 @@ class NetCDFDataset:
                 else:
                     continue
 
-                idx = (tindex,)
+                time_index = None
                 for vname in variables:
                     if vname in self.variables and vname in ds.variables:
                         vshape = self.variables[vname]["shape"]
@@ -133,41 +135,60 @@ class NetCDFDataset:
                                 if type(selectdim[d]) == type([]):
                                     if not any(i < 0 for i in selectdim[d]):
                                         continue
+                        idx = ()
                         for d in var.dimensions:
                             if d == self.time_dim:
-                                idx = (tindex,)
+                                time_index = len(idx)
+                                idx += (tindex,)
                             elif d == "sample":
                                 # deal with this later...
-                                idx += (0)
+                                idx += (0,)
                             elif d in selectdim:
                                 if type(selectdim[d]) == type([]):
                                     idx += (sort([i for i in selectdim[d] if i >= 0]))
                                 else:
-                                    idx += (selectdim[d])
+                                    idx += (selectdim[d],)
                             else:
-                                idx += (0)
+                                # idx += (6,)
+                                idx += (slice(0,len(ds.dimensions[d])),)
 
-                        # logger.debug("%s: %s: idx=%s",file,vname,repr(idx))
-                        dsdata[vname] = var[idx]
+                        logger.debug("%s: %s: idx=%s",os.path.split(file)[1],vname,repr(idx))
+
+                        # dsdata[vname] = var[:].filled(fill_value=float('nan'))[idx]
+
+                        var = var[idx]
+                        if isinstance(var,numpy.ma.core.MaskedArray):
+                            dsdata[vname] = var.filled(fill_value=float('nan'))
+                        else:
+                            dsdata[vname] = var
             finally:
                 ds.close()
 
             for vname in variables:
+
+                # change length of time dimension in variable shape.
+                shape = list(self.variables[vname]['shape'])
+                shape[time_index] = len(tindex)
+                shape = tuple(shape)
+
                 if not vname in dsdata:
                     if not vname in data:
                         data[vname] = numpy.ma.array(data=numpy.empty(
-                            shape=self.variables[vname]["shape"],dtype=float),
-                            mask=True,fill_value=float('nan'))
+                            shape=shape,dtype=float),
+                            mask=True,fill_value=float('nan')).filled()
                     else:
                         data[vname] = numpy.append(data[vname],
                                 numpy.ma.array(data=numpy.empty(
-                                    shape=self.variables[vname]["shape"],dtype=float),
-                                    mask=True,fill_value=float('nan')))
+                                    shape=shape,dtype=float),
+                                    mask=True,fill_value=float('nan')).filled(),axis=time_index)
                 else:
                     if not vname in data:
                         data[vname] = dsdata[vname]
                     else:
-                        data[vname] = numpy.append(data[vname], dsdata[vname])
+                        data[vname] = numpy.append(data[vname], dsdata[vname],axis=time_index)
+
+        for vname in data.keys():
+            logger.debug("data[%s].shape=%s",vname,repr(data[vname].shape))
 
 
         return {"time" : times, "data": data }
