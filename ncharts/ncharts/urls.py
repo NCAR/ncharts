@@ -14,10 +14,6 @@ from ncharts.views import DatasetView
 # from ncharts.forms import DatasetForm
 # DatasetFormPreview
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
-
 # format of a pattern:
 # regular expression, Python callback function [, optional dictionary [, optional_name [[
 # url(regex,view,kwargs=None,name=None,prefix="")

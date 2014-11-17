@@ -235,7 +235,7 @@ class Dir:
                 key=lambda x: x.time)
         # index of first element whose time is > start_time
         # we want to include the previous file
-        if len(files) == 0:
+        if len(files) < 2:
             return files
         i = next(filter(lambda i: files[i].time > start_time,range(len(files))))
         return files[max(i-1,0):]

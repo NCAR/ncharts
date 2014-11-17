@@ -179,7 +179,7 @@ class DatasetView(View):
                     )
             request_id = usersel.id
             request.session['request_id'] = request_id
-            logger.info("get, new session, request_id=%d, project=%d,dataset=%s",
+            logger.info("get, new session, request_id=%d, project=%s,dataset=%s",
                     request_id,project_name,dataset_name)
 
         else:

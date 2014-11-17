@@ -21,7 +21,7 @@ class NetCDFDataset:
     one or more files.
     '''
 
-    def __init__(self, files, time_names=['time','time_offset']):
+    def __init__(self, files, time_names=['time','Time','time_offset']):
         """
         """
 
@@ -36,11 +36,14 @@ class NetCDFDataset:
                 if not hasattr(self,"base_time") and "base_time" in ds.variables:
                     self.base_time = "base_time"
 
-                if not hasattr(self,"time_dim") and "time" in ds.dimensions:
-                    tdim = ds.dimensions["time"]
-                    # tdim.is_unlimited
-                    self.time_dim = "time"
-                else:
+                tdim = None
+                for tname in ['time','Time']:
+                    if tname in ds.dimensions:
+                        tdim = ds.dimensions[tname]
+                        # tdim.is_unlimited
+                        if not hasattr(self,"time_dim"):
+                            self.time_dim = tname
+                if not tdim:
                     continue
 
                 if "station" in ds.dimensions:
@@ -107,11 +110,12 @@ class NetCDFDataset:
 
                 if self.time_name in ds.variables:
                     var = ds.variables[self.time_name]
-                    if hasattr(self,"units") and 'since' in var.units:
+                    if hasattr(var,"units") and 'since' in var.units:
                         tv = [d.replace(tzinfo=pytz.UTC) for d in netCDF4.num2date(var[:],var.units,'standard')]
                         # tv = [d.timestamp() for d in netCDF4.num2date(var[:],var.units,'standard')]
                     else:
                         tv = [ datetime.fromtimestamp(base_time + val,tz=pytz.utc) for val in var[:] ]
+                    print("tv[0]=",tv[0])
                     tindex = [ i for i,t in enumerate(tv) if t >= start_time and t < end_time]
                     times.extend([tv[i] for i in tindex])
                 else:

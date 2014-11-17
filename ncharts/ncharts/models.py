@@ -80,6 +80,8 @@ class Dataset(models.Model):
 
     variables = models.ManyToManyField(Variable,related_name='dataset+',blank=True)
 
+    dtype = models.CharField(max_length=64,blank=True)
+
     def __str__(self):
         return 'Dataset: %s of %s' % (self.name,self.project)
 
