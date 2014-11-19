@@ -7,11 +7,13 @@
 # The license and distribution terms for this file may be found in the
 # file LICENSE in this package.
 
-import json, os
+import json, os, pytz
 
 from django.db import models
 
 from ncharts import fileset
+
+from django.core.exceptions import ValidationError
 
 class Project(models.Model):
     ''' '''
@@ -51,6 +53,12 @@ class Variable(models.Model):
 
     long_name = models.CharField(max_length=256,blank=True)
 
+def validate_timezone(tzname):
+    try:
+        pytz.timezone(tzname)
+    except:
+        raise ValidationError("%s is not a recognized timezone" % tzname)
+
 class Dataset(models.Model):
     ''' '''
     name = models.CharField(max_length=256)
@@ -68,7 +76,7 @@ class Dataset(models.Model):
 
     location = models.CharField(max_length=256)
 
-    timezone = models.CharField(max_length=64)
+    timezone = models.CharField(max_length=64,validators=[validate_timezone])
 
     directory = models.CharField(max_length=256)
 
@@ -102,6 +110,60 @@ class Dataset(models.Model):
                 res[v.name] = {"units": v.units, "long_name": v.long_name}
             return res
         return self.get_fileset().get_variables(self.start_time, self.end_time)
+
+    def get_fileset(self):
+        return fileset.Fileset.get(os.path.join(self.directory,self.filenames))
+
+    def get_timezone(self):
+        ''' self.timezones is a dict object containing tzinfos for named
+            timezones
+        '''
+
+        # print("get_timezone, self.timezone=",self.timezone)
+        if not hasattr(self,"timezones"):
+            self.timezones = {}
+
+        if hasattr(self.timezones,self.timezone):
+            return self.timezones[self.timezone]
+
+        try:
+            tz = pytz.timezone(self.timezone)
+            # print("get_timezone, tz=",tz)
+            self.timezones[self.timezone] = tz
+            return tz
+        except:
+            raise ValidationError("%s is not a recognized timezone" % self.timezone)
+
+    def get_start_time(self):
+        '''
+        A datetime object d is aware if d.tzinfo is not None and d.tzinfo.utcoffset(d)
+        does not return None. If d.tzinfo is None, or if d.tzinfo is not None but
+        d.tzinfo.utcoffset(d) returns None, d is naive. 
+        '''
+
+        # print("Dataset get_start_time, start_time=",self.start_time.isoformat())
+        if self.start_time.tzinfo == None or self.start_time.tzinfo.utcoffset(self.start_time) == None:
+            tx =  self.get_timezone().localize(self.start_time,is_dst=True)
+            print("Dataset localized start_time:",tx.isoformat())
+            return tx
+        else:
+            return self.start_time
+
+    def get_end_time(self):
+        '''
+        A datetime object d is aware if d.tzinfo is not None and d.tzinfo.utcoffset(d)
+        does not return None. If d.tzinfo is None, or if d.tzinfo is not None but
+        d.tzinfo.utcoffset(d) returns None, d is naive. 
+        '''
+
+        # print("Dataset get_end_time, end_time=",self.end_time.isoformat())
+        if self.end_time.tzinfo == None or self.end_time.tzinfo.utcoffset(self.end_time) == None:
+            tx = self.get_timezone().localize(self.end_time,is_dst=True)
+            print("Dataset localized end_time:",tx.isoformat())
+            return tx
+        else:
+            return self.end_time
+
 
     # dataset.variables does not exist:
     # based on latest modification time of files or dataset could specify a
