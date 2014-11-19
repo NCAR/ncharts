@@ -230,15 +230,27 @@ class Dir:
                 files.extend(pdir.scan())
             files.extend(self.myfiles)
 
+        # return files
+
         # exclude files whose time is after end_time, then sort
         files = sorted(list(filter(lambda x: x.time < end_time,files)),
                 key=lambda x: x.time)
         # index of first element whose time is > start_time
-        # we want to include the previous file
         if len(files) < 2:
             return files
-        i = next(filter(lambda i: files[i].time > start_time,range(len(files))))
-        return files[max(i-1,0):]
+        # print("len(files)=",len(files))
+        try:
+            i = next(filter(lambda i: files[i].time > start_time,range(len(files))))
+        except StopIteration:
+            i = len(files)
+            print("StopIteration, i=",i,",len(files)=",len(files))
+
+        # i = filter(lambda i: files[i].time > start_time,range(len(files)))
+        # print("i=",i)
+        # we want to include the previous file
+        files = files[max(i-1,0):]
+        # print("len(files)=",len(files))
+        return files
 
 class Fileset:
     ''' '''
