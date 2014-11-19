@@ -2,37 +2,37 @@
 {
     "fields": {
         "timezone": "US/Arizona", 
-        "end_time": "2013-11-02T07:00:00Z", 
         "variables": [], 
         "location": "Meteor Crater", 
-        "directory": "/home/maclean/isfs/projects/METCRAXII/netcdf", 
+        "directory": "/net/isf/isff/projects/METCRAXII/ISFF/netcdf_qc_geo_tiltcor", 
         "platforms": [
             "ISFS"
         ], 
         "start_time": "2013-09-27T07:00:00Z", 
-        "name": "5min", 
+        "end_time": "2013-11-03T00:00:00Z", 
+        "name": "5 min, geo, tiltcor", 
         "project": "METCRAXII", 
-        "filenames": "isfs_%Y%m%d.nc"
+        "filenames": "isfs_tc_%Y%m%d.nc"
     }, 
     "model": "ncharts.dataset", 
-    "pk": 3
+    "pk": 9
 },
 {
     "fields": {
         "timezone": "US/Arizona", 
-        "end_time": "2013-11-02T07:00:00Z", 
         "variables": [], 
         "location": "Meteor Crater", 
-        "directory": "/home/maclean/isfs/projects/METCRAXII/netcdf_hr", 
+        "directory": "/net/isf/isff/projects/METCRAXII/ISFF/netcdf_hr_qc_geo_tiltcor", 
         "platforms": [
             "ISFS"
         ], 
         "start_time": "2013-09-27T07:00:00Z", 
-        "name": "hr", 
+        "end_time": "2013-11-02T07:00:00Z", 
+        "name": "high-rate, geo tilt_cor", 
         "project": "METCRAXII", 
-        "filenames": "isfs_%Y%m%d.nc"
+        "filenames": "metcraxii_tc_%Y%m%d_%H.nc"
     }, 
     "model": "ncharts.dataset", 
-    "pk": 4
+    "pk": 10
 }
 ]

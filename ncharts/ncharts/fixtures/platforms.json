@@ -16,5 +16,23 @@
     }, 
     "model": "ncharts.platform", 
     "pk": "Weather Station"
+},
+{
+    "fields": {
+        "projects": [
+            "DEEPWAVE"
+        ]
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "ISS"
+},
+{
+    "fields": {
+        "projects": [
+            "DEEPWAVE"
+        ]
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "GV"
 }
 ]

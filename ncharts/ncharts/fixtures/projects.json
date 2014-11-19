@@ -8,5 +8,10 @@
     "fields": {}, 
     "model": "ncharts.project", 
     "pk": "Weather"
+},
+{
+    "fields": {}, 
+    "model": "ncharts.project", 
+    "pk": "DEEPWAVE"
 }
 ]
