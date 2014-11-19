@@ -127,7 +127,7 @@ LOGGING = {
             'level':'DEBUG',
         },
         'ncharts': {
-            'handlers': ['ncharts_debug'],
+            'handlers': ['ncharts_debug','ncharts'],
             'level': 'DEBUG',
         },
     }
