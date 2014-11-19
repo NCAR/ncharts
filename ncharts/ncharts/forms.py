@@ -23,12 +23,14 @@ class DatasetSelectionForm(forms.Form):
 
     # pickerPosition: bottom-right, bottom-left
     #       popup calendar box is to lower left or right of textbox & icon
-    start_time = forms.DateTimeField(widget=DateTimeWidget(
-        bootstrap_version=3,options={'format': 'yyyy-mm-dd hh:ii',
+    start_time = forms.DateTimeField(
+        widget=DateTimeWidget(
+            bootstrap_version=3,options={'format': 'yyyy-mm-dd hh:ii',
             'clearBtn': 0, 'todayBtn': 1, 'pickerPosition': 'bottom-right'}))
 
-    end_time = forms.DateTimeField(widget=DateTimeWidget(
-        bootstrap_version=3,options={'format': 'yyyy-mm-dd hh:ii',
+    end_time = forms.DateTimeField(
+        widget=DateTimeWidget(
+            bootstrap_version=3,options={'format': 'yyyy-mm-dd hh:ii',
             'clearBtn': 0,'todayBtn': 1, 'pickerPosition': 'bottom-right'}))
 
     def __init__(self,*args,dataset=None,selected=[],
@@ -39,17 +41,21 @@ class DatasetSelectionForm(forms.Form):
 
         self.dataset = dataset
 
+        # print("form is_bound=",self.is_bound)
+
+        self.fields['start_time'].label = "Start time (timezone={})".format(dataset.timezone)
+        self.fields['end_time'].label = "End time (timezone={})".format(dataset.timezone)
+
+        if not self.is_bound:
+            # initial selected variables
+            self.fields['variables'].initial = selected
+            self.fields['start_time'].initial = start_time
+            self.fields['end_time'].initial = end_time
+
         dvars = sorted(dataset.get_variables().keys())
 
         # choices is a list of tuples: (value,label)
         self.fields['variables'].choices = [ (v,v) for v in dvars ]
-
-        # initial selected variables
-        self.fields['variables'].initial = selected
-
-        self.fields['start_time'].initial = start_time
-
-        self.fields['end_time'].initial = end_time
 
         self.files = []
 
@@ -61,18 +67,30 @@ class DatasetSelectionForm(forms.Form):
 
         cleaned_data = super().clean()
 
-        if cleaned_data['start_time'] < self.dataset.start_time:
-            msg = u'start time too early'
+        dtz = self.dataset.get_timezone()
+        # print("dtz=",dtz)
+        t1 = dtz.localize(cleaned_data['start_time'].replace(tzinfo=None))
+        t2 = dtz.localize(cleaned_data['end_time'].replace(tzinfo=None))
+
+        if t1 < self.dataset.get_start_time():
+            msg = "chosen start time: {} is earlier than dataset start time: {}".format(
+                t1.isoformat(),self.dataset.get_start_time().isoformat())
             self._errors['start_time'] = self.error_class([msg])
-            raise forms.ValidationError("start time too early")
+            raise forms.ValidationError(msg)
 
-        if cleaned_data['end_time'] > self.dataset.end_time:
-            msg = u'end time too late'
+        if t2 > self.dataset.get_end_time():
+            msg = "chosen end time: {} is later than dataset end time: {}".format(
+            t2.isoformat(),self.dataset.get_end_time().isoformat())
             self._errors['end_time'] = self.error_class([msg])
-            raise forms.ValidationError('end time too late')
+            raise forms.ValidationError(msg)
 
-        if cleaned_data['start_time'] >= cleaned_data['end_time']:
-            raise forms.ValidationError('start_time not earlier than end_time')
+        if t1 >= t2:
+            msg = "chosen start time: {} is later than end time: {}".format(
+                t1.isoformat(),t2.isoformat())
+            raise forms.ValidationError(msg)
+
+        cleaned_data['start_time'] = t1
+        cleaned_data['end_time'] = t2
 
         if len(cleaned_data['variables']) == 0:
             raise forms.ValidationError('no variables selected')
@@ -81,9 +99,10 @@ class DatasetSelectionForm(forms.Form):
 
         self.files = [f.path for f in fset.scan(cleaned_data['start_time'],cleaned_data['end_time'])]
 
-        # TODO: improve this error
         if len(self.files) == 0:
-            raise forms.ValidationError('no files within times')
+            msg = "no files found between {} and {}".format(
+                t1.isoformat(),t2.isoformat())
+            raise forms.ValidationError(msg)
 
         return cleaned_data
 
