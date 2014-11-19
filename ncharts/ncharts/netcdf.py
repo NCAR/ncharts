@@ -7,12 +7,16 @@
 # The license and distribution terms for this file may be found in the
 # file LICENSE in this package.
 
-import os
+import os, sys
 import netCDF4
 from datetime import datetime
 import pytz
 import numpy
 import logging
+import operator
+from functools import reduce
+
+from ncharts import exceptions
 
 # __name__ is ncharts.netcdf
 logger = logging.getLogger(__name__)
@@ -102,12 +106,13 @@ class NetCDFDataset:
                 ds.close()
 
     def read(self,variables=[],start_time=datetime.min,end_time=datetime.max,
-            selectdim={}):
+            selectdim={},size_limit=1000 * 1000 * 1000):
         """ Read a list of variables from this fileset.
         """
 
         data = {}
         times = []
+        total_size = 0
         for path in self.paths:
             # logger.debug("path=%s",path)
             try:
@@ -163,6 +168,9 @@ class NetCDFDataset:
 
 
                     times.extend([tv[i] for i in tindex])
+                    total_size += len(tindex) * sys.getsizeof(tv[0])
+                    if total_size > size_limit:
+                        raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
                 else:
                     continue
 
@@ -220,6 +228,10 @@ class NetCDFDataset:
                             dsdata[vname] = var.filled(fill_value=float('nan'))
                         else:
                             dsdata[vname] = var
+
+                        total_size += reduce(operator.mul,dsdata[vname].shape,1) * sys.getsizeof(dsdata[vname][tuple([0 for i in dsdata[vname].shape])])
+                        if total_size > size_limit:
+                            raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
             finally:
                 ds.close()
 
@@ -236,15 +248,17 @@ class NetCDFDataset:
 
 
                 if not vname in dsdata:
-                    if not vname in data:
-                        data[vname] = numpy.ma.array(data=numpy.empty(
+                    total_size += reduce(operator.mul,shape,1) * sys.getsizeof(numpy.float())
+                    if total_size > size_limit:
+                        raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
+
+                    dfill = numpy.ma.array(data=numpy.empty(
                             shape=shape,dtype=float),
                             mask=True,fill_value=float('nan')).filled()
+                    if not vname in data:
+                        data[vname] = dfill
                     else:
-                        data[vname] = numpy.append(data[vname],
-                                numpy.ma.array(data=numpy.empty(
-                                    shape=shape,dtype=float),
-                                    mask=True,fill_value=float('nan')).filled(),axis=time_index)
+                        data[vname] = numpy.append(data[vname],dfill,axis=time_index)
                 else:
                     if shape[1:] != dsdata[vname].shape[1:]: 
                         # changing shape. Add support for final dimension increasing
@@ -264,7 +278,7 @@ class NetCDFDataset:
 
         for vname in data.keys():
             logger.debug("data[%s].shape=%s",vname,repr(data[vname].shape))
-
+        logger.debug("total_size=%d",total_size)
 
         return {"time" : times, "data": data, "dim2": dim2 }
 

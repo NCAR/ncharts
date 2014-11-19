@@ -106,6 +106,9 @@ class DatasetSelectionForm(forms.Form):
 
         return cleaned_data
 
+    def too_much_data(self,e):
+        self.errors['__all__'] = self.error_class([repr(e)])
+
     def get_files(self):
         return self.files
 

@@ -16,7 +16,7 @@ from django.utils.safestring import mark_safe
 
 from ncharts.models import  Project, Platform, Dataset, UserSelection
 from ncharts.forms import DatasetSelectionForm
-from ncharts import netcdf
+from ncharts import netcdf, exceptions
 
 import json, numpy, math, logging
 from pytz import timezone
@@ -304,8 +304,13 @@ class DatasetView(View):
         else:
             variables = { k:ncdset.variables[k] for k in svars }
 
-        ncdata = ncdset.read(svars,start_time=form.cleaned_data['start_time'],
-                end_time=form.cleaned_data['end_time'])
+        try:
+            ncdata = ncdset.read(svars,start_time=form.cleaned_data['start_time'],
+                    end_time=form.cleaned_data['end_time'])
+        except exceptions.TooMuchDataException as e:
+            form.too_much_data(repr(e))
+            return render(request,self.template_name, { 'form': form,
+                'dataset': dataset})
 
         # As an easy compression, subtract first time from all times,
         # reducing the number of characters sent.
