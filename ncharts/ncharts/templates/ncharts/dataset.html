@@ -13,16 +13,22 @@
 {% if form %}
     <form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
         {% csrf_token %}
+
         {{ form.non_field_errors }}
+
         <div class="variable">
             {% for var in form.variables %}
                             {{ var }}
             {% endfor %}
         </div>
-        {{ form.start_time }}{{ form.start_time.errors }}
-        {{ form.end_time }}{{ form.end_time.errors }}
+        <div id="time-selection">
+        {{ form.start_time.label_tag }} {{ form.start_time }}<strong>{{ form.start_time.errors }}</strong>
+        {{ form.end_time.label_tag }} {{ form.end_time }}<strong>{{ form.end_time.errors }}</strong>
+        </div>
         
-        <input type="submit" value="choose"/>
+        <input type="submit" name="submit" value="page-backward"/>
+        <input type="submit" name="submit" value="plot"/>
+        <input type="submit" name="submit" value="page-forward"/>
     </form>
 {% endif %}
 
