@@ -7,9 +7,10 @@
 # The license and distribution terms for this file may be found in the
 # file LICENSE in this package.
 
-from django.http import HttpResponse, Http404
-from django.template import RequestContext, loader
 from django.shortcuts import render, get_object_or_404
+
+from django.http import HttpResponse, Http404
+
 from django.views.generic.edit import View
 from django.utils.safestring import mark_safe
 
@@ -19,7 +20,7 @@ from ncharts import netcdf
 
 import json, numpy, math, logging
 from pytz import timezone
-
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -174,8 +175,8 @@ class DatasetView(View):
             #       start_time, end_time a day at beginning of dataset
             usersel = UserSelection.objects.create(
                     dataset=dataset,
-                    start_time=dataset.start_time,
-                    end_time=dataset.end_time,
+                    start_time=dataset.get_start_time(),
+                    end_time=dataset.get_end_time(),
                     )
             request_id = usersel.id
             request.session['request_id'] = request_id
@@ -185,7 +186,7 @@ class DatasetView(View):
         else:
 
             if usersel.dataset.pk == dataset.pk:
-                logger.info("get, old session, request_id=%d, project=%d,dataset=%s",
+                logger.info("get, old session, request_id=%d, project=%s,dataset=%s",
                         request_id,project_name,dataset_name)
                 # could check that usersel.dataset.name == dataset_name and
                 # usersel.dataset.project.name == project_name
@@ -198,8 +199,8 @@ class DatasetView(View):
                         project_name,dataset_name)
                 usersel.dataset = dataset
                 usersel.variables = []
-                usersel.start_time = dataset.start_time
-                usersel.end_time = dataset.end_time
+                usersel.start_time = dataset.get_start_time()
+                usersel.end_time = dataset.get_end_time()
                 usersel.save()
 
         # print('DatasetView get, dir(usersel)=', dir(usersel))
@@ -226,6 +227,8 @@ class DatasetView(View):
             return get(request, *args, project_name=project_name,
                     dataset_name=dataset_name, **kwargs)
 
+
+        # print("dir(request)=",dir(request))
         # what if this get fails?
         usersel = UserSelection.objects.get(id=request.session['request_id'])
 
@@ -248,15 +251,38 @@ class DatasetView(View):
 
         # vars = [ v.name for v in dataset.variables.all() ]
 
-        # print("request.POST=",request.POST)
-        form = DatasetSelectionForm(request.POST,dataset=dataset)
+        # page-backward or page-forward in time
+        # better to implement a javascript button that manipulates the html field directly
+        if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
+            dtz = dataset.get_timezone()
+            t1 = dtz.localize(datetime.strptime(request.POST['start_time'],"%Y-%m-%d %H:%M"))
+            t2 = dtz.localize(datetime.strptime(request.POST['end_time'],"%Y-%m-%d %H:%M"))
 
+            if request.POST['submit'] == 'page-backward':
+                dt = t2 - t1
+                t1 -= dt
+                t2 -= dt
+                # print('paged backward, t1=',t1.isoformat(),', t2=',t2.isoformat())
+            elif request.POST['submit'] == 'page-forward':
+                dt = t2 - t1
+                t1 += dt
+                t2 += dt
+                # print('paged forward, t1=',t1.isoformat(),', t2=',t2.isoformat())
+
+            postx = request.POST.copy()
+            postx['start_time'] = t1.strftime("%Y-%m-%d %H:%M")
+            postx['end_time'] = t2.strftime("%Y-%m-%d %H:%M")
+
+            form = DatasetSelectionForm(postx,dataset=dataset)
+        else:
+            form = DatasetSelectionForm(request.POST,dataset=dataset)
+
+        # print("request.POST=",request.POST)
         if not form.is_valid():
             # print('form ain\'t valid!')
             return render(request,self.template_name, { 'form': form,
                 'dataset': dataset})
 
-        # validated data is in form.cleaned_data
         svars = form.cleaned_data['variables']
 
         usersel.variables = json.dumps(svars)
@@ -267,6 +293,7 @@ class DatasetView(View):
         # files from a valid form will always have len > 0.
         # See the DatasetSelectionForm clean method.
         files = form.get_files()
+        # print("view, len(files)=",len(files))
 
         ncdset = netcdf.NetCDFDataset(files)
 
