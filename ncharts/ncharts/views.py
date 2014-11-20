@@ -25,7 +25,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 def index(request):
-    return HttpResponse("Hello world, ncharts index")
+    return HttpResponse("<a href='projects'>projects</a>")
 
 def projects(request):
     ''' request for list of projects '''
