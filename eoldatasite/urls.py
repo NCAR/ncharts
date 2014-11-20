@@ -10,4 +10,5 @@ urlpatterns = patterns('',
 
     url(r'^ncharts/', include('ncharts.urls', namespace='ncharts')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^$', 'eoldatasite.views.index')
 )
