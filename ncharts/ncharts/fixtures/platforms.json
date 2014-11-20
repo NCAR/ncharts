@@ -2,7 +2,8 @@
 {
     "fields": {
         "projects": [
-            "METCRAXII"
+            "METCRAXII",
+            "CentNet Devel"
         ]
     }, 
     "model": "ncharts.platform", 
