@@ -229,9 +229,10 @@ class NetCDFDataset:
                         else:
                             dsdata[vname] = var
 
-                        total_size += reduce(operator.mul,dsdata[vname].shape,1) * sys.getsizeof(dsdata[vname][tuple([0 for i in dsdata[vname].shape])])
-                        if total_size > size_limit:
-                            raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
+                        if (len(tindex) > 0):
+                            total_size += reduce(operator.mul,dsdata[vname].shape,1) * sys.getsizeof(dsdata[vname][tuple([0 for i in dsdata[vname].shape])])
+                            if total_size > size_limit:
+                                raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
             finally:
                 ds.close()
 
@@ -245,7 +246,6 @@ class NetCDFDataset:
 
                 if len(shape) > 1:
                     dim2 = [ i for i in range(shape[1])]
-
 
                 if not vname in dsdata:
                     total_size += reduce(operator.mul,shape,1) * sys.getsizeof(numpy.float())
