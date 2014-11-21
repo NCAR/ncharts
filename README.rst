@@ -11,7 +11,8 @@ Quick start
 
 1. Install required packages:
 
-    sudo yum install python3-django python3-pip
+    sudo yum install python3-django python3-pip python3-memcached memcached
+
 
 1.a CentOS7 doesn't have python3 or django :-(
 
@@ -38,6 +39,9 @@ Quick start
     Need the python3 version of django-datetime-widget.
 
     sudo python3 -m pip install /scr/tmp/maclean/django-datetime-widget-0.9.2.tar.gz
+
+1.c If you can't find python3-memcached:
+    sudo python3 -m pip install python3-memcached
 
 2. Since the django-ncharts app is undergoing many changes, the simplest way to use it 
    is to clone it from github to a neighboring directory, and create a symbolic link:

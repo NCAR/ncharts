@@ -41,6 +41,10 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    # https://docs.djangoproject.com/en/1.7/topics/cache/#order-of-middleware-classes
+    # UpdateCacheMiddleware must appear before SessionMiddleware,
+    # and LocaleMiddleware FetchFromCacheMiddleware must occur after them.
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -48,6 +52,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
 ROOT_URLCONF = 'eoldatasite.urls'
@@ -132,3 +137,16 @@ LOGGING = {
         },
     }
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'unix:/tmp/django_memcached.sock',
+        'TIMEOUT': 300, # 300 seconds is the default
+    }
+}
+CACME_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 300
+CACHE_MIDDLEWARE_KEY_PREFIX = ''
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
