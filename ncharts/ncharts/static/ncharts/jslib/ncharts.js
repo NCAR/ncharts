@@ -146,6 +146,7 @@
                 // var long_name =  $( this ).data("long_name");
                 // var dim2_name =  $( this ).data("dim2_name");
                 var dim2_name = dim2['name'];
+                var dim2_units = dim2['units'];
 
                 for (var iv = 0; iv < vnames.length; iv++) {
                     vname = vnames[iv];
@@ -250,7 +251,7 @@
                         },
                         yAxis: {
                             title: {
-                                text: dim2_name
+                                text: dim2_name + '(' + dim2_units + ')'
                             },
                             min: mindim2,
                             max: maxdim2,

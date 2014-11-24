@@ -199,7 +199,7 @@ class NetCDFDataset:
                                     if not any(i < 0 for i in selectdim[d]):
                                         continue
                         idx = ()
-                        for i,d in enumerate(var.dimensions):
+                        for id,d in enumerate(var.dimensions):
                             if d == self.time_dim:
                                 time_index = len(idx)
                                 idx += (tindex,)
@@ -216,10 +216,13 @@ class NetCDFDataset:
                                 sized = len(ds.dimensions[d])
                                 idx += (slice(0,sized),)
                                 if not dim2:
-                                    sized = self.variables[vname]['shape'][i]
+                                    # self.variables[vname]['shape'][id] will
+                                    # be the largest value for this dimension
+                                    # in the set of files.
+                                    sized = self.variables[vname]['shape'][id]
                                     dim2['data'] = [ i for i in range(sized)]
                                     dim2['name'] = d
-
+                                    dim2['units'] = ''
 
                         if (len(tindex) > 0):
                             logger.debug("%s: %s: min(tindex),max(tindex)=%d,%d, idx[1:]=%s",
