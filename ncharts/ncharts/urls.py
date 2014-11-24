@@ -27,8 +27,6 @@ urlpatterns = patterns('',
 
     url(r'^projects/(?P<project_name>[^/]+)/(?P<dataset_name>[^/]+)/?$', DatasetView.as_view(), name='dataset'),
 
-    # url(r'^projects/(?P<project_name>[^/]+)/(?P<dataset_name>[^/]+)/?$', DatasetFormPreview(DatasetForm), name='dataset'),
-
     url(r'^platforms/?$', views.platforms, name='platforms'),
 
     # display list of projects for a platform, user selects project

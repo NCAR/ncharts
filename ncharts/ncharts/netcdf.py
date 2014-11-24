@@ -74,11 +74,13 @@ class NetCDFDataset:
                         continue
 
                 for (n,v) in ds.variables.items():
+                    # looking for time series variables
                     if tdim._name in v.dimensions:
                         if not n in self.variables:
                             if n != self.time_name:
                                 self.variables[n] = {}
                                 self.variables[n]["shape"] = v.shape
+                                self.variables[n]["dimnames"] = v.dimensions
                                 # don't need _FillValue
                                 for a in ["units","long_name","short_name"]:
                                     if hasattr(v,a):
@@ -112,15 +114,15 @@ class NetCDFDataset:
 
         data = {}
         times = []
+        dim2 = {}   # name, data
         total_size = 0
         for path in self.paths:
             # logger.debug("path=%s",path)
             try:
                 ds = netCDF4.Dataset(path)
 
-                dsdata = {}
-
                 base_time = None
+                has_var = {}
 
                 if hasattr(self,"base_time") and self.base_time in ds.variables and len(ds.variables[self.base_time].dimensions) == 0:
                     base_time = ds.variables[self.base_time].getValue()
@@ -159,7 +161,7 @@ class NetCDFDataset:
                             os.path.split(path)[1],
                             start_time.isoformat(), end_time.isoformat(),
                             tv[0].isoformat(),tv[-1].isoformat())
-
+                        continue
                     else:
                         logger.debug("%s: tv[min(tindex)=%d]=%d ,tv[max(tindex)=%d]=%d, start_time=%s, end_time=%s",
                             os.path.split(path)[1],min(tindex),tv[min(tindex)].timestamp(),
@@ -181,31 +183,29 @@ class NetCDFDataset:
                         vshape = self.variables[vname]["shape"]
                         var = ds.variables[vname]
 
-                        # if var.shape[1:] != vshape[1:]:
-                        #     continue
-
-                        # if len(var.dimensions) < 1 or not var.dimensions[0] == self.time_dim:
-                        #     continue
-
                         # user has asked for variables with a certain dimension
+                        # i.e. "station"
                         for d in selectdim:
                             if not d in var.dimensions:
                                 # desired dimension is not in this variable
+                                # for example, an ISFS variable with not "station" dim
                                 if type(selectdim[d]) == type([]):
-                                    # if selectdim[d] is a list, check for any negative values
-                                    # in it, where -1 indicates all values.
-                                    # For example, station=[-1,0,2] indicates that variables
-                                    # without a station dimension, as well as stations 0 and 2 re 
-                                    # wanted.
+                                    # if selectdim[d] is a list, check for any negative
+                                    # values. -1 indicates the user wants all values,
+                                    # including those variables without the dimension.
+                                    # For example, station=[-1,0,2] indicates the user
+                                    # wants variables without a station dimension,
+                                    # as well as stations 0 and 2 are wanted.
                                     if not any(i < 0 for i in selectdim[d]):
                                         continue
                         idx = ()
-                        for d in var.dimensions:
+                        for i,d in enumerate(var.dimensions):
                             if d == self.time_dim:
                                 time_index = len(idx)
                                 idx += (tindex,)
                             elif d == "sample":
-                                # deal with this later...
+                                # high rate files with a sample dimension
+                                # Deal with this later. For now just grab first value
                                 idx += (0,)
                             elif d in selectdim:
                                 if type(selectdim[d]) == type([]):
@@ -213,68 +213,68 @@ class NetCDFDataset:
                                 else:
                                     idx += (selectdim[d],)
                             else:
-                                # idx += (6,)
-                                idx += (slice(0,len(ds.dimensions[d])),)
+                                sized = len(ds.dimensions[d])
+                                idx += (slice(0,sized),)
+                                if not dim2:
+                                    sized = self.variables[vname]['shape'][i]
+                                    dim2['data'] = [ i for i in range(sized)]
+                                    dim2['name'] = d
+
 
                         if (len(tindex) > 0):
                             logger.debug("%s: %s: min(tindex),max(tindex)=%d,%d, idx[1:]=%s",
                                     os.path.split(path)[1],vname,min(tindex),max(tindex),
                                 repr(idx[1:]))
 
-                        # dsdata[vname] = var[:].filled(fill_value=float('nan'))[idx]
-
                         var = var[idx]
                         if isinstance(var,numpy.ma.core.MaskedArray):
-                            dsdata[vname] = var.filled(fill_value=float('nan'))
-                        else:
-                            dsdata[vname] = var
+                            var = var.filled(fill_value=float('nan'))
 
-                        if (len(tindex) > 0):
-                            total_size += reduce(operator.mul,dsdata[vname].shape,1) * sys.getsizeof(dsdata[vname][tuple([0 for i in dsdata[vname].shape])])
-                            if total_size > size_limit:
+                        shape = self.variables[vname]['shape']
+                        if shape[1:] != var.shape[1:]: 
+                            # changing shape. Add support for final dimension increasing
+                            shape = list(shape)
+                            # how much to grow it by
+                            shape[-1] = shape[-1] - var.shape[-1]
+                            var = numpy.append(var,
+                                numpy.ma.array(data=numpy.empty(
+                                    shape=ashape,dtype=float),
+                                    mask=True,fill_value=float('nan')).filled(),axis=last)
+
+                        total_size += reduce(operator.mul,var.shape,1) * sys.getsizeof(var[tuple([0 for i in var.shape])])
+                        if total_size > size_limit:
                                 raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
+
+                        if not vname in data:
+                            data[vname] = var
+                        else:
+                            data[vname] = numpy.append(data[vname], var, axis=time_index)
+                        has_var[vname] = True
             finally:
                 ds.close()
 
-            dim2 = []
-            for vname in variables:
-
-                # shape of variable after selecting times
+            # If a variable was not found in a file, append its array with NaNs.
+            for vname in [v for v in variables if not v in has_var]:
+                
+                # Determine shape of variable. Change the first, time dimension
+                # to match the selected period.  The last dimension 
+                # in self.variables[vname]['shape'] is the largest of those
+                # seen in the selected files.
                 shape = list(self.variables[vname]['shape'])
                 shape[time_index] = len(tindex)
                 shape = tuple(shape)
 
-                if len(shape) > 1:
-                    dim2 = [ i for i in range(shape[1])]
+                total_size += reduce(operator.mul,shape,1) * sys.getsizeof(numpy.float())
+                if total_size > size_limit:
+                    raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
 
-                if not vname in dsdata:
-                    total_size += reduce(operator.mul,shape,1) * sys.getsizeof(numpy.float())
-                    if total_size > size_limit:
-                        raise exceptions.TooMuchDataException("too much data requested, will exceed {} mbytes".format(size_limit/(1000 * 1000)))
-
-                    dfill = numpy.ma.array(data=numpy.empty(
-                            shape=shape,dtype=float),
-                            mask=True,fill_value=float('nan')).filled()
-                    if not vname in data:
-                        data[vname] = dfill
-                    else:
-                        data[vname] = numpy.append(data[vname],dfill,axis=time_index)
+                dfill = numpy.ma.array(data=numpy.empty(
+                        shape=shape,dtype=float),
+                        mask=True,fill_value=float('nan')).filled()
+                if not vname in data:
+                    data[vname] = dfill
                 else:
-                    if shape[1:] != dsdata[vname].shape[1:]: 
-                        # changing shape. Add support for final dimension increasing
-                        ashape = list(shape)
-                        last = len(ashape) - 1
-                        # how much to grow it by
-                        ashape[last] = ashape[last] - dsdata[vname].shape[last]
-                        dsdata[vname] = numpy.append(dsdata[vname],
-                            numpy.ma.array(data=numpy.empty(
-                                shape=ashape,dtype=float),
-                                mask=True,fill_value=float('nan')).filled(),axis=last)
-
-                    if not vname in data:
-                        data[vname] = dsdata[vname]
-                    else:
-                        data[vname] = numpy.append(data[vname], dsdata[vname],axis=time_index)
+                    data[vname] = numpy.append(data[vname],dfill,axis=time_index)
 
         for vname in data.keys():
             logger.debug("data[%s].shape=%s",vname,repr(data[vname].shape))

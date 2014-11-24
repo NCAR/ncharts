@@ -153,8 +153,15 @@ class DatasetView(View):
 
     def get(self, request, *args, project_name, dataset_name, **kwargs):
 
-        project = Project.objects.get(name=project_name)
-        dataset = project.dataset_set.get(name=dataset_name)
+        project = get_object_or_404(Project.objects,name=project_name)
+        dataset = get_object_or_404(project.dataset_set,name=dataset_name)
+        '''
+        try:
+            project = Project.objects.get(name=project_name)
+            dataset = project.dataset_set.get(name=dataset_name)
+        except (Project.DoesNotExist, Dataset.DoesNotExist):
+            raise Http404
+        '''
 
         usersel = None
         request_id = None
@@ -165,6 +172,8 @@ class DatasetView(View):
                 usersel = UserSelection.objects.get(id=request_id)
             except UserSelection.DoesNotExist:
                 pass
+        else:
+            request.session.set_test_cookie()
 
         if not usersel:
             # print('DatasetView get, dataset.variables=',dataset.variables)
@@ -220,19 +229,21 @@ class DatasetView(View):
 
     def post(self, request, *args, project_name, dataset_name, **kwargs):
 
+        if not request.session.test_cookie_worked():
+            # The django server is backed by memcached, so I believe this won't happen when
+            # the django server is restarted, but will happen if the memcached daemon
+            # is restarted.
+            logger.error("session cookie check failed. Either this server was restarted, or the user needs to enable cookies")
+            return HttpResponse("Your cookie is not recognized. Either this server was restarted, or you need to enable cookies in your browser. Then please try again.")
+
         if 'request_id' not in request.session or not request.session['request_id']:
-            # not sure if it is possible for a post to come in without
-            # a session id.
+            # not sure if it is possible for a post to come in without a session id,
+            # but we'll redirect them to the get.
             logger.error("post but no request_id, redirecting to get")
-            return get(request, *args, project_name=project_name,
-                    dataset_name=dataset_name, **kwargs)
+            # Uses the name='dataset' in urls.py
+            return redirect('dataset', project_name=project_name, dataset_name=dataset_name)
 
-
-        # print("dir(request)=",dir(request))
-        # what if this get fails?
-        usersel = UserSelection.objects.get(id=request.session['request_id'])
-
-        # project = Project.objects.get(name=project_name)
+        usersel = get_object_or_404(UserSelection.objects,id=request.session['request_id'])
         dataset = usersel.dataset
 
         logger.info("post, old session, request_id=%d, project=%s,dataset=%s",
@@ -252,7 +263,8 @@ class DatasetView(View):
         # vars = [ v.name for v in dataset.variables.all() ]
 
         # page-backward or page-forward in time
-        # better to implement a javascript button that manipulates the html field directly
+        # better to implement a javascript button that manipulates the
+        # html field directly
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
             dtz = dataset.get_timezone()
             t1 = dtz.localize(datetime.strptime(request.POST['start_time'],"%Y-%m-%d %H:%M"))
@@ -297,6 +309,8 @@ class DatasetView(View):
 
         ncdset = netcdf.NetCDFDataset(files)
 
+        # If variables exists in the dataset, get their
+        # attributes there, otherwise from the NetCDF files.
         if len(dataset.variables.all()) > 0:
             variables = { k:{'units': dataset.variables.get(name=k).units,
                 'long_name': dataset.variables.get(name=k).long_name }
@@ -327,20 +341,56 @@ class DatasetView(View):
             else:
                 return 'none'
 
+        plot_types = set()
         for n,v in variables.items():
-            # print("n, shape=",ncdata['data'][n].shape)
-            v['plot_type'] = type_by_dimension(ncdata['data'][n])
-            if v['plot_type'] == 'heatmap':
-                # TODO get this from the netcdf
-                v['dim2_name'] = 'y'
+            pt = type_by_dimension(ncdata['data'][n])
+            v['plot_type'] = pt
+            plot_types.add(pt)
 
         data = json.dumps(ncdata['data'],cls=MyJSONEncoder)
 
-        dim2 = json.dumps(ncdata['dim2'])
+        dim2 = json.dumps(ncdata['dim2'],cls=MyJSONEncoder)
+
+        # Create plot groups dictionary, for each
+        # group, the variables in the group, their units, long_names, plot_type
+        plot_groups = {}
+
+        units = [v['units'] for v in variables.values()]
+        # unique units
+        uunits = set(units)
+
+        # loop over plot_types
+        grpid = 0
+        for pt in plot_types:
+            # print("pt=",pt)
+            # loop over unique units
+
+            # Cannot combine variables with same units on a heatmap
+            if pt == 'heatmap':
+                for n,val in variables.items():
+                    if val['plot_type'] == pt:
+                        plot_groups['g{}'.format(grpid)] = {
+                            'variables': mark_safe(json.dumps([n])),
+                            'units': mark_safe(json.dumps([variables[n]['units']])),
+                            'long_names': mark_safe(json.dumps([variables[n]['long_name']])),
+                            'plot_type': mark_safe(pt),
+                        }
+                        grpid += 1
+            else:
+                for i,u in enumerate(set(units)):
+                    uv = [n for n,val in variables.items() if val['plot_type'] == pt and val['units'] == u]
+                    # uv is list of variables with units u
+                    plot_groups['g{}'.format(grpid)] = {
+                        'variables': mark_safe(json.dumps(uv)),
+                        'units': mark_safe(json.dumps([variables[v]['units'] for v in uv])),
+                        'long_names': mark_safe(json.dumps([variables[v]['long_name'] for v in uv])),
+                        'plot_type': mark_safe(pt),
+                    }
+                    grpid += 1
 
         return render(request,self.template_name, { 'form': form,
-            'dataset': dataset, 
-            'variables': variables, 'time0': time0, 'time': mark_safe(time),
+            'dataset': dataset, 'plot_groups': plot_groups,
+            'time0': time0, 'time': mark_safe(time),
             'data': mark_safe(data), 'dim2': mark_safe(dim2) })
 
 def dataset(request,project_name,dataset_name):

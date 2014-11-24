@@ -37,22 +37,19 @@
         var time0 = {{ time0 }};
         var time = jQuery.parseJSON('{{ time }}');
         // dim2 is values for 2nd dimension for heatmap plots
-        var dim2 = jQuery.parseJSON('{{ dim2 }}');
         var data = jQuery.parseJSON('{{ data }}');
+        var dim2 = jQuery.parseJSON('{{ dim2 }}');
     </script>
 
-    {% for vname,val in variables.items %}
-        <!--
-        <p> {{ val.plot_type }}</p>
-        -->
-        <div id="{{ val.plot_type }}_{{ vname }}" class="do_plot">
+    {% for group,val in plot_groups.items %}
+        <div id="{{ val.plot_type }}_{{ group }}" class="do_plot">
         </div>
         <script>
-            var div = $("#{{ val.plot_type }}_{{ vname }}")[0];
-            jQuery.data(div,"variable","{{ vname }}");
-            jQuery.data(div,"units","{{ val.units }}");
-            jQuery.data(div,"long_name","{{ val.long_name }}");
-            jQuery.data(div,"dim2_name","{{ val.dim2_name }}");
+            var div = $("#{{ val.plot_type }}_{{ group }}")[0];
+            jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
+            jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
+            jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
+            jQuery.data(div,"dim2_name","{{ dim2.name }}");
         </script>
     {% endfor %}
 {% endif %}
