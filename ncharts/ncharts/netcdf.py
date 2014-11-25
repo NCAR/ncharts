@@ -241,7 +241,7 @@ class NetCDFDataset:
                             shape[-1] = shape[-1] - var.shape[-1]
                             var = numpy.append(var,
                                 numpy.ma.array(data=numpy.empty(
-                                    shape=ashape,dtype=float),
+                                    shape=shape,dtype=float),
                                     mask=True,fill_value=float('nan')).filled(),axis=last)
 
                         total_size += reduce(operator.mul,var.shape,1) * sys.getsizeof(var[tuple([0 for i in var.shape])])
