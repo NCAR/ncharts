@@ -14,13 +14,14 @@ from django.http import HttpResponse, Http404
 from django.views.generic.edit import View
 from django.utils.safestring import mark_safe
 
+import ncharts
 from ncharts.models import  Project, Platform, Dataset, UserSelection
 from ncharts.forms import DatasetSelectionForm
-from ncharts import netcdf, exceptions
 
 import json, numpy, math, logging
 from pytz import timezone
-from datetime import datetime
+import pytz
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -182,11 +183,16 @@ class DatasetView(View):
             #       start_time, end_time a day at end of dataset
             #   not real-time project
             #       start_time, end_time a day at beginning of dataset
-            usersel = UserSelection.objects.create(
-                    dataset=dataset,
-                    start_time=dataset.get_start_time(),
-                    end_time=dataset.get_end_time(),
-                    )
+
+            tnow = datetime.datetime.now(pytz.utc)
+            delta = timedelta(days=1)
+            if dataset.get_end_time() > tnow:
+                t1 = tnow - delta
+            else:
+                t1 = dataset.get_start_time()
+
+            usersel = UserSelection.objects.create( dataset=dataset, start_time=t1,
+                    time_length = delta.total_seconds())
             request_id = usersel.id
             request.session['request_id'] = request_id
             logger.info("get, new session, request_id=%d, project=%s,dataset=%s",
@@ -195,7 +201,7 @@ class DatasetView(View):
         else:
 
             if usersel.dataset.pk == dataset.pk:
-                logger.info("get, old session, request_id=%d, project=%s,dataset=%s",
+                logger.info("get, old session, same dataset, request_id=%d, project=%s,dataset=%s",
                         request_id,project_name,dataset_name)
                 # could check that usersel.dataset.name == dataset_name and
                 # usersel.dataset.project.name == project_name
@@ -203,13 +209,21 @@ class DatasetView(View):
                 # are unique.
             else:
                 # User has changed dataset of interest
-                logger.info("get, old session, request_id=%d, dataset.pk=%d, old dataset.pk=%d, project=%s, dataset=%s",
+                logger.info("get, old session, new dataset, request_id=%d, dataset.pk=%d, old dataset.pk=%d, project=%s, dataset=%s",
                         request_id,dataset.pk,usersel.dataset.pk,
                         project_name,dataset_name)
                 usersel.dataset = dataset
                 usersel.variables = []
-                usersel.start_time = dataset.get_start_time()
-                usersel.end_time = dataset.get_end_time()
+
+                tnow = datetime.datetime.now(datetime.datetime.utc)
+                delta = datetime.timedelta(days=1)
+                if dataset.get_end_time() > tnow:
+                    t1 = tnow - delta
+                else:
+                    t1 = dataset.get_start_time()
+
+                usersel.start_time = t1
+                usersel.time_length = delta.total_seconds()
                 usersel.save()
 
         # print('DatasetView get, dir(usersel)=', dir(usersel))
@@ -223,7 +237,7 @@ class DatasetView(View):
             svars = []
 
         form = DatasetSelectionForm(dataset=dataset,selected=svars,
-                start_time=usersel.start_time,end_time=usersel.end_time)
+                start_time=usersel.start_time, time_length=usersel.time_length)
 
         return render(request,self.template_name, { 'form': form , 'dataset': dataset})
 
@@ -265,26 +279,30 @@ class DatasetView(View):
         # page-backward or page-forward in time
         # better to implement a javascript button that manipulates the
         # html field directly
+        '''
+        print("POST, time inputs=",
+            request.POST['time_length_choice'],
+            request.POST['time_length_val'],
+            request.POST['time_length_units'])
+        '''
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
+
             dtz = dataset.get_timezone()
-            t1 = dtz.localize(datetime.strptime(request.POST['start_time'],"%Y-%m-%d %H:%M"))
-            t2 = dtz.localize(datetime.strptime(request.POST['end_time'],"%Y-%m-%d %H:%M"))
+
+            t1 = dtz.localize(datetime.datetime.strptime(request.POST['start_time'],"%Y-%m-%d %H:%M"))
+
+            dt = ncharts.forms.get_time_length(
+                    request.POST['time_length_choice'],
+                    request.POST['time_length_val'],
+                    request.POST['time_length_units'])
 
             if request.POST['submit'] == 'page-backward':
-                dt = t2 - t1
-                t1 -= dt
-                t2 -= dt
-                # print('paged backward, t1=',t1.isoformat(),', t2=',t2.isoformat())
+                t1 = t1 - dt
             elif request.POST['submit'] == 'page-forward':
-                dt = t2 - t1
-                t1 += dt
-                t2 += dt
-                # print('paged forward, t1=',t1.isoformat(),', t2=',t2.isoformat())
+                t1 = t1 + dt
 
             postx = request.POST.copy()
             postx['start_time'] = t1.strftime("%Y-%m-%d %H:%M")
-            postx['end_time'] = t2.strftime("%Y-%m-%d %H:%M")
-
             form = DatasetSelectionForm(postx,dataset=dataset)
         else:
             form = DatasetSelectionForm(request.POST,dataset=dataset)
@@ -297,9 +315,12 @@ class DatasetView(View):
 
         svars = form.cleaned_data['variables']
 
+        t1 = form.cleaned_data['start_time']
+        dt = form.get_cleaned_time_length()
+        t2 = t1 + dt
         usersel.variables = json.dumps(svars)
-        usersel.start_time = form.cleaned_data['start_time']
-        usersel.end_time = form.cleaned_data['end_time']
+        usersel.start_time = t1
+        usersel.time_length = dt.total_seconds()
         usersel.save()
 
         # files from a valid form will always have len > 0.
@@ -307,7 +328,7 @@ class DatasetView(View):
         files = form.get_files()
         # print("view, len(files)=",len(files))
 
-        ncdset = netcdf.NetCDFDataset(files)
+        ncdset = ncharts.netcdf.NetCDFDataset(files)
 
         # If variables exists in the dataset, get their
         # attributes there, otherwise from the NetCDF files.
@@ -319,9 +340,8 @@ class DatasetView(View):
             variables = { k:ncdset.variables[k] for k in svars }
 
         try:
-            ncdata = ncdset.read(svars,start_time=form.cleaned_data['start_time'],
-                    end_time=form.cleaned_data['end_time'])
-        except exceptions.TooMuchDataException as e:
+            ncdata = ncdset.read(svars,start_time=t1,end_time=t2)
+        except ncharts.exceptions.TooMuchDataException as e:
             form.too_much_data(repr(e))
             return render(request,self.template_name, { 'form': form,
                 'dataset': dataset})

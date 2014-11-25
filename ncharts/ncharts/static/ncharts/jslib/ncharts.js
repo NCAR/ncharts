@@ -11,6 +11,17 @@
         };
         $(function() {
 
+            // hide/show the time_length_val input depending on the time_length_choice
+            cval = $("#id_time_length_choice").val();
+            console.log("time_length_val ready, choice val=", cval);
+            if (cval === '' || cval === '0') {
+                console.log("time_length_val show");
+                $( "#id_time_length_val" ).show();
+            }
+            else {
+                console.log("time_length_val hide");
+                $( "#id_time_length_val" ).hide();
+            }
 
             // console.log("time is " + (typeof time == "undefined"))
 
@@ -349,6 +360,15 @@
                         data: chart_data
                     }],
                 });
+            });
+            $("#id_time_length_choice").change(function() {
+                console.log("time_length_choice change, val=",$(this).val());
+                if ($(this).val() == '0' || $(this).val() == '') {
+                    $("#id_time_length_val").show();
+                }
+                else {
+                    $("#id_time_length_val").hide();
+                }
             });
         });
     })

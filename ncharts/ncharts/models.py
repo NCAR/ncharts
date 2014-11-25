@@ -15,6 +15,8 @@ from ncharts import fileset
 
 from django.core.exceptions import ValidationError
 
+import datetime
+
 class Project(models.Model):
     ''' '''
     name = models.CharField(max_length=64,primary_key=True)
@@ -183,6 +185,10 @@ class Dataset(models.Model):
     # For instance variables, just set them in instance methods.
 
 
+def validate_positive(value):
+    if value <= 0:
+        raise ValidationError('%s is not greater than zero' % value)
+
 class UserSelection(models.Model):
     ''' '''
 
@@ -192,7 +198,8 @@ class UserSelection(models.Model):
 
     start_time = models.DateTimeField()
 
-    end_time = models.DateTimeField()
+    time_length = models.FloatField(blank=False,validators=[validate_positive],
+            default=datetime.timedelta(days=1).total_seconds())
 
     def __str__(self):
         return 'UserSelection for dataset: %s' % (self.dataset.name)
@@ -201,8 +208,11 @@ class UserSelection(models.Model):
         print('UserSelection clean')
         if self.start_time < self.dataset.start_time:
             raise ValidationError("start_time is earlier than dataset.start_time")
-        if self.end_time > self.dataset.end_time:
-            raise ValidationError("end_time is earlier than dataset.end_time")
-        if self.start_time >= self.end_time:
-            raise ValidationError("start_time is not earlier than end_time")
+        # if self.end_time > self.dataset.end_time:
+        #     raise ValidationError("end_time is earlier than dataset.end_time")
+        # if self.start_time >= self.end_time:
+        #     raise ValidationError("start_time is not earlier than end_time")
+
+        if self.time_length <= 0:
+            raise ValidationError("time_length is not positive")
 

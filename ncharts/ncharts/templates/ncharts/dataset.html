@@ -23,7 +23,8 @@
         </div>
         <div id="time-selection">
         {{ form.start_time.label_tag }} {{ form.start_time }}<strong>{{ form.start_time.errors }}</strong>
-        {{ form.end_time.label_tag }} {{ form.end_time }}<strong>{{ form.end_time.errors }}</strong>
+        {{ form.time_length_choice.label_tag }} {{ form.time_length_choice }} {{ form.time_length_val }}
+        {{ form.time_length_units }}<strong>{{ form.time_length_choice.errors }} {{ form.time_length_val.errors }} {{ form.time_length_units.errors }}</strong>
         </div>
         
         <input type="submit" name="submit" value="page-backward"/>
