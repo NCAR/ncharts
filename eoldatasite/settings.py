@@ -52,6 +52,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'eoldatasite.middleware.InternalUseOnlyMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
@@ -100,16 +101,28 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file_debug': {
+        'django_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'mysite_debug.log',
+            'filename': 'django_debug.log',
             'formatter': 'verbose'
         },
-        'file': {
+        'django': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': 'mysite.log',
+            'filename': 'django.log',
+            'formatter': 'verbose'
+        },
+        'eoldatasite_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'eoldatasite_debug.log',
+            'formatter': 'verbose'
+        },
+        'eoldatasite': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': 'eoldatasite.log',
             'formatter': 'verbose'
         },
         'ncharts': {
@@ -127,8 +140,12 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers':['file_debug'],
+            'handlers':['django_debug'],
             'propagate': True,
+            'level':'DEBUG',
+        },
+        'eoldatasite': {
+            'handlers':['eoldatasite_debug'],
             'level':'DEBUG',
         },
         'ncharts': {
@@ -149,4 +166,6 @@ CACME_MIDDLEWARE_ALIAS = 'default'
 CACHE_MIDDLEWARE_SECONDS = 300
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
+INTERNAL_IPS = ['128.117']
 
