@@ -233,16 +233,16 @@ class NetCDFDataset:
                         if isinstance(var,numpy.ma.core.MaskedArray):
                             var = var.filled(fill_value=float('nan'))
 
-                        shape = self.variables[vname]['shape']
-                        if shape[1:] != var.shape[1:]: 
+                        maxshape = self.variables[vname]['shape']
+                        if maxshape[1:] != var.shape[1:]: 
                             # changing shape. Add support for final dimension increasing
-                            shape = list(shape)
+                            shape = list(var.shape)
                             # how much to grow it by
-                            shape[-1] = shape[-1] - var.shape[-1]
+                            shape[-1] = maxshape[-1] - var.shape[-1]
                             var = numpy.append(var,
                                 numpy.ma.array(data=numpy.empty(
                                     shape=shape,dtype=float),
-                                    mask=True,fill_value=float('nan')).filled(),axis=last)
+                                    mask=True,fill_value=float('nan')).filled(),axis=-1)
 
                         total_size += reduce(operator.mul,var.shape,1) * sys.getsizeof(var[tuple([0 for i in var.shape])])
                         if total_size > size_limit:
