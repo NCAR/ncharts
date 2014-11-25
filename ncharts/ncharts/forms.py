@@ -72,9 +72,21 @@ class DatasetSelectionForm(forms.Form):
 
             self.fields['start_time'].label = "Start time (timezone={})".format(dataset.timezone)
 
+            dtz = self.dataset.get_timezone()
+
             # initial selected variables
             self.fields['variables'].initial = selected
-            self.fields['start_time'].initial = start_time
+
+            # start_time will be timezone aware
+            '''
+            if start_time.tzinfo == None or start_time.tzinfo.utcoffset(start_time) == None:
+                print("form __init__ start_time is timezone naive")
+            else:
+                print("form __init__ start_time is timezone aware")
+            '''
+
+            # convert to dataset timezone
+            self.fields['start_time'].initial = datetime.datetime.fromtimestamp(start_time.timestamp(),tz=dtz)
 
             if not time_length:
                 time_length = datetime.timedelta(days=1)
@@ -122,9 +134,25 @@ class DatasetSelectionForm(forms.Form):
 
         dtz = self.dataset.get_timezone()
         # print("dtz=",dtz)
-        t1 = dtz.localize(cleaned_data['start_time'].replace(tzinfo=None))
+        t1 = cleaned_data['start_time']
 
-        if t1 < self.dataset.get_start_time():
+        # start_time in cleaned data is timezone aware
+        '''
+        A datetime object d is aware if d.tzinfo is not None and d.tzinfo.utcoffset(d)
+        does not return None. If d.tzinfo is None, or if d.tzinfo is not None but
+        d.tzinfo.utcoffset(d) returns None, d is naive. 
+        if t1.tzinfo == None or t1.tzinfo.utcoffset(t1) == None:
+            print("form clean start_time is timezone naive")
+        else:
+            print("form clean start_time is timezone aware")
+        '''
+
+        # the time fields are in the browser's timezone. Use those exact fields, but interpret
+        # them in the dataset timezone
+        t1 = dtz.localize(t1.replace(tzinfo=None))
+
+        # Allow user to be sloppy by a week
+        if t1 < self.dataset.get_start_time() - datetime.timedelta(days=7):
             msg = "chosen start time: {} is earlier than dataset start time: {}".format(
                 t1.isoformat(),self.dataset.get_start_time().isoformat())
             self._errors['start_time'] = self.error_class([msg])
@@ -152,14 +180,14 @@ class DatasetSelectionForm(forms.Form):
         else:
             tdelta = datetime.timedelta(seconds=tval)
 
-        t2 = t1 + tdelta
 
-        if t1 >= t2:
-            msg = "chosen start time: {} is later than end time: {}".format(
-                t1.isoformat(),t2.isoformat())
+        if tdelta.total_seconds() <= 0:
+            msg = "time length must be positive"
             raise forms.ValidationError(msg)
 
-        if len(cleaned_data['variables']) == 0:
+        t2 = t1 + tdelta
+
+        if not 'variables' in cleaned_data or len(cleaned_data['variables']) == 0:
             raise forms.ValidationError('no variables selected')
 
         fset = self.dataset.get_fileset()
