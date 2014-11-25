@@ -185,7 +185,7 @@ class DatasetView(View):
             #       start_time, end_time a day at beginning of dataset
 
             tnow = datetime.datetime.now(pytz.utc)
-            delta = timedelta(days=1)
+            delta = datetime.timedelta(days=1)
             if dataset.get_end_time() > tnow:
                 t1 = tnow - delta
             else:
@@ -215,7 +215,7 @@ class DatasetView(View):
                 usersel.dataset = dataset
                 usersel.variables = []
 
-                tnow = datetime.datetime.now(datetime.datetime.utc)
+                tnow = datetime.datetime.now(pytz.utc)
                 delta = datetime.timedelta(days=1)
                 if dataset.get_end_time() > tnow:
                     t1 = tnow - delta
