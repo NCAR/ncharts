@@ -199,6 +199,8 @@ class Dir:
         # modification time is newer than last scan
         if dirmodtime > self.modtime:
 
+            self.myfiles = []
+
             (nextpath,pathrem) = pathsplit(self.pathrem)
 
             globpath = globifyTimeDescriptors(nextpath)
