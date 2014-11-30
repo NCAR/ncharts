@@ -19,9 +19,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = '6-u3&i0wz1lgpwlq3apf1)&o%niv4gql4iv_ibr2^^e2y#=_=6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
 ALLOWED_HOSTS = [ 'datavis', '.eol.ucar.edu' ]
@@ -89,6 +89,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 # STATIC_ROOT = '/var/local/django/static'
 
+LOG_DIR = '/var/log/httpd'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -105,37 +107,37 @@ LOGGING = {
         'django_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'django_debug.log',
+            'filename': os.path.join(LOG_DIR, 'django_debug.log'),
             'formatter': 'verbose'
         },
         'django': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': 'django.log',
+            'filename': os.path.join(LOG_DIR, 'django.log'),
             'formatter': 'verbose'
         },
         'eoldatasite_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'eoldatasite_debug.log',
+            'filename': os.path.join(LOG_DIR, 'eoldatasite_debug.log'),
             'formatter': 'verbose'
         },
         'eoldatasite': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': 'eoldatasite.log',
+            'filename': os.path.join(LOG_DIR, 'eoldatasite.log'),
             'formatter': 'verbose'
         },
         'ncharts': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': 'ncharts.log',
+            'filename': os.path.join(LOG_DIR, 'ncharts.log'),
             'formatter': 'verbose'
         },
         'ncharts_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'ncharts_debug.log',
+            'filename': os.path.join(LOG_DIR, 'ncharts_debug.log'),
             'formatter': 'verbose'
         },
     },
@@ -159,7 +161,8 @@ LOGGING = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:/tmp/django_memcached.sock',
+        'LOCATION': 'unix:/var/run/httpd/django_memcached.sock',
+        # 'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 300, # 300 seconds is the default
     }
 }
