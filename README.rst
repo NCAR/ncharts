@@ -32,12 +32,26 @@ The following is for RedHat systems, such as CentOS or Fedora.
    A virtual environment allows you to run specific versions of python
    packages without effecting other users on the system.
 
+   Once the virtual environment has been created, it must be activated for each
+   shell where you run python django commands from.
+   
+   In the following sections you will see this command:
+
+    source $DJVIRT/bin/activate
+
+   It only needs to be done once for each shell.  If you see "(django)" in your
+   shell prompt, it is not necessary to activate it again.
+
 2.a Development server
 
     mkdir $HOME/virtualenvs
+
+
     cd $HOME/virtualenvs
     virtualenv -p /usr/bin/python3 django
-    source django/bin/activate
+
+    DJVIRT=$HOME/virtualenvs/django
+    source $DJVIRT/bin/activate
 
 2.b Production Server (apache)
 
@@ -47,13 +61,13 @@ The following is for RedHat systems, such as CentOS or Fedora.
     mkdir virtualenv
     cd virtualenv
     virtualenv -p /usr/bin/python3 django
-    source django/bin/activate
+
+    DJVIRT=/var/django/virtualenv/django
+    source $DJVIRT/bin/activate
 
 3. Add other Python packages to virtual environment
 
-   After setting up the virtual environment, and doing the "source .../activate",
-   you should see "(django)" in your shell prompt. From that shell install
-   these packages to your virtual environment:
+    source $DJVIRT/bin/activate
 
     python3 -m pip install django
     python3 -m pip install numpy
@@ -118,21 +132,28 @@ The following is for RedHat systems, such as CentOS or Fedora.
 6. Initialize the database. You may want to delete it if the structure of the
    models changes.
     
+    source $DJVIRT/bin/activate
     ./syncdb.sh
 
 7. Load the models from the .json files in ncharts/fixtures:
 
+    source $DJVIRT/bin/activate
     ./load.sh
 
-8. Start Memcached:
+8. Gather static files:
 
-8.a Development server:
+    source $DJVIRT/bin/activate
+    python3 manage.py collectstatic
+
+9. Start Memcached:
+
+9.a Development server:
     The location of django_memcached.sock should correspond to
     the path set in eoldatasite/settings.py.
 
     memcached -s ./django_memcached.sock -d
 
-8.b Production server:
+9.b Production server:
     
     sudo mkdir /var/run/django
     sudo chown apache.apache /var/run/django
@@ -143,9 +164,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
     sudo systemctl start memcached_django.service
 
 
-9 Configure and start httpd server
+10 Configure and start httpd server
 
-9.a Production server:
+10.a Production server:
 
     sudo mv /etc/httpd /etc/httpd.orig
     sudo cp -r etc/httpd /etc
@@ -156,10 +177,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
     sudo systemctl enable httpd.service
     sudo systemctl start httpd.service
 
-9.b Development server:
+10.b Development server:
     ./runserver.sh
     
-10. Test!
+11. Test!
     On development server:
         http://127.0.0.1:8000/ncharts
 

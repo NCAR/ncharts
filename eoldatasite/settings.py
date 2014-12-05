@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+VAR_RUN_DIR = '/var/run/django'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
@@ -66,7 +68,7 @@ WSGI_APPLICATION = 'eoldatasite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(VAR_RUN_DIR, 'db.sqlite3'),
     }
 }
 
@@ -86,10 +88,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+# See /etc/httpd/conf/vhosts/datavis.conf:
+#	Alias /static/ /var/django/django-eoldatasite/static/
 STATIC_URL = '/static/'
-# STATIC_ROOT = '/var/local/django/static'
+STATIC_ROOT = '/var/django/django-eoldatasite/static'
 
-LOG_DIR = '/var/log/httpd'
+LOG_DIR = '/var/log/django'
+# LOG_DIR = '.'
 
 LOGGING = {
     'version': 1,
@@ -161,7 +166,7 @@ LOGGING = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:/var/run/httpd/django_memcached.sock',
+        'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
         # 'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 300, # 300 seconds is the default
     }
