@@ -2,48 +2,77 @@
 eoldatasite
 =====
 
-Simple django web site, for deploying django apps at EOL NCAR.
+Software for a django web service at EOL NCAR.
 
 Detailed documentation is in the "docs" directory.
 
-Quick start
+Setup and Starting
 -----------
+
+The following is for RedHat systems, such as CentOS or Fedora.
 
 1. Install required packages:
 
-    sudo yum install python3-django python3-pip python3-memcached memcached
+   Redhat does not (yet!) provide an RPM for python3 in CentOS, even CentOS7.
+
+   RPM for python3 and python3-devel are available on the EOL yum repo for
+   CentOS7, but not CentOS6. See the SEW wiki at http://wiki.eol.ucar.edu/sew/EOL_YUM_Repository
 
 
-1.a CentOS7 doesn't have python3 or django :-(
+    sudo yum install python3 python3-pip python3-memcached \
+        memcached python3-mod_wsgi python3-devel
 
-    yum install sqlite-devel openssl-devel readline-devel netcdf-devel hdf5-devel
-
-    wget https://www.python.org/ftp/python/3.4.0/Python-3.4.0.tar.xz
-    tar -xvf Python-3.4.0.tar.xz
-    cd Python-3.4.0
-    ./configure --prefix=/usr --with-ensurepip=install
-    make
-    sudo make install
-
-    sudo python3 -m ensurepip --upgrade
+    sudo python3 -m pip install virtualenv
 
     sudo python3 -m pip install virtualenvwrapper
 
-    sudo python3 -m pip install django
 
-    sudo python3 -m pip install numpy
-    sudo python3 -m pip install netCDF4
+2. Create virtual environment
+
+   A virtual environment allows you to run specific versions of python
+   packages without effecting other users on the system.
+
+2.a Development server
+
+    mkdir $HOME/virtualenvs
+    cd $HOME/virtualenvs
+    virtualenv -p /usr/bin/python3 django
+    source django/bin/activate
+
+2.b Production Server (apache)
+
+    sudo mkdir /var/django
+    sudo chown www.www /var/django
+    cd /var/django
+    mkdir virtualenv
+    cd virtualenv
+    virtualenv -p /usr/bin/python3 django
+    source django/bin/activate
+
+3. Add other Python packages to virtual environment
+
+   After setting up the virtual environment, and doing the "source .../activate",
+   you should see "(django)" in your shell prompt. From that shell install
+   these packages to your virtual environment:
+
+    python3 -m pip install django
+    python3 -m pip install numpy
+    python3 -m pip install netCDF4
+
+   Python3 version of django-datetime-widget.
+
+    python3 -m pip install ~maclean/git/django-datetime-widget/dist/django-datetime-widget-0.9.2.tar.gz
+
+    python3 -m pip install python3-memcached
+
+3. For a production server, install mod_wsgi
+
+   This RPM for CentOS7 is on the EOL repo.
+
+    sudo yum install httpd python3-mod_wsgi
 
 
-1.b
-    Need the python3 version of django-datetime-widget.
-
-    sudo python3 -m pip install /scr/tmp/maclean/django-datetime-widget-0.9.2.tar.gz
-
-1.c If you can't find python3-memcached:
-    sudo python3 -m pip install python3-memcached
-
-2. Since the django-ncharts app is undergoing many changes, the simplest way to use it 
+4. Since the django-ncharts app is undergoing many changes, the simplest way to use it 
    is to clone it from github to a neighboring directory, and create a symbolic link:
 
     cd ..
@@ -52,28 +81,89 @@ Quick start
     cd django-eoldatasite
     ln -s ../../django-ncharts/ncharts .
 
-    ncharts is listed as an INSTALLED_APPS in eoldatasite/settings.py, as is datetimewidget.
+    ncharts is listed in INSTALLED_APPS in eoldatasite/settings.py, as is datetimewidget.
 
     ncharts is also specified in eoldatasite/urls.py.
 
-3. Initialize the database:
+
+5. Configure for local installation:
+
+5.a Development server
+    Edit eoldatasite/settings.py, and set LOG_DIR and the CACHES location to
+    somehere you have write permission. You could use BASE_DIR:
+
+        LOG_DIR = BASE_DIR
+        VAR_RUN_DIR = BASE_DIR
+        ...
+        DATABASES = {
+                    'NAME': os.path.join(VAR_RUN_DIR, 'db.sqlite3'),
+        }
+        CACHES = {
+            'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock')
+        }
+
+5.a Production server
+
+        LOG_DIR = '/var/log/django'
+        VAR_RUN_DIR = '/var/run/django'
+        ...
+        DATABASES = {
+                    'NAME': os.path.join(VAR_RUN_DIR, 'db.sqlite3'),
+        }
+        CACHES = {
+            'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
+        }
+
+
+6. Initialize the database. You may want to delete it if the structure of the
+   models changes.
     
-    rm -f db.sqlite3
     ./syncdb.sh
 
-4. Update the models
-
-   cd ncharts/fixtures
-
-   edit \*.json
-
-5. Load the models
+7. Load the models from the .json files in ncharts/fixtures:
 
     ./load.sh
 
+8. Start Memcached:
 
-6. Start the development server:
+8.a Development server:
+    The location of django_memcached.sock should correspond to
+    the path set in eoldatasite/settings.py.
+
+    memcached -s ./django_memcached.sock -d
+
+8.b Production server:
+    
+    sudo mkdir /var/run/django
+    sudo chown apache.apache /var/run/django
+
+    sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
+    sudo systemctl daemon.reload
+    sudo systemctl enable memcached_django.service
+    sudo systemctl start memcached_django.service
+
+
+9 Configure and start httpd server
+
+9.a Production server:
+
+    sudo mv /etc/httpd /etc/httpd.orig
+    sudo cp -r etc/httpd /etc
+
+    mkdir /var/log/django
+    sudo chown apache.apache /var/log/django
+
+    sudo systemctl enable httpd.service
+    sudo systemctl start httpd.service
+
+9.b Development server:
     ./runserver.sh
     
+10. Test!
+    On development server:
+        http://127.0.0.1:8000/ncharts
 
-5. Visit http://127.0.0.1:8000/ncharts
+    Production server:
+        http://127.0.0.1/ncharts
+
+
