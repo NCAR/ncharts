@@ -1,5 +1,5 @@
 """
-Django settings for eoldatasite project.
+Django settings for datavis project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+VAR_RUN_DIR = '/var/run/django'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -24,7 +26,7 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.0.189']
+ALLOWED_HOSTS = [ 'datavis', '.eol.ucar.edu' ]
 
 # Application definition
 
@@ -52,13 +54,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'eoldatasite.middleware.InternalUseOnlyMiddleware',
+    'datavis.middleware.InternalUseOnlyMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
-ROOT_URLCONF = 'eoldatasite.urls'
+ROOT_URLCONF = 'datavis.urls'
 
-WSGI_APPLICATION = 'eoldatasite.wsgi.application'
+WSGI_APPLICATION = 'datavis.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
@@ -66,7 +68,7 @@ WSGI_APPLICATION = 'eoldatasite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(VAR_RUN_DIR, 'db.sqlite3'),
     }
 }
 
@@ -86,9 +88,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+# See /etc/httpd/conf/vhosts/datavis.conf:
+#	Alias /static/ /var/django/eol-django-datavis/static/
 STATIC_URL = '/static/'
+STATIC_ROOT = '/var/django/eol-django-datavis/static'
 
-LOG_DIR = '/var/log/httpd'
+LOG_DIR = '/var/log/django'
+# LOG_DIR = '.'
 
 LOGGING = {
     'version': 1,
@@ -115,16 +121,16 @@ LOGGING = {
             'filename': os.path.join(LOG_DIR, 'django.log'),
             'formatter': 'verbose'
         },
-        'eoldatasite_debug': {
+        'datavis_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'eoldatasite_debug.log'),
+            'filename': os.path.join(LOG_DIR, 'datavis_debug.log'),
             'formatter': 'verbose'
         },
-        'eoldatasite': {
+        'datavis': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'eoldatasite.log'),
+            'filename': os.path.join(LOG_DIR, 'datavis.log'),
             'formatter': 'verbose'
         },
         'ncharts': {
@@ -142,12 +148,12 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers':['django_debug'],
+            'handlers':['django','django_debug'],
             'propagate': True,
             'level':'DEBUG',
         },
-        'eoldatasite': {
-            'handlers':['eoldatasite_debug'],
+        'datavis': {
+            'handlers':['datavis','datavis_debug'],
             'level':'DEBUG',
         },
         'ncharts': {
@@ -160,7 +166,7 @@ LOGGING = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:/var/run/httpd/django_memcached.sock',
+        'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
         # 'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 300, # 300 seconds is the default
     }
