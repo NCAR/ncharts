@@ -1,5 +1,5 @@
 =====
-eoldatasite
+eoldjango-datavis
 =====
 
 Software for a django web service at EOL NCAR.
@@ -92,18 +92,18 @@ The following is for RedHat systems, such as CentOS or Fedora.
     cd ..
     git clone https://github.com/ncareol/django-ncharts.git
 
-    cd django-eoldatasite
+    cd eol-django-datavis
     ln -s ../../django-ncharts/ncharts .
 
-    ncharts is listed in INSTALLED_APPS in eoldatasite/settings.py, as is datetimewidget.
+    ncharts is listed in INSTALLED_APPS in datavis.py, as is datetimewidget.
 
-    ncharts is also specified in eoldatasite/urls.py.
+    ncharts is also specified in datavis.py.
 
 
 5. Configure for local installation:
 
 5.a Development server
-    Edit eoldatasite/settings.py, and set LOG_DIR and the CACHES location to
+    Edit datavis.py, and set LOG_DIR and the CACHES location to
     somehere you have write permission. You could use BASE_DIR:
 
         LOG_DIR = BASE_DIR
@@ -149,7 +149,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 9.a Development server:
     The location of django_memcached.sock should correspond to
-    the path set in eoldatasite/settings.py.
+    the path set in datavis.py.
 
     memcached -s ./django_memcached.sock -d
 

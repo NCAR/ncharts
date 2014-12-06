@@ -1,5 +1,5 @@
 """
-Django settings for eoldatasite project.
+Django settings for datavis project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -54,13 +54,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'eoldatasite.middleware.InternalUseOnlyMiddleware',
+    'datavis.middleware.InternalUseOnlyMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
-ROOT_URLCONF = 'eoldatasite.urls'
+ROOT_URLCONF = 'datavis.urls'
 
-WSGI_APPLICATION = 'eoldatasite.wsgi.application'
+WSGI_APPLICATION = 'datavis.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
@@ -89,9 +89,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 # See /etc/httpd/conf/vhosts/datavis.conf:
-#	Alias /static/ /var/django/django-eoldatasite/static/
+#	Alias /static/ /var/django/eol-django-datavis/static/
 STATIC_URL = '/static/'
-STATIC_ROOT = '/var/django/django-eoldatasite/static'
+STATIC_ROOT = '/var/django/eol-django-datavis/static'
 
 LOG_DIR = '/var/log/django'
 # LOG_DIR = '.'
@@ -121,16 +121,16 @@ LOGGING = {
             'filename': os.path.join(LOG_DIR, 'django.log'),
             'formatter': 'verbose'
         },
-        'eoldatasite_debug': {
+        'datavis_debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'eoldatasite_debug.log'),
+            'filename': os.path.join(LOG_DIR, 'datavis_debug.log'),
             'formatter': 'verbose'
         },
-        'eoldatasite': {
+        'datavis': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'eoldatasite.log'),
+            'filename': os.path.join(LOG_DIR, 'datavis.log'),
             'formatter': 'verbose'
         },
         'ncharts': {
@@ -152,8 +152,8 @@ LOGGING = {
             'propagate': True,
             'level':'DEBUG',
         },
-        'eoldatasite': {
-            'handlers':['eoldatasite','eoldatasite_debug'],
+        'datavis': {
+            'handlers':['datavis','datavis_debug'],
             'level':'DEBUG',
         },
         'ncharts': {
