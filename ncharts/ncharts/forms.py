@@ -80,9 +80,9 @@ class DatasetSelectionForm(forms.Form):
             # start_time will be timezone aware
             '''
             if start_time.tzinfo == None or start_time.tzinfo.utcoffset(start_time) == None:
-                print("form __init__ start_time is timezone naive")
+                logger.debug("form __init__ start_time is timezone naive")
             else:
-                print("form __init__ start_time is timezone aware")
+                logger.debug("form __init__ start_time is timezone aware")
             '''
 
             # convert to dataset timezone
@@ -224,6 +224,10 @@ class DatasetSelectionForm(forms.Form):
 
     def too_much_data(self,e):
         self.errors['__all__'] = self.error_class([repr(e)])
+
+    def no_data(self,e):
+        self.errors['__all__'] = self.error_class([repr(e)])
+
 
     def get_files(self):
         return self.files

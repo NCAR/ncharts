@@ -330,17 +330,28 @@ class DatasetView(View):
 
         ncdset = ncharts.netcdf.NetCDFDataset(files)
 
+        # a variable can be in a dataset, but not in a certain set of files.
+        # savail: selected and available variables, using set intersection
+        savail = list(set(svars) & set(ncdset.variables.keys()))
+
+        if len(savail) == 0:
+            e = ncharts.exceptions.NoDataException("variables {} not found in data files".format(svars))
+            logger.warn(repr(e))
+            form.no_data(repr(e))
+            return render(request,self.template_name, { 'form': form,
+                'dataset': dataset})
+
         # If variables exists in the dataset, get their
         # attributes there, otherwise from the NetCDF files.
         if len(dataset.variables.all()) > 0:
             variables = { k:{'units': dataset.variables.get(name=k).units,
                 'long_name': dataset.variables.get(name=k).long_name }
-                    for k in svars }
+                    for k in savail }
         else:
-            variables = { k:ncdset.variables[k] for k in svars }
+            variables = { k:ncdset.variables[k] for k in savail }
 
         try:
-            ncdata = ncdset.read(svars,start_time=t1,end_time=t2)
+            ncdata = ncdset.read(savail,start_time=t1,end_time=t2)
         except ncharts.exceptions.TooMuchDataException as e:
             form.too_much_data(repr(e))
             return render(request,self.template_name, { 'form': form,
