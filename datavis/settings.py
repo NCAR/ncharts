@@ -111,38 +111,44 @@ LOGGING = {
     'handlers': {
         'django_debug': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'django_debug.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'django': {
             'level': 'WARNING',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'django.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'datavis_debug': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'datavis_debug.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'datavis': {
             'level': 'WARNING',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'datavis.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'ncharts': {
             'level': 'WARNING',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'ncharts.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'ncharts_debug': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'ncharts_debug.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
     },
