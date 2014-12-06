@@ -279,6 +279,13 @@ class NetCDFDataset:
                 else:
                     data[vname] = numpy.append(data[vname],dfill,axis=time_index)
 
+        if len(times) == 0:
+            e = exceptions.NoDataException(
+                "no data found between {} and {}".format(
+                        start_time.isoformat(), end_time.isoformat()))
+            logger.warning(repr(e))
+            raise e
+
         for vname in data.keys():
             logger.debug("data[%s].shape=%s",vname,repr(data[vname].shape))
         logger.debug("total_size=%d",total_size)

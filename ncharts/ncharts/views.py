@@ -356,6 +356,11 @@ class DatasetView(View):
             form.too_much_data(repr(e))
             return render(request,self.template_name, { 'form': form,
                 'dataset': dataset})
+        except ncharts.exceptions.NoDataException as e:
+            form.no_data(repr(e))
+            return render(request,self.template_name, { 'form': form,
+                'dataset': dataset})
+
 
         # As an easy compression, subtract first time from all times,
         # reducing the number of characters sent.
