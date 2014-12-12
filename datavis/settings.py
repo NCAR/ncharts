@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-VAR_RUN_DIR = '/var/run/django'
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
@@ -26,7 +24,14 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
-ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu' ]
+if DEBUG:
+    VAR_RUN_DIR = BASE_DIR
+    LOG_DIR = os.path.join(BASE_DIR,'log')
+else:
+    LOG_DIR = '/var/log/django'
+    VAR_RUN_DIR = '/var/run/django'
+
+ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost' ]
 
 # Application definition
 
@@ -88,13 +93,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-# See /etc/httpd/conf/vhosts/datavis.conf:
-#	Alias /static/ /var/django/eol-django-datavis/static/
+# URL to use when referring to static files located in STATIC_ROOT
 STATIC_URL = '/static/'
-STATIC_ROOT = '/var/django/eol-django-datavis/static'
 
-LOG_DIR = '/var/log/django'
-# LOG_DIR = '.'
+if not DEBUG:
+    # STATIC_ROOT is where "pythyon3 manage.py collectstatic" puts
+    # the static files it finds.
+    # See /etc/httpd/conf/vhosts/datavis.conf:
+    #	Alias /static/ /var/django/eol-django-datavis/static/
+    STATIC_ROOT = '/var/django/eol-django-datavis/static'
 
 LOGGING = {
     'version': 1,
