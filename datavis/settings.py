@@ -26,7 +26,7 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
-ALLOWED_HOSTS = [ 'datavis', '.eol.ucar.edu' ]
+ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu' ]
 
 # Application definition
 
