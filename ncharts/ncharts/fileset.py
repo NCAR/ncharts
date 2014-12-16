@@ -14,6 +14,10 @@ from pytz import utc
 from ncharts import netcdf
 import sre_constants
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # DatasetView.post():
 #       know dataset, including directory, file name format, start, stop
 #               times, selected variables
@@ -191,7 +195,7 @@ class Dir:
         try:
             pstat = os.stat(self.path)
         except FileNotFoundError as e:
-            print(e)
+            logger.error(e)
             raise
 
         dirmodtime = datetime.utcfromtimestamp(pstat.st_mtime)
@@ -210,7 +214,7 @@ class Dir:
                 try:
                     pstat = os.stat(subpath)
                 except FileNotFoundError as e:
-                    print(e)
+                    logger.error(e)
                     raise
                 if stat.S_ISDIR(pstat.st_mode):
                     pdir = Dir.get(subpath,os.path.join(self.pathexpr,nextpath),pathrem)
@@ -223,7 +227,7 @@ class Dir:
             try:
                 pstat = os.stat(self.path)
             except FileNotFoundError as e:
-                print(e)
+                logger.error(e)
                 raise
             self.modtime = datetime.utcfromtimestamp(pstat.st_mtime)
             self.myfiles.sort(key=lambda x: x.time)
