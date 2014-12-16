@@ -108,7 +108,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
    Python3 version of django-datetime-widget.
 
-        python3 -m pip install ~maclean/git/django-datetime-widget/dist/django-datetime-widget-0.9.2.tar.gz
+        python3 -m pip install django-datetime-widget
 
         python3 -m pip install python3-memcached
 
