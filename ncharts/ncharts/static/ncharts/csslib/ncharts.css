@@ -1,7 +1,21 @@
+.boxed {
+    border: 1px solid green ;
+}
+input#id_time_length_0 {
+	width: 3em;
+}
+/*
+input#id_start_time {
+	width: 16em;
+}
+*/
+div#id_start_time {
+	width: 24em;
+}
+/*
 .date {
 	width: 200px;
 }
-/*
 .input-group {
 	width: 200px;
 }
