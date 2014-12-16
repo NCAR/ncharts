@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-VAR_RUN_DIR = '/var/run/django'
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
@@ -26,7 +24,14 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
-ALLOWED_HOSTS = [ 'datavis', '.eol.ucar.edu' ]
+if DEBUG:
+    VAR_RUN_DIR = BASE_DIR
+    LOG_DIR = os.path.join(BASE_DIR,'log')
+else:
+    LOG_DIR = '/var/log/django'
+    VAR_RUN_DIR = '/var/run/django'
+
+ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost' ]
 
 # Application definition
 
@@ -88,13 +93,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+# URL to use when referring to static files located in STATIC_ROOT
+STATIC_URL = '/static/'
+
+# STATIC_ROOT is where "pythyon3 manage.py collectstatic" puts
+# the static files it finds.
 # See /etc/httpd/conf/vhosts/datavis.conf:
 #	Alias /static/ /var/django/eol-django-datavis/static/
-STATIC_URL = '/static/'
-STATIC_ROOT = '/var/django/eol-django-datavis/static'
-
-LOG_DIR = '/var/log/django'
-# LOG_DIR = '.'
+STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
 LOGGING = {
     'version': 1,
@@ -111,38 +117,44 @@ LOGGING = {
     'handlers': {
         'django_debug': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'django_debug.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'django': {
             'level': 'WARNING',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'django.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'datavis_debug': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'datavis_debug.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'datavis': {
             'level': 'WARNING',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'datavis.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'ncharts': {
             'level': 'WARNING',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'ncharts.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'ncharts_debug': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'ncharts_debug.log'),
+            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
     },
@@ -163,17 +175,19 @@ LOGGING = {
     }
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
-        # 'LOCATION': '127.0.0.1:11211',
-        'TIMEOUT': 300, # 300 seconds is the default
+if not DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
+            # 'LOCATION': '127.0.0.1:11211',
+            'TIMEOUT': 300, # 300 seconds is the default
+        }
     }
-}
-CACME_MIDDLEWARE_ALIAS = 'default'
-CACHE_MIDDLEWARE_SECONDS = 300
-CACHE_MIDDLEWARE_KEY_PREFIX = ''
+    CACME_MIDDLEWARE_ALIAS = 'default'
+    CACHE_MIDDLEWARE_SECONDS = 300
+    CACHE_MIDDLEWARE_KEY_PREFIX = ''
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 INTERNAL_IPS = ['128.117']
