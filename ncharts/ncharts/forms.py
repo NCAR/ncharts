@@ -37,8 +37,8 @@ class FloatWithChoiceWidget(forms.MultiWidget):
     def decompress(self, value):
         '''Provide the value of this field for the widgets.
            value is a string'''
-        print("decompress, type(value)=",type(value),
-                ",value=",repr(value))
+        # print("decompress, type(value)=",type(value),
+        #         ",value=",repr(value))
         if not value:
             return ['1','1']
         try:
@@ -102,7 +102,7 @@ class FloatWithChoiceField(forms.MultiValueField):
     def compress(self, value):
         '''Return the value for this field from those provided by the widgets.
            value should be a list of floats of length 2'''
-        print("compress, type(value)=",type(value),",value=",value)
+        # print("compress, type(value)=",type(value),",value=",value)
         if not value or not isinstance(value,list) or len(value) < 1:
             raise ValueError("no value")
         return value[0]
