@@ -9,7 +9,7 @@
             "ISFS"
         ], 
         "start_time": "2014-06-05T00:00:00Z", 
-        "end_time": "2014-11-20T00:00:00Z", 
+        "end_time": "2014-12-31T00:00:00Z", 
         "name": "trh-test", 
         "project": "CentNet Devel", 
         "filenames": "isff_%Y%m%d.nc"

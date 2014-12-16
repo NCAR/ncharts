@@ -120,7 +120,7 @@
             "Weather Station"
         ], 
         "start_time": "2009-01-01T00:00:00Z", 
-        "end_time": "2014-11-17T16:00:00Z", 
+        "end_time": "2015-12-31T00:00:00Z", 
         "name": "flab-5min", 
         "project": "Weather", 
         "filenames": "flab.%Y%m%d.cdf"
@@ -150,7 +150,7 @@
             "Weather Station"
         ], 
         "start_time": "2012-06-01T00:00:00Z", 
-        "end_time": "2014-11-17T16:00:00Z", 
+        "end_time": "2015-12-31T00:00:00Z", 
         "name": "nwsc-5min", 
         "project": "Weather", 
         "filenames": "nwsc.%Y%m%d.cdf"
@@ -180,7 +180,7 @@
             "Weather Station"
         ], 
         "start_time": "2009-01-01T00:00:00Z", 
-        "end_time": "2014-11-17T16:00:00Z", 
+        "end_time": "2015-12-31T00:00:00Z", 
         "name": "mlab-5min", 
         "project": "Weather", 
         "filenames": "mlab.%Y%m%d.cdf"
@@ -210,7 +210,7 @@
             "Weather Station"
         ], 
         "start_time": "2009-01-26T00:00:00Z", 
-        "end_time": "2014-11-17T16:00:00Z", 
+        "end_time": "2015-12-31T00:00:00Z", 
         "name": "nsf-5min", 
         "project": "Weather", 
         "filenames": "nsf.%Y%m%d.cdf"
@@ -240,7 +240,7 @@
             "Weather Station"
         ], 
         "start_time": "2013-12-10T00:00:00Z", 
-        "end_time": "2014-11-17T16:00:00Z", 
+        "end_time": "2015-12-31T00:00:00Z", 
         "name": "raf-5min", 
         "project": "Weather", 
         "filenames": "raf.%Y%m%d.cdf"
@@ -270,7 +270,7 @@
             "Weather Station"
         ], 
         "start_time": "2014-02-13T00:00:00Z", 
-        "end_time": "2014-11-17T16:00:00Z", 
+        "end_time": "2015-12-31T00:00:00Z", 
         "name": "fireside-5min", 
         "project": "Weather", 
         "filenames": "fireside.%Y%m%d.cdf"

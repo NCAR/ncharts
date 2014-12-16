@@ -27,9 +27,9 @@
         "platforms": [
             "GV"
         ], 
-        "start_time": "2014-07-01T00:00:00Z", 
-        "end_time": "2014-07-02T00:00:00Z", 
-        "name": "1sec-field", 
+        "start_time": "2014-07-01T04:00:00Z", 
+        "end_time": "2014-07-01T14:00:00Z", 
+        "name": "GV-1sec", 
         "project": "DEEPWAVE", 
         "filenames": "DEEPWAVE_%Y%m%d_rf14.nc",
         "dtype": "netcdf"

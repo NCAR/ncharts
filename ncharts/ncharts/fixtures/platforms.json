@@ -35,5 +35,14 @@
     }, 
     "model": "ncharts.platform", 
     "pk": "GV"
+},
+{
+    "fields": {
+        "projects": [
+            "MASCRAD"
+        ]
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "GAUS"
 }
 ]
