@@ -1,0 +1,26 @@
+
+{% extends "ncharts/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<h2>Select a project</h2>
+{% if projects %}
+    {% for project in projects %}
+        <a class="btn btn-default" href={% url 'ncharts:project' project.name %}>{{ project.name }}</a>
+    {% endfor %}
+{% else %}
+    <p>No projects are available.</p>
+{% endif %}
+
+<h2>Or, select a platform</h2>
+{% if platforms %}
+    {% for platform in platforms %}
+        <a class="btn btn-default" href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a>
+    {% endfor %}
+{% else %}
+    <p>No platforms are available.</p>
+{% endif %}
+
+{% endblock %}

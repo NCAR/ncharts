@@ -12,7 +12,9 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 
 from django.views.generic.edit import View
+from django.views.generic import TemplateView
 from django.utils.safestring import mark_safe
+from django.template import TemplateDoesNotExist
 
 import ncharts
 from ncharts.models import  Project, Platform, Dataset, UserSelection
@@ -24,6 +26,17 @@ import pytz
 import datetime
 
 logger = logging.getLogger(__name__)
+
+class StaticView(TemplateView):
+    def get(self, request, page, *args, **kwargs):
+        self.template_name = page
+        print("page=",page)
+        response = super().get(request, *args, **kwargs)
+        try:
+            return response.render()
+        except:
+            TemplateDoesNotExist
+            raise Http404()
 
 def index(request):
     return HttpResponse("<a href='projects'>projects</a>")
@@ -43,6 +56,35 @@ def projects(request):
     context = { 'projects': projects }
     return render(request,'ncharts/projects.html',context)
 
+def platforms(request):
+    ''' request for list of platforms '''
+
+    # root = Root.objects.get(name='platforms')
+    # platforms = root.platform_set.all()
+
+    platforms = Platform.objects.all()
+
+    # print('platforms len=%d'  % len(platforms))
+
+    context = { 'platforms': platforms }
+    return render(request,'ncharts/platforms.html',context)
+
+def projectsPlatforms(request):
+    ''' request for list of projects '''
+
+    # get_object_or_404(name='projects')
+    # get_list_or_404(name='projects') uses filter()
+    # root = Root.objects.get(name='projects')
+    # projects = root.project_set.all()
+
+    projects = Project.objects.all()
+    platforms = Platform.objects.all()
+
+    # print('projects len=%d' % len(projects))
+
+    context = { 'projects': projects, 'platforms': platforms }
+    return render(request,'ncharts/projectsPlatforms.html',context)
+
 def project(request,project_name):
     ''' request for list of platforms and datasets of a project'''
     try:
@@ -60,19 +102,6 @@ def project(request,project_name):
         return render(request,'ncharts/project.html',context)
     except Project.DoesNotExist:
         raise Http404
-
-def platforms(request):
-    ''' request for list of platforms '''
-
-    # root = Root.objects.get(name='platforms')
-    # platforms = root.platform_set.all()
-
-    platforms = Platform.objects.all()
-
-    # print('platforms len=%d'  % len(platforms))
-
-    context = { 'platforms': platforms }
-    return render(request,'ncharts/platforms.html',context)
 
 def platform(request,platform_name):
     ''' request for list of projects related to a platform'''

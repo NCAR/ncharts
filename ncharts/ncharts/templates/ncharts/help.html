@@ -1,0 +1,22 @@
+{% extends "ncharts/base.html" %}
+
+{% block title %}Help{% endblock %}
+
+{% block headline %}Help{% endblock %}
+
+{% block content %}
+
+<h4>Bugs and Idiosyncracies</h4>
+<ul>
+    <li>Response will be slow if you ask for a large quantity of data. Data reduction and compression are not supported.</li>
+    <li>Plots do not appear on the stock Android browser. Use Chrome</li>
+    <li>Time axis labels are in UTC.</li>
+    <li>On phones, if the plot occupies the entire screen you might not be able to scroll around.</li>
+</ul>
+
+<h4>Other Help</h4>
+<ul>
+    <li>For a time-series trace, click on the variable name at the bottom of a plot to toggle the visibility of the trace.</li>
+</ul>
+
+{% endblock %}

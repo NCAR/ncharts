@@ -10,7 +10,7 @@
 from django.conf.urls import patterns, include, url
 
 from ncharts import views
-from ncharts.views import DatasetView
+from ncharts.views import DatasetView, StaticView
 # from ncharts.forms import DatasetForm
 # DatasetFormPreview
 
@@ -19,7 +19,9 @@ from ncharts.views import DatasetView
 # url(regex,view,kwargs=None,name=None,prefix="")
 
 urlpatterns = patterns('',
-    url(r'^$', views.index, name='index'),
+    url(r'^$', views.projectsPlatforms, name='projectsPlatforms'),
+
+    url(r'^help/?$', StaticView.as_view(), { 'page': 'ncharts/help.html' } ),
 
     url(r'^projects/?$', views.projects, name='projects'),
 
