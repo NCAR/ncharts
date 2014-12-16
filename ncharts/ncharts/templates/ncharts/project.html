@@ -8,28 +8,18 @@
 
 <p>Datasets for {{ project }}</p>
 {% if datasets %}
-    <ul>
     {% for dataset in datasets %}
-        <!--
-        <li><a href="/ncharts/projects/{{ project.name }}/{{ site.name }}">{{ site.name }}</a></li>
-        -->
-        <li><a href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ dataset.name }}</a></li>
+        <a class="btn btn-default" href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ dataset.name }}</a>
     {% endfor %}
-    </ul>
 {% else %}
     <p>No dataset for project {{ project.name }}.</p>
 {% endif %}
 
 {% if platforms %}
 <p>Platforms for {{ project }}</p>
-    <ul>
     {% for platform in platforms %}
-        <!--
-        <li><a href="/ncharts/projects/{{ project.name }}/{{ site.name }}">{{ site.name }}</a></li>
-        -->
-        <li><a href="{% url 'ncharts:platformProject' platform.name project.name %}">{{ platform.name }}</a></li>
+        <a class="btn btn-default" href="{% url 'ncharts:platformProject' platform.name project.name %}">{{ platform.name }}</a>
     {% endfor %}
-    </ul>
 {% else %}
     <p>No platforms for {{ project }}.</p>
 {% endif %}

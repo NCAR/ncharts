@@ -6,15 +6,10 @@
 
 {% block content %}
 
-<p>Datasets for {{ platform }}, {{ project }}</p>
+<p>Datasets:</p>
 {% if datasets %}
-    <ul>
     {% for dataset in datasets %}
-        <!--
-        <li><a href="/ncharts/projects/{{ project.name }}/{{ site.name }}/{{ dataset.name }}">{{ project.name }} {{ site.name }} {{ dataset.name }}</a></li>
-        -->
-
-        <li><a href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ project.name }} {{ dataset.name }}</a></li>
+        <a class="btn btn-default" href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ project.name }} {{ dataset.name }}</a>
 
     {% endfor %}
 {% else %}

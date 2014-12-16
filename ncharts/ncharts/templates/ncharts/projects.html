@@ -7,12 +7,8 @@
 {% block content %}
 
 {% if projects %}
-    <ul>
     {% for project in projects %}
-        <!--
-        <li><a href="/ncharts/projects/{{ project.name }}/">{{ project.name }}</a></li>
-        -->
-        <li><a href={% url 'ncharts:project' project.name %}>{{ project.name }}</a></li>
+        <a class="btn btn-default" href={% url 'ncharts:project' project.name %}>{{ project.name }}</a>
     {% endfor %}
 {% else %}
     <p>No projects are available.</p>

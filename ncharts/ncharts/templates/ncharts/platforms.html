@@ -7,12 +7,8 @@
 {% block content %}
 
 {% if platforms %}
-    <ul>
     {% for platform in platforms %}
-        <!--
-        <li>{{ platform.name }}</li>
-        -->
-        <li><a href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a></li>
+        <a class="btn btn-default" href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a>
     {% endfor %}
 {% else %}
     <p>No platforms are available.</p>
