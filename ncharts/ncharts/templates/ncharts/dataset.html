@@ -1,35 +1,64 @@
 {% extends "ncharts/base.html" %}
 
-{% block title %}Dataset{% endblock %}
-
 {% block head %}
 {{ form.media }}
 {% endblock %}
 
+{% block title %}{{ dataset | escapejs }}{% endblock %}
+
+{% block headline %}{{ dataset }}{% endblock %}
+
 {% block content %}
 
-<p>{{ dataset.project.name }} {{ dataset.name}} </p>
+<div class="container">
+{{ form.non_field_errors }}
+</div>
 
 {% if form %}
     <form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
         {% csrf_token %}
 
-        {{ form.non_field_errors }}
-
-        <div class="variable">
-            {% for var in form.variables %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Variables</h3>
+                    </div>
+                    <div class="panel panel-primary">
+                        {% for var in form.variables %}
                             {{ var }}
-            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="time-selection">
-        {{ form.start_time.label_tag }} {{ form.start_time }}<strong>{{ form.start_time.errors }}</strong>
-        {{ form.time_length_choice.label_tag }} {{ form.time_length_choice }} {{ form.time_length_val }}
-        {{ form.time_length_units }}<strong>{{ form.time_length_choice.errors }} {{ form.time_length_val.errors }} {{ form.time_length_units.errors }}</strong>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Time</h3>
+                    </div>
+                    <div class="panel panel-primary">
+                        <strong>{{ form.start_time.errors }} {{ form.time_length.errors }} {{ form.time_length_units.errors }}</strong>
+                        <span class="label label-default">Start:</span>
+                        {{ form.start_time }}
+                        <span class="label label-default">Length:</span>
+                        {{ form.time_length }} {{ form.time_length_units }}
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <input type="submit" name="submit" value="page-backward"/>
-        <input type="submit" name="submit" value="plot"/>
-        <input type="submit" name="submit" value="page-forward"/>
+                
+        <div class="row">
+            <div class="col-md-6">
+                <button type="submit" name="submit" class="btn btn-default"
+                    value="page-backward">Back</button>
+                <button type="submit" name="submit" class="btn btn-default"
+                    value="plot">Current</button>
+                <button type="submit" name="submit" class="btn btn-default"
+                    value="page-forward">Forward</button>
+            </div>
+        </div>
     </form>
 {% endif %}
 

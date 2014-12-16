@@ -281,8 +281,7 @@ class DatasetView(View):
         # html field directly
         '''
         print("POST, time inputs=",
-            request.POST['time_length_choice'],
-            request.POST['time_length_val'],
+            request.POST['time_length_0'],
             request.POST['time_length_units'])
         '''
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
@@ -292,8 +291,7 @@ class DatasetView(View):
             t1 = dtz.localize(datetime.datetime.strptime(request.POST['start_time'],"%Y-%m-%d %H:%M"))
 
             dt = ncharts.forms.get_time_length(
-                    request.POST['time_length_choice'],
-                    request.POST['time_length_val'],
+                    request.POST['time_length_0'],
                     request.POST['time_length_units'])
 
             if request.POST['submit'] == 'page-backward':

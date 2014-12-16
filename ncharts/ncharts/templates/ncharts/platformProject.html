@@ -1,6 +1,8 @@
 {% extends "ncharts/base.html" %}
 
-{% block title %}Platform and Project{% endblock %}
+{% block title %}{{ platform | escapejs }} {{ project | escapejs }}{% endblock %}
+
+{% block headline %}{{ platform | escapejs }} {{ project | escapejs }}{% endblock %}
 
 {% block content %}
 

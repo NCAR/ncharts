@@ -1,78 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <!--get actual device width-->
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{% block title %}Greetings{% endblock %}</title>
+    <link rel="icon" href="/static/favicon.ico">
+
+    <title>{% block title %}{% endblock %}</title>
 
     {% load staticfiles %}
 
-    <!--include jquery, jquery mobile, highcharts libraries, layout.css and layout.js-->
-
     <!--
-    <link rel="stylesheet"
-        href="{{ STATIC_URL }}ncharts/jquery_mobile/jquery.mobile-1.3.1.min.css">
-    -->
-
-    <!--
-    <script src="{% static "ncharts/js/jquery-2.1.1.min.js" %}"></script>
-    <script src="{% static "ncharts/js/jquery.js" %}"></script>
-    -->
-
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-
-    <!--
-        adding mobile stylesheet with this adds a bunch of adornments:
-            huge buttons, date text fields
-    <script type="text/javascript"
-        src="{{ STATIC_URL }}ncharts/jquery_mobile/jquery.mobile-1.3.1.min.js">
-    </script>
-    -->
-
-    <!-- bootstrap -->
-    <!--
-    <link rel="stylesheet" type="text/css"
-        href="{% static "ncharts/css/bootstrap.min.css" %}">
-    <script src="{% static "ncharts/js/bootstrap.min.js" %}"></script>
-    -->
-
     <link rel="stylesheet" type="text/css"
         href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    -->
+    <link rel="stylesheet" type="text/css"
+        href="{% static "ncharts/css/bootstrap.min.css" %}">
 
     <!-- Optional theme -->
+    <!--
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    -->
 
-    <!-- Latest compiled and minified JavaScript -->
+    <link rel="stylesheet" type="text/css"
+        href="{% static "ncharts/css/bootstrap-theme.min.css" %}">
+
+    <link rel="stylesheet" href="{% static "ncharts/csslib/ncharts.css" %}">
+
+    <!--
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    -->
+    <script src="{% static "ncharts/js/jquery.min.js" %}"></script>
+
+    <!--
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    -->
+    <script src="{% static "ncharts/js/bootstrap.min.js" %}"></script>
+
+    <script src="{% static "ncharts/js/highstock.js" %}"></script>
+    <script src="{% static "ncharts/js/modules/exporting.js" %}"></script>
+    <script src="{% static "ncharts/js/modules/heatmap.js" %}"></script>
 
     <!--
-    <script type="text/javascript"
-        src="{% static "ncharts/js/highcharts.js" %}"></script>
-    </script>
+    <script src="http://github.highcharts.com/highstock.js"> </script>
+    <script src="http://code.highcharts.com/stock/modules/exporting.js"> </script>
+    <script src="http://code.highcharts.com/stock/modules/heatmap.js"> </script>
     -->
-    <!--
-    <script
-        src="http://code.highcharts.com/highcharts.js">
-    </script>
-    <script
-        src="http://code.highcharts.com/modules/exporting.js">
-    </script>
-        src="http://code.highcharts.com/stock/highstock.js">
-    -->
-    <script
-        src="http://github.highcharts.com/highstock.js">
-    </script>
-    <script
-        src="http://code.highcharts.com/stock/modules/exporting.js">
-    </script>
-    <script
-        src="http://code.highcharts.com/stock/modules/heatmap.js">
-    </script>
-
-    <link rel="stylesheet"
-        href="{% static "ncharts/csslib/ncharts.css" %}">
 
     <!-- finally, ncharts.js -->
     <script type="text/javascript"
@@ -83,8 +57,26 @@
 
 </head>
 
-<body>
-    <div id="content">
+<body role="document">
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar_header">
+            <a class="navbar-brand" href="/">Home</a>
+        </div>
+        <div class="container">
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="/">Home</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/help">Help</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" role="main">
+        <div class="page-header">
+            <h3>{% block headline %}{% endblock %}</h3>
+        </div>
         {% block content %}{% endblock %}
     </div>
 

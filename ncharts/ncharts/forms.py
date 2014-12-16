@@ -10,24 +10,109 @@
 from django import forms
 from datetimewidget.widgets import DateTimeWidget
 
+from django.utils.encoding import force_text
+from django.utils.safestring import mark_safe
+
 from ncharts.models import Variable
 
 from pytz import timezone, utc
 import datetime
 
-import logging
+import sys, logging
 
 logger = logging.getLogger(__name__)
 
-time_units_choices = {'day': 'day', 'hour': 'hour', 'minute': 'minute', 'second': 'second' }
-# time_units_choices = ['day', 'hour', 'minute', 'second']
+time_units_choices = ['day', 'hour', 'minute', 'second']
 time_len_choices = [1,4,5,7,8,12,24,30]
+
+class FloatWithChoiceWidget(forms.MultiWidget):
+    """MultiWidget for use with TextWithChoiceField."""
+    def __init__(self, choices, attrs=None):
+        widgets = [
+            forms.TextInput(attrs=attrs),
+            forms.Select(choices=choices,attrs=attrs)
+        ]
+        super().__init__(widgets)
+
+    def decompress(self, value):
+        '''Provide the value of this field for the widgets.
+           value is a string'''
+        print("decompress, type(value)=",type(value),
+                ",value=",repr(value))
+        if not value:
+            return ['1','1']
+        try:
+            val = float(value)
+            if val % 1 == 0:
+                value = '{:.0f}'.format(val)
+            if not val in time_len_choices:
+                return [value,'0']
+        except ValueError:
+            value = '1'
+        return [value,value]
+
+    def render(self,name,value,attrs=None):
+        html = super().render(name, value, attrs)
+
+        # add javascript to set the value of the text field
+        # from the selection.
+        html += '''<script>
+            (function($) {
+                $("select#%(id)s_1").change(function() {
+                    $("input#%(id)s_0").val(this.value);
+                });
+            })(jQuery);
+            </script>''' % {'id': attrs['id']}
+        return mark_safe(html)
+
+    def format_output(self, rendered_widgets):
+        """Format the output."""
+        return u''.join(rendered_widgets)
+
+class FloatWithChoiceField(forms.MultiValueField):
+    """
+    ChoiceField with an option for a user-submitted "other" value.
+
+    The last item in the choices array passed to __init__ is expected to be a choice for "other". This field's
+    cleaned data is a tuple consisting of the choice the user made, and the "other" field typed in if the choice
+    made was the last one.
+
+    """
+    def __init__(self, *args, choices=[], coerce=float,
+            min_value=sys.float_info.min, max_value=sys.float_info.max,
+            **kwargs):
+
+        self.coerce = coerce
+
+        # choices = kwargs.pop('choices',[])
+        # min_value = kwargs.pop('min_value',sys.float_info.min)
+        # max_value = kwargs.pop('max_value',sys.float_info.max)
+
+        fields = [
+            forms.FloatField(*args,min_value=min_value, max_value=max_value,
+                required=False,**kwargs),
+            forms.TypedChoiceField(*args,choices=choices,coerce=coerce,**kwargs),
+        ]
+
+        widget = FloatWithChoiceWidget(choices=choices)
+
+        super().__init__(*args, widget=widget, fields=fields,
+                require_all_fields=False, **kwargs)
+
+    def compress(self, value):
+        '''Return the value for this field from those provided by the widgets.
+           value should be a list of floats of length 2'''
+        print("compress, type(value)=",type(value),",value=",value)
+        if not value or not isinstance(value,list) or len(value) < 1:
+            raise ValueError("no value")
+        return value[0]
 
 class DatasetSelectionForm(forms.Form):
     ''' '''
 
     variables = forms.MultipleChoiceField(required=True,
-            widget=forms.CheckboxSelectMultiple,label='Variables:')
+            widget=forms.CheckboxSelectMultiple(attrs={'data-mini': 'true'}),
+            label='Variables:')
 
     # pickerPosition: bottom-right, bottom-left
     #       popup calendar box is to lower left or right of textbox & icon
@@ -38,15 +123,15 @@ class DatasetSelectionForm(forms.Form):
 
     # choices: (value,label)
     strchoices = [(str(i),str(i),) for i in time_len_choices]
-    strchoices[:0] = [('0','other->',)]
-    time_length_choice = forms.TypedChoiceField(choices=strchoices,coerce=float,
-            initial=strchoices[1][0],label='Time length')
 
-    time_length_val = forms.FloatField(min_value=0,initial=0,label='',required=False)
+    # strchoices.append(('0','other',))
+
+    time_length = FloatWithChoiceField(choices=strchoices,label='Time length',
+                min_value=0)
 
     time_length_units = forms.ChoiceField(
-            choices=[(c,c,) for c in time_units_choices.values()],
-            initial=time_units_choices['hour'],label='')
+            choices=[(c,c,) for c in time_units_choices],
+            initial=time_units_choices[0], label='')
 
     def __init__(self, *args, dataset=None, selected=[], start_time=None, time_length=None, **kwargs):
 
@@ -96,16 +181,16 @@ class DatasetSelectionForm(forms.Form):
             tlen = time_length.total_seconds()
 
             if tlen >= datetime.timedelta(days=1).total_seconds():
-                tunits = time_units_choices['day']
+                tunits = 'day'
                 tlen /= 86400
             elif tlen >= datetime.timedelta(hours=1).total_seconds():
-                tunits = time_units_choices['hour']
+                tunits = 'hour'
                 tlen /= 3600
             elif tlen >= datetime.timedelta(minutes=1).total_seconds():
-                tunits = time_units_choices['minute']
+                tunits = 'minute'
                 tlen /= 60
             else:
-                tunits = time_units_choices['second']
+                tunits = 'second'
 
             if tlen in time_len_choices:
                 tother = 0
@@ -117,12 +202,11 @@ class DatasetSelectionForm(forms.Form):
             '''
             print("tlen=",tlen,", tother=",tother)
 
-            print("type(self.fields['time_length_choice'].initial)=",
-                type(self.fields['time_length_choice'].initial))
+            print("type(self.fields['time_length'].initial)=",
+                type(self.fields['time_length'].initial))
             '''
             self.fields['time_length_units'].initial = tunits
-            self.fields['time_length_choice'].initial = tlen
-            self.fields['time_length_val'].initial = tother
+            self.fields['time_length'].initial = tlen
 
     def clean(self):
         '''
@@ -165,11 +249,10 @@ class DatasetSelectionForm(forms.Form):
         if not tunits in time_units_choices:
             raise forms.ValidationError('invalid time units: {}'.format(tunits))
 
-        tchoice = cleaned_data['time_length_choice']
-        tval = cleaned_data['time_length_val']
+        if not 'time_length' in cleaned_data:
+            raise forms.ValidationError('invalid time length')
 
-        if tchoice > 0:
-            tval = tchoice
+        tval = cleaned_data['time_length']
 
         if tunits == 'day':
             tdelta = datetime.timedelta(days=tval)
@@ -179,7 +262,6 @@ class DatasetSelectionForm(forms.Form):
             tdelta = datetime.timedelta(minutes=tval)
         else:
             tdelta = datetime.timedelta(seconds=tval)
-
 
         if tdelta.total_seconds() <= 0:
             msg = "time length must be positive"
@@ -192,7 +274,11 @@ class DatasetSelectionForm(forms.Form):
 
         fset = self.dataset.get_fileset()
 
-        self.files = [f.path for f in fset.scan(t1,t2)]
+        try:
+            self.files = [f.path for f in fset.scan(t1,t2)]
+        except FileNotFoundError as e:
+            # We won't provide user with path names
+            raise forms.ValidationError("Data files not found")
 
         if len(self.files) == 0:
             msg = "no files found between {} and {}".format(
@@ -206,12 +292,9 @@ class DatasetSelectionForm(forms.Form):
         '''
         '''
 
-        tchoice = self.cleaned_data['time_length_choice']   # normalized to float
-        tlen = self.cleaned_data['time_length_val']         # float
-        tunits = self.cleaned_data['time_length_units']     # string
+        tlen = self.cleaned_data['time_length']   # normalized to float
 
-        if tchoice > 0:
-            tlen = tchoice
+        tunits = self.cleaned_data['time_length_units']     # string
 
         if tunits == 'day':
             return datetime.timedelta(days=tlen)
@@ -228,20 +311,16 @@ class DatasetSelectionForm(forms.Form):
     def no_data(self,e):
         self.errors['__all__'] = self.error_class([repr(e)])
 
-
     def get_files(self):
         return self.files
 
-def get_time_length(tchoice,tval,tunits):
+def get_time_length(tval,tunits):
     '''
-    From string values of tchoice, tval and tunits, 
+    From string values of tval and tunits, 
     return a timedelta.
     '''
 
-    if tchoice != '0' and tchoice != '':
-        tval = float(tchoice)
-    else:
-        tval = float(tval)
+    tval = float(tval)
 
     if tunits == 'day':
         return datetime.timedelta(days=tval)
@@ -251,4 +330,5 @@ def get_time_length(tchoice,tval,tunits):
         return datetime.timedelta(minutes=tval)
     else:
         return datetime.timedelta(seconds=tval)
+
 

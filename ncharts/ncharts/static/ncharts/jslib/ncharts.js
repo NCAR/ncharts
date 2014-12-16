@@ -361,6 +361,7 @@
                     }],
                 });
             });
+            /*
             $("#id_time_length_choice").change(function() {
                 console.log("time_length_choice change, val=",$(this).val());
                 if ($(this).val() == '0' || $(this).val() == '') {
@@ -370,6 +371,7 @@
                     $("#id_time_length_val").hide();
                 }
             });
+            */
         });
     })
 );
