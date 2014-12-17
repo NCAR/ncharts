@@ -300,7 +300,7 @@ class DatasetView(View):
 
                 request.session['request_id'],dataset.project.name,dataset.name,
                 project_name,dataset_name)
-            return get(request, *args, project_name=project_name,
+            return self.get(request, *args, project_name=project_name,
                     dataset_name=dataset_name, **kwargs)
 
         # vars = [ v.name for v in dataset.variables.all() ]
