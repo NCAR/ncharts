@@ -1,26 +1,42 @@
 
 {% extends "ncharts/base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}NCharts{% endblock %}
 
 {% block content %}
 
-<h2>Select a project</h2>
-{% if projects %}
-    {% for project in projects %}
-        <a class="btn btn-default" href={% url 'ncharts:project' project.name %}>{{ project.name }}</a>
-    {% endfor %}
-{% else %}
-    <p>No projects are available.</p>
-{% endif %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+            <p>Select a project</h2>
+            {% if projects %}
+                {% for project in projects %}
+                    <a class="btn btn-default" href={% url 'ncharts:project' project.name %}>{{ project.name }}</a>
+                {% endfor %}
+            {% else %}
+                <p>No projects are available.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
-<h2>Or, select a platform</h2>
-{% if platforms %}
-    {% for platform in platforms %}
-        <a class="btn btn-default" href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a>
-    {% endfor %}
-{% else %}
-    <p>No platforms are available.</p>
-{% endif %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+            <p>Or, select a platform</p>
+            {% if platforms %}
+                {% for platform in platforms %}
+                    <a class="btn btn-default" href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a>
+                {% endfor %}
+            {% else %}
+                <p>No platforms are available.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

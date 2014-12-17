@@ -1,27 +1,47 @@
 {% extends "ncharts/base.html" %}
 
-{% block title %}{{ project.name }} {{ project | escapejs }}{% endblock %}
+{% block title %}{{ project.name }}{% endblock %}
 
-{% block headline %}{{ project.name }} {{ project | escapejs }}{% endblock %}
+{% block headline %}{{ project | escapejs }}{% endblock %}
 
 {% block content %}
 
-<p>Datasets for {{ project }}</p>
-{% if datasets %}
-    {% for dataset in datasets %}
-        <a class="btn btn-default" href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ dataset.name }}</a>
-    {% endfor %}
-{% else %}
-    <p>No dataset for project {{ project.name }}.</p>
-{% endif %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <p>Datasets</p>
+            </div>
+            <div class="panel-primary">
+            {% if datasets %}
+                {% for dataset in datasets %}
+                    <a class="btn btn-default" href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ dataset.name }}</a>
+                {% endfor %}
+            {% else %}
+                <p>No datasets for {{ project.name }}.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
-{% if platforms %}
-<p>Platforms for {{ project }}</p>
-    {% for platform in platforms %}
-        <a class="btn btn-default" href="{% url 'ncharts:platformProject' platform.name project.name %}">{{ platform.name }}</a>
-    {% endfor %}
-{% else %}
-    <p>No platforms for {{ project }}.</p>
-{% endif %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <p>Platforms</p>
+            </div>
+            <div class="panel-primary">
+            {% if platforms %}
+                {% for platform in platforms %}
+                    <a class="btn btn-default" href="{% url 'ncharts:platformProject' platform.name project.name %}">{{ platform.name }}</a>
+                {% endfor %}
+            {% else %}
+                <p>No platforms for {{ project.name }}.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

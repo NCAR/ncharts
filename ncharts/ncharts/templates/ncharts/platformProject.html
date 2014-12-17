@@ -1,19 +1,30 @@
 {% extends "ncharts/base.html" %}
 
-{% block title %}{{ platform | escapejs }} {{ project | escapejs }}{% endblock %}
+{% block title %}{{ platform.name }} {{ project.name }}{% endblock %}
 
-{% block headline %}{{ platform | escapejs }} {{ project | escapejs }}{% endblock %}
+{% block headline %}{{ platform | escapejs }}, {{ project | escapejs }}{% endblock %}
 
 {% block content %}
 
-<p>Datasets:</p>
-{% if datasets %}
-    {% for dataset in datasets %}
-        <a class="btn btn-default" href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ project.name }} {{ dataset.name }}</a>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <p>Datasets</p>
+            </div>
+            <div class="panel-primary">
+            {% if datasets %}
+                {% for dataset in datasets %}
+                    <a class="btn btn-default" href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ project.name }} {{ dataset.name }}</a>
 
-    {% endfor %}
-{% else %}
-<p>No datasets for platform {{ platform.name }}, project {{ project.name }}.</p>
-{% endif %}
+                {% endfor %}
+            {% else %}
+            <p>No datasets for platform {{ platform.name }}, project {{ project.name }}.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% endblock %}
