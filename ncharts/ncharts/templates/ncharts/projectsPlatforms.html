@@ -11,7 +11,7 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-            <p>Projects</h2>
+            <p>Projects</p>
             {% if projects %}
                 {% for project in projects %}
                     <a class="btn btn-default" href={% url 'ncharts:project' project.name %}>{{ project.name }}</a>
