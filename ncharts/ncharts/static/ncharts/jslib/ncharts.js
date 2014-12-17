@@ -82,6 +82,7 @@
                     vseries['tooltip'] = {
                         // valueSuffix: long_name,
                         pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + long_name + ',{series.name}: <b>{point.y}</b><br/>',
+                        valueDecimals: 6,
                     };
                     /* a checkbox allows one to "select" the series, but
                      * I'm not sure what that does. Clicking it doesn't
@@ -305,61 +306,6 @@
                         }],
                     });
                 }
-            });
-            $("div[id^='hc-time-series']").each(function(index) {
-
-                var vname =  $( this ).data("variable");
-                var units =  $( this ).data("units");
-                var long_name =  $( this ).data("long_name");
-                if (long_name.length == 0) {
-                    long_name = vname;
-                }
-
-                console.log("time-series, time.length=",time.length,
-                        ",data.length=",data.length);
-
-                var chart_data = [];
-                for (var i = 0; i < time.length; i++) {
-                    // var d = new Date((time0 + time[i])*1000);
-                    // d += d.utcOffset
-                    chart_data.push([(time0 + time[i])*1000, data[vname][i]]);
-                } 
-
-                $( this ).highcharts({
-                    chart: {
-                        type: 'line',
-                        zoomType: 'x',
-                        panning: true,
-                        panKey: 'shift',
-                        marginLeft: 100,
-                    },
-                    title: {
-                        text: long_name
-                    },
-                    xAxis: {
-                        type: 'datetime',
-                        dateTimeLabelFormats: {
-                            millisecond: '%H:%M:%S.%L',
-                            second: '%H:%M:%S',
-                            minute: '%H:%M',
-                            hour: '%H:%M',
-                            day: '%e. %b',
-                            month: '%b \'%y',
-                            year: '%Y'
-                        },
-                        title: {
-                            text: 'time'
-                        },
-                    },
-                    yAxis: {
-                        title: {
-                            text: vname + '(' + units + ')'
-                        },
-                    },
-                    series:[{
-                        data: chart_data
-                    }],
-                });
             });
             /*
             $("#id_time_length_choice").change(function() {
