@@ -11,12 +11,21 @@
     <li>Response will be slow if you ask for a large quantity of data. Data reduction and compression are not supported.</li>
     <li>Plots do not appear on the stock Android phone browser. Use Chrome instead.</li>
     <li>Time axis labels are in UTC.</li>
-    <li>On phones, if the plot occupies the entire screen, there is a small scrollbar on the left-hand-side.</li>
+    <li>On phones, if the plot occupies the entire screen, there is a small scrollbar on the right-hand-side.</li>
 </ul>
 
 <h4>Other Help</h4>
 <ul>
-    <li>For a time-series trace, click on the variable name at the bottom of a plot to toggle the visibility of the trace.</li>
+    <li>1-D Time Series Traces</li>
+    <ul>
+        <li>All selected variables with the same units will be plotted together.</li>
+        <li>Click on the variable name at the bottom of a plot to toggle the visibility of the trace, and dynamically rescale the remaining traces.</li>
+        <li>Use the sliders on the "navigator" trace below the chart to zoom in, and drag the selection to pan back and forth in time</li>
+    </ul>
+    <li>Time X Height Plots (Currently only 449 profiler data from DEEPWAVE)</li>
+    <ul>
+        <li>For time X height plots, drag a rectangle across the plot to zoom in time.</li>
+    </ul>
 </ul>
 
 {% endblock %}
