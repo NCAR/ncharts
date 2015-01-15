@@ -125,6 +125,11 @@ class NetCDFDataset:
             try:
                 ds = netCDF4.Dataset(path)
 
+            except RuntimeError as e:
+                logger.error("%s: %s",path,e)
+                continue
+
+            try:
                 base_time = None
                 has_var = {}
 
