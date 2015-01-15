@@ -38,7 +38,11 @@ class NetCDFDataset:
             try:
                 # logger.debug("path=%s",path)
                 ds = netCDF4.Dataset(path)
+            except RuntimeError as e:
+                logger.error("%s: %s",path,e)
+                continue
 
+            try:
                 if not hasattr(self,"base_time") and "base_time" in ds.variables:
                     self.base_time = "base_time"
 
