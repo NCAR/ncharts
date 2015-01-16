@@ -128,12 +128,12 @@ The following is for RedHat systems, such as CentOS or Fedora.
     LOG_DIR = os.path.join(BASE_DIR,'log')
 
     BASE_DIR is set in datavis/settings.py as the parent directory of datavis,
-    which, in this configuration is $DJROOT.
+    which, in this configuration is $DJROOT/eol-django-datavis
 
     The database and memcached socket are kept on VAR_RUN_DIR.
 
     Create the log directory:
-        mkdir $DJROOT/log
+        mkdir $DJROOT/eol-django-datavis/log
 
 5.a Production server
 
