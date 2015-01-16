@@ -7,16 +7,15 @@
 # The license and distribution terms for this file may be found in the
 # file LICENSE in this package.
 
-import os, glob, stat, re, sys
+import os, glob, stat, re, sys, threading, logging
 # from stat import *
 from datetime import datetime
 from pytz import utc
 from ncharts import netcdf
 import sre_constants
 
-import logging
-
 logger = logging.getLogger(__name__)
+
 
 # DatasetView.post():
 #       know dataset, including directory, file name format, start, stop
@@ -45,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 cached_filesets = {}
 cached_dirs = {}
+cacheLock = threading.Lock()
 
 def globifyTimeDescriptors(path):
     '''
@@ -176,13 +176,21 @@ class Dir:
                                     #   pathexpr in this directory
         self.myfiles = []           # files matching initial portion of
                                     #   pathexpr in this directory
+        self.lock = threading.Lock()    # mutex for modtime, mydirs, myfiles
+
+        cacheLock.acquire()
         cached_dirs[hash(path) + hash(pathrem)] = self
+        cacheLock.release()
 
     def get(path,pathexpr,pathrem):
         hv = hash(path) + hash(pathrem)
+        cacheLock.acquire()
         if hv in cached_dirs:
-            return cached_dirs[hv]
+            cdir = cached_dirs[hv]
+            cacheLock.release()
+            return cdir
         else:
+            cacheLock.release()
             return Dir(path,pathexpr,pathrem)
 
     def scan(self,start_time=datetime.min ,end_time=datetime.max) -> 'list of matching files':
@@ -200,10 +208,19 @@ class Dir:
 
         dirmodtime = datetime.utcfromtimestamp(pstat.st_mtime)
 
-        # modification time is newer than last scan
-        if dirmodtime > self.modtime:
+        # get previous snapshot of directory
+        self.lock.acquire()
+        mymodtime = self.modtime
+        myfiles = self.myfiles.copy()
+        mydirs = self.mydirs.copy()
+        self.lock.release()
 
-            self.myfiles = []
+        # modification time is newer than last scan
+        if dirmodtime > mymodtime:
+
+            myfiles = []
+            mydirs = []
+            mymodtime = dirmodtime
 
             (nextpath,pathrem) = pathsplit(self.pathrem)
 
@@ -215,41 +232,38 @@ class Dir:
                     pstat = os.stat(subpath)
                 except FileNotFoundError as e:
                     logger.error(e)
-                    raise
+                    continue    # maybe it was (very) recently deleted
                 if stat.S_ISDIR(pstat.st_mode):
                     pdir = Dir.get(subpath,os.path.join(self.pathexpr,nextpath),pathrem)
-                    self.mydirs.append(pdir)
-                    files.extend(pdir.scan())
+                    mydirs.append(pdir)
                 else:
                     pfile = File(subpath,os.path.join(self.pathexpr,nextpath))
-                    files.append(pfile)
-                    self.myfiles.append(pfile)
-            try:
-                pstat = os.stat(self.path)
-            except FileNotFoundError as e:
-                logger.error(e)
-                raise
-            self.modtime = datetime.utcfromtimestamp(pstat.st_mtime)
-            self.myfiles.sort(key=lambda x: x.time)
-        else:
-            for pdir in self.mydirs:
-                files.extend(pdir.scan())
-            files.extend(self.myfiles)
+                    myfiles.append(pfile)
 
-        # return files
+            # save snapshot
+            self.lock.acquire()
+            self.modtime = mymodtime
+            self.myfiles = sorted(myfiles,key=lambda x: x.time)
+            self.mydirs = mydirs
+            self.lock.release()
+
+        for pdir in mydirs:
+            # recursive listing
+            files.extend(pdir.scan())
+        files.extend(myfiles)
 
         # exclude files whose time is after end_time, then sort
         files = sorted(list(filter(lambda x: x.time < end_time,files)),
                 key=lambda x: x.time)
-        # index of first element whose time is > start_time
         if len(files) < 2:
             return files
-        # print("len(files)=",len(files))
+
+        # index of first element whose time is > start_time
         try:
             i = next(filter(lambda i: files[i].time > start_time,range(len(files))))
         except StopIteration:
+            logger.warning("StopIteration, len(files)=%d",len(files))
             i = len(files)
-            print("StopIteration, i=",i,",len(files)=",len(files))
 
         # i = filter(lambda i: files[i].time > start_time,range(len(files)))
         # print("i=",i)
@@ -260,12 +274,6 @@ class Dir:
 
 class Fileset:
     ''' '''
-    def get(path):
-        if path in cached_filesets:
-            return cached_filesets[path]
-        fset = Fileset(path)
-        cached_filesets[path] = fset
-        return fset
 
     def __init__(self,path):
         self.path = path
@@ -276,8 +284,25 @@ class Fileset:
                 pathrem = os.path.join(tail,pathrem)
             else:
                 pathrem = tail
+
         self.pathrem = pathrem
         self.pdir = Dir(path,path,pathrem)
+
+        cacheLock.acquire()
+        cached_filesets[path] = self
+        cacheLock.release()
+
+    def get(path):
+        cacheLock.acquire()
+        if path in cached_filesets:
+            cset = cached_filesets[path]
+            cacheLock.release()
+            return cset
+        cacheLock.release()
+
+        fset = Fileset(path)
+
+        return fset
 
     def scan(self,start_time=utc.localize(datetime.min) ,
             end_time=utc.localize(datetime.max)):
