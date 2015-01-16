@@ -162,7 +162,9 @@ class File:
             raise
 
 class Dir:
-    """ A path to a directory, and a string, such as 'data/prelim/acme_%Y%m%d.nc' , containing possible time format descriptors and eventually regular expressions, describing a set of files relative to this directory.
+    """ A path to a directory, and a string, such as 'data/prelim/acme_%Y%m%d.nc',
+    containing possible time format descriptors and eventually regular expressions,
+    describing a set of files relative to this directory.
     """
 
     def __init__(self,path,pathexpr,pathrem):
