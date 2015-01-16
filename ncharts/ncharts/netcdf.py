@@ -7,7 +7,7 @@
 # The license and distribution terms for this file may be found in the
 # file LICENSE in this package.
 
-import os, sys
+import os, sys, time
 import netCDF4
 from datetime import datetime
 import pytz
@@ -33,13 +33,24 @@ class NetCDFDataset:
         self.paths = paths
         self.variables = {}
 
-
         for path in self.paths:
-            try:
-                # logger.debug("path=%s",path)
-                ds = netCDF4.Dataset(path)
-            except RuntimeError as e:
-                logger.error("%s: %s",path,e)
+
+            # the files might be in the process of being moved, deleted, etc
+            ok = False
+            for itry in range(0,10):
+                try:
+                    # logger.debug("path=%s",path)
+                    ds = netCDF4.Dataset(path)
+                    ok = True
+                    break
+                except IOError as e:
+                    logger.error("%s: %s",path,e)
+                    time.sleep(itry)
+                except RuntimeError as e:
+                    logger.error("%s: %s",path,e)
+                    time.sleep(itry)
+
+            if not ok:
                 continue
 
             try:
@@ -124,11 +135,22 @@ class NetCDFDataset:
         total_size = 0
         for path in self.paths:
             # logger.debug("path=%s",path)
-            try:
-                ds = netCDF4.Dataset(path)
 
-            except RuntimeError as e:
-                logger.error("%s: %s",path,e)
+            # the files might be in the process of being moved, deleted, etc
+            ok = False
+            for itry in range(0,10):
+                try:
+                    ds = netCDF4.Dataset(path)
+                    ok = True
+                    break
+                except IOError as e:
+                    logger.error("%s: %s",path,e)
+                    time.sleep(itry)
+                except RuntimeError as e:
+                    logger.error("%s: %s",path,e)
+                    time.sleep(itry)
+
+            if not ok:
                 continue
 
             try:
