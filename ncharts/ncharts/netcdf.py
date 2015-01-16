@@ -89,6 +89,8 @@ class NetCDFDataset:
                                 for a in ["units","long_name","short_name"]:
                                     if hasattr(v,a):
                                         self.variables[n][a] = getattr(v,a)
+                                    else:
+                                        self.variables[n][a] = ""
                         elif self.variables[n]["shape"][1:] != v.shape[1:]:
                             # the above check works even if either shape has length 1
                             if len(self.variables[n]["shape"]) != len(v.shape):
