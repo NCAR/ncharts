@@ -44,5 +44,14 @@
     }, 
     "model": "ncharts.platform", 
     "pk": "GAUS"
+},
+{
+    "fields": {
+        "projects": [
+            "FRONT"
+        ]
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "SPOL-surface"
 }
 ]
