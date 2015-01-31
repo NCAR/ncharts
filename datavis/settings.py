@@ -19,17 +19,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = '6-u3&i0wz1lgpwlq3apf1)&o%niv4gql4iv_ibr2^^e2y#=_=6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-TEMPLATE_DEBUG = False
+TEMPLATE_DEBUG = True
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
 if DEBUG:
     VAR_RUN_DIR = BASE_DIR
+    VAR_LIB_DIR = BASE_DIR
     LOG_DIR = os.path.join(BASE_DIR,'log')
 else:
     LOG_DIR = '/var/log/django'
     VAR_RUN_DIR = '/var/run/django'
+    VAR_LIB_DIR = '/var/lib/django'
 
 ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost' ]
 
@@ -73,7 +75,7 @@ WSGI_APPLICATION = 'datavis.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(VAR_RUN_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
     }
 }
 
