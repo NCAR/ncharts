@@ -33,7 +33,7 @@ else:
     VAR_RUN_DIR = '/var/run/django'
     VAR_LIB_DIR = '/var/lib/django'
 
-ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost' ]
+ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost', '128.117.82.210' ]
 
 # Application definition
 
