@@ -140,7 +140,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
     Create the log directory:
         mkdir $DJROOT/eol-django-datavis/log
 
-5.a Production server
+5.b Production server
 
     Important!  Set DEBUG = False in datavis/settings.py. The django docs
     warn in several places that using DEBUG = True on a production
@@ -219,6 +219,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
         sudo systemctl enable memcached_django.service
         sudo systemctl start memcached_django.service
 
+        sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
+        sudo systemctl daemon.reload
+        sudo systemctl enable memcached_django.service
+        sudo systemctl start memcached_django.service
 
 10. Configure and start httpd server
 
