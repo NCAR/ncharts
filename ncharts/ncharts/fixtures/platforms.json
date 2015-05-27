@@ -3,7 +3,8 @@
     "fields": {
         "projects": [
             "METCRAXII",
-            "CentNet Devel"
+            "CentNet Devel",
+            "CABL"
         ]
     }, 
     "model": "ncharts.platform", 

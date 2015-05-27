@@ -28,5 +28,10 @@
     "fields": {}, 
     "model": "ncharts.project", 
     "pk": "FRONT"
+},
+{
+    "fields": {}, 
+    "model": "ncharts.project", 
+    "pk": "CABL"
 }
 ]
