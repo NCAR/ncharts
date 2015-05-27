@@ -52,7 +52,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
         export DJROOT=/var/django
         sudo mkdir $DJROOT
         sudo chown apache.apache $DJROOT
-        sudo chmod 2775 $DJROOT
+        sudo chmod g+sw $DJROOT
 
     Add yourself to the apache group on the server machine.
     Once you've done that, the sequence is the same as on a development server:
@@ -105,11 +105,11 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
         source $DJVIRT/bin/activate
 
-        python3 -m pip install django
-        python3 -m pip install numpy
-        python3 -m pip install pytz
-        python3 -m pip install netCDF4
-        python3 -m pip install pylint_django
+        python3 -m pip install --upgrade django
+        python3 -m pip install --upgrade numpy
+        python3 -m pip install --upgrade pytz
+        python3 -m pip install --upgrade netCDF4
+        python3 -m pip install --upgrade pylint_django
 
    Python3 version of django-datetime-widget.
 
@@ -157,16 +157,16 @@ The following is for RedHat systems, such as CentOS or Fedora.
     Create and set permissions on LOG_DIR, VAR_RUN_DIR and VAR_LIB_DIR:
 
         mkdir /var/log/django
-        sudo chown apache.apache /var/run/django
-        sudo chmod 2775 /var/run/django
+        sudo chown apache.apache /var/log/django
+        sudo chmod g+sw /var/log/django
 
         mkdir /var/run/django
         sudo chown apache.apache /var/run/django
-        sudo chmod 2775 /var/run/django
+        sudo chmod g+sw /var/run/django
 
         mkdir /var/lib/django
         sudo chown apache.apache /var/lib/django
-        sudo chmod 2775 /var/lib/django
+        sudo chmod g+sw /var/lib/django
 
 6. Initialize the database. You may want to delete it if the structure of the
    models changes. Need to look into migration.
