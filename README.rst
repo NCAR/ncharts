@@ -85,6 +85,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
         cd $DJROOT/../virtualenvs
         virtualenv -p /usr/bin/python3 django
 
+        On Fedora, had to:
+        virtualenv-3.4 -p /usr/bin/python3 django
+
         DJVIRT=$DJROOT/../virtualenvs/django
         source $DJVIRT/bin/activate
 
@@ -104,7 +107,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
         python3 -m pip install django
         python3 -m pip install numpy
+        python3 -m pip install pytz
         python3 -m pip install netCDF4
+        python3 -m pip install pylint_django
 
    Python3 version of django-datetime-widget.
 
