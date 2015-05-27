@@ -1,5 +1,17 @@
+# -*- mode: C++; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
+# vim: set shiftwidth=4 softtabstop=4 expandtab:
+
+"""Admin objects for ncharts django web app.
+
+2014 Copyright University Corporation for Atmospheric Research
+
+This file is part of the "django-ncharts" package.
+The license and distribution terms for this file may be found in the
+file LICENSE in this package.
+"""
+
 from django.contrib import admin
-from ncharts.models import Project, Platform, Dataset
+from ncharts import models as nc_models
 
 class ProjectAdmin(admin.ModelAdmin):
     pass
@@ -7,12 +19,17 @@ class ProjectAdmin(admin.ModelAdmin):
 class PlatformAdmin(admin.ModelAdmin):
     pass
 
-class DatasetAdmin(admin.ModelAdmin):
+class FileDatasetAdmin(admin.ModelAdmin):
     pass
 
-admin.site.register(Project,ProjectAdmin)
+class DBDatasetAdmin(admin.ModelAdmin):
+    pass
 
-admin.site.register(Platform,PlatformAdmin)
+admin.site.register(nc_models.Project, ProjectAdmin)
 
-admin.site.register(Dataset,DatasetAdmin)
+admin.site.register(nc_models.Platform, PlatformAdmin)
+
+admin.site.register(nc_models.FileDataset, FileDatasetAdmin)
+
+admin.site.register(nc_models.DBDataset, DBDatasetAdmin)
 

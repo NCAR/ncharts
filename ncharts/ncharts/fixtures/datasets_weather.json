@@ -1,105 +1,6 @@
 [
 {
     "fields": {
-        "units": "Celsius", 
-        "name": "tdry", 
-        "long_name": "Temperature"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 1
-},
-{
-    "fields": {
-        "units": "percent", 
-        "name": "rh", 
-        "long_name": "Relative Humidity"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 2
-},
-{
-    "fields": {
-        "units": "hPa", 
-        "name": "pres", 
-        "long_name": "Barometric Pressure"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 3
-},
-{
-    "fields": {
-        "units": "hPa", 
-        "name": "cpres0", 
-        "long_name": "Pressure Corrected to Sea Level"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 4
-},
-{
-    "fields": {
-        "units": "Celsius", 
-        "name": "dp", 
-        "long_name": "Dew Point"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 5
-},
-{
-    "fields": {
-        "units": "degrees", 
-        "name": "wdir", 
-        "long_name": "Wind Direction"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 6
-},
-{
-    "fields": {
-        "units": "meters/second", 
-        "name": "wspd", 
-        "long_name": "Wind Speed"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 7
-},
-{
-    "fields": {
-        "units": "meters/second", 
-        "name": "wmax", 
-        "long_name": "Peak Gust"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 8
-},
-{
-    "fields": {
-        "units": "celsius", 
-        "name": "wchill", 
-        "long_name": "Wind Chill Temperature"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 9
-},
-{
-    "fields": {
-        "units": "millimeters", 
-        "name": "raina", 
-        "long_name": "Rain Accumulation"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 10
-},
-{
-    "fields": {
-        "units": "millimeters", 
-        "name": "raina24", 
-        "long_name": "24 hour Rain Accumulation"
-    }, 
-    "model": "ncharts.variable", 
-    "pk": 11
-},
-{
-    "fields": {
         "timezone": "US/Mountain", 
         "variables": [
             1, 
@@ -115,17 +16,23 @@
             11
         ], 
         "location": "NCAR Foothills Lab, Boulder CO", 
-        "directory": "/net/weather/flab/data", 
         "platforms": [
             "Weather Station"
         ], 
         "start_time": "2009-01-01T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "flab-5min", 
-        "project": "Weather", 
-        "filenames": "flab.%Y%m%d.cdf"
+        "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 1
+},
+{
+    "fields": {
+        "directory": "/net/weather/flab/data", 
+        "filenames": "flab.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 1
 },
 {
@@ -145,17 +52,23 @@
             11
         ], 
         "location": "NCAR Wyoming Supercomputer Center, Cheyenne WY", 
-        "directory": "/net/weather/nwsc/data", 
         "platforms": [
             "Weather Station"
         ], 
         "start_time": "2012-06-01T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "nwsc-5min", 
-        "project": "Weather", 
-        "filenames": "nwsc.%Y%m%d.cdf"
+        "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 2
+},
+{
+    "fields": {
+        "directory": "/net/weather/nwsc/data", 
+        "filenames": "nwsc.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 2
 },
 {
@@ -175,17 +88,23 @@
             11
         ], 
         "location": "NCAR Mesa Lab, Boulder CO", 
-        "directory": "/net/weather/mlab/data", 
         "platforms": [
             "Weather Station"
         ], 
         "start_time": "2009-01-01T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "mlab-5min", 
-        "project": "Weather", 
-        "filenames": "mlab.%Y%m%d.cdf"
+        "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 3
+},
+{
+    "fields": {
+        "directory": "/net/weather/mlab/data", 
+        "filenames": "mlab.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 3
 },
 {
@@ -205,17 +124,23 @@
             11
         ], 
         "location": "NSF Headquarters, Washington DC", 
-        "directory": "/net/weather/nsf/data", 
         "platforms": [
             "Weather Station"
         ], 
         "start_time": "2009-01-26T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "nsf-5min", 
-        "project": "Weather", 
-        "filenames": "nsf.%Y%m%d.cdf"
+        "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 4
+},
+{
+    "fields": {
+        "directory": "/net/weather/nsf/data", 
+        "filenames": "nsf.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 4
 },
 {
@@ -235,17 +160,23 @@
             11
         ], 
         "location": "NCAR Research Aircraft Facility, Westminster CO", 
-        "directory": "/net/weather/raf/data", 
         "platforms": [
             "Weather Station"
         ], 
         "start_time": "2013-12-10T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "raf-5min", 
-        "project": "Weather", 
-        "filenames": "raf.%Y%m%d.cdf"
+        "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 5
+},
+{
+    "fields": {
+        "directory": "/net/weather/raf/data", 
+        "filenames": "raf.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 5
 },
 {
@@ -265,17 +196,23 @@
             11
         ], 
         "location": "Fireside Elementary, Louisville CO", 
-        "directory": "/net/weather/fireside/data", 
         "platforms": [
             "Weather Station"
         ], 
         "start_time": "2014-02-13T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "fireside-5min", 
-        "project": "Weather", 
-        "filenames": "fireside.%Y%m%d.cdf"
+        "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 6
+},
+{
+    "fields": {
+        "directory": "/net/weather/fireside/data", 
+        "filenames": "fireside.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 6
 }
 ]
