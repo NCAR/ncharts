@@ -2,6 +2,7 @@
 {
     "fields": {}, 
     "model": "ncharts.project", 
+    "location": "Barringer Meteor Crater, AZ", 
     "pk": "METCRAXII"
 },
 {
@@ -12,21 +13,25 @@
 {
     "fields": {}, 
     "model": "ncharts.project", 
+    "location": "New Zealand", 
     "pk": "DEEPWAVE"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
+    "location": "Boulder", 
     "pk": "CentNet Devel"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
+    "location": "Greeley, CO", 
     "pk": "MASCRAD"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
+    "location": "Firestone, CO", 
     "pk": "FRONT"
 }
 ]
