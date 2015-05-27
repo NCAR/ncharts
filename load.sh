@@ -11,10 +11,11 @@ done
 echo "running full_clean on Datasets"
 
 python3 manage.py shell << EOD
-from ncharts.models import Dataset
+from ncharts.models import Dataset, FileDataset
 from django.core.exceptions import ValidationError
 
-for d in Dataset.objects.all():
+for d in FileDataset.objects.all():
+    print("d.name=",d.name)
     try:
         d.full_clean()
     except ValidationError as e:
