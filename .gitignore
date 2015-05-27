@@ -1,5 +1,5 @@
-*.log
 db.sqlite3
 __pycache__
 ncharts
 static
+log
