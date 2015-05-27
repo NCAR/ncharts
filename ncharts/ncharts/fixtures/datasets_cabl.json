@@ -1,0 +1,25 @@
+[
+{
+    "fields": {
+        "timezone": "US/Mountain", 
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2015-02-18T00:00:00Z", 
+        "end_time": "2015-06-30T00:00:00Z", 
+        "name": "qc_geo_notiltcor", 
+        "project": "CABL"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 15
+},
+{
+    "fields": {
+        "directory": "/net/isf/isff/projects/CABL/ISFF/netcdf_qc_geo_notiltcor", 
+        "filenames": "isfs_ntc_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 15
+}
+]

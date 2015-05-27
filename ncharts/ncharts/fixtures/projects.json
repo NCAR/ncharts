@@ -33,5 +33,13 @@
     "model": "ncharts.project", 
     "location": "Firestone, CO", 
     "pk": "FRONT"
+},
+{
+    "fields": {}, 
+    "model": "ncharts.project", 
+    "location": "Boulder Atmospheric Observatory, Erie, CO", 
+    "pk": "CABL"
 }
 ]
+
+
