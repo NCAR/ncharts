@@ -1,20 +1,24 @@
 [
 {
     "fields": {
+        "project": "CentNet Devel",
         "timezone": "US/Mountain", 
-        "variables": [], 
-        "location": "Boulder", 
-        "directory": "/net/isf/isff/projects/CentNet/ISFF/netcdf_trh_test", 
         "platforms": [
             "ISFS"
         ], 
         "start_time": "2014-06-05T00:00:00Z", 
         "end_time": "2014-12-31T00:00:00Z", 
-        "name": "trh-test", 
-        "project": "CentNet Devel", 
-        "filenames": "isff_%Y%m%d.nc"
+        "name": "trh-test"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 11
+},
+{
+    "fields": {
+        "directory": "/net/isf/isff/projects/CentNet/ISFF/netcdf_trh_test", 
+        "filenames": "isff_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 11
 }
 ]

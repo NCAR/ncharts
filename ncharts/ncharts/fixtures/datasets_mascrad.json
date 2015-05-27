@@ -3,36 +3,46 @@
     "fields": {
         "timezone": "US/Mountain", 
         "variables": [], 
-        "location": "Greeley", 
-        "directory": "/net/ftp/pub/archive/iss/mascrad/gaus/wxt_std_nc", 
         "platforms": [
             "GAUS"
         ], 
         "start_time": "2014-11-05T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "wxt_std", 
-        "project": "MASCRAD", 
-        "filenames": "wxt_std_%Y%m%d.%H%M%S.nc"
+        "project": "MASCRAD"
     }, 
     "model": "ncharts.dataset", 
     "pk": 12
 },
 {
     "fields": {
+        "directory": "/net/ftp/pub/archive/iss/mascrad/gaus/wxt_std_nc", 
+        "filenames": "wxt_std_%Y%m%d.%H%M%S.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 12
+},
+{
+    "fields": {
         "timezone": "US/Mountain", 
         "variables": [], 
-        "location": "Greeley", 
-        "directory": "/net/ftp/pub/archive/iss/mascrad/gaus/surface_two", 
         "platforms": [
             "GAUS"
         ], 
         "start_time": "2014-11-11T00:00:00Z", 
         "end_time": "2015-12-31T00:00:00Z", 
         "name": "surface_two", 
-        "project": "MASCRAD", 
-        "filenames": "surface_two.%Y%m%d.%H%M%S.nc"
+        "project": "MASCRAD"
     }, 
     "model": "ncharts.dataset", 
+    "pk": 13
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/iss/mascrad/gaus/surface_two", 
+        "filenames": "surface_two.%Y%m%d.%H%M%S.nc"
+    }, 
+    "model": "ncharts.filedataset", 
     "pk": 13
 }
 ]

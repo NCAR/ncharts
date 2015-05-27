@@ -1,7 +1,9 @@
-from ncharts.models import Project, Platform, Dataset, UserSelection, Variable
+from ncharts.models import Project, Platform, FileDataset, UserSelection, Variable
 
 from pytz import timezone, utc
 from datetime import datetime, timedelta
+
+from django.core import serializers
 
 mttz = timezone("US/Mountain")
 aztz = timezone("US/Arizona")
@@ -15,7 +17,7 @@ for v in ['tdry','rh','pres','cpres0','dp','wdir','wspd','wmax','wchill','raina'
     var = Variable.objects.create(name=v)
     wxvars.append(var)
 
-dset = Dataset.objects.create(name='flab-5min',
+dset = FileDataset.objects.create(name='flab-5min_x3',
     location='NCAR Foothills Lab, Boulder CO',
     timezone='US/Mountain',
     directory='/home/maclean/www/weather/flab/data',
@@ -32,7 +34,7 @@ dset.add_platform(wx)
 # dset.project.platforms.add(wx)
 # dset.save()
 
-dset = Dataset.objects.create(name='nwsc-5min',
+dset = FileDataset.objects.create(name='nwsc-5min',
     location='NCAR Wyoming Supercomputer Center, Cheyenne WY',
     timezone='US/Mountain',
     directory='/home/maclean/www/weather/nwsc/data',
@@ -56,7 +58,7 @@ isfs = Platform.objects.create(name='ISFS')
 
 tz = timezone("US/Arizona")
 
-dset = Dataset.objects.create(name='5min',
+dset = FileDataset.objects.create(name='5min',
     location='Meteor Crater',
     timezone='US/Arizona',
     directory='/home/maclean/isfs/projects/METCRAXII/netcdf',
@@ -69,7 +71,7 @@ dset.add_platform(isfs)
 # dset.project.platforms.add(isfs)
 # dset.save()
 
-dset = Dataset.objects.create(name='hr',
+dset = FileDataset.objects.create(name='hr',
     location='Meteor Crater',
     timezone='US/Arizona',
     directory='/home/maclean/isfs/projects/METCRAXII/netcdf_hr',
@@ -82,6 +84,9 @@ dset.add_platform(isfs)
 # dset.platforms.add(isfs)
 # dset.project.platforms.add(isfs)
 # dset.save()
+
+objs = list(FileDataset.objects.all()) + list(Dataset.objects.all())
+serializers.serialize('json',objs)
 
 '''
 usersel = UserSelection.objects.create(
