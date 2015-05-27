@@ -125,12 +125,14 @@ The following is for RedHat systems, such as CentOS or Fedora.
     the following settings:
 
     VAR_RUN_DIR = BASE_DIR
+    VAR_LIB_DIR = BASE_DIR
     LOG_DIR = os.path.join(BASE_DIR,'log')
 
     BASE_DIR is set in datavis/settings.py as the parent directory of datavis,
     which, in this configuration is $DJROOT/eol-django-datavis
 
-    The database and memcached socket are kept on VAR_RUN_DIR.
+    The memcached socket is on VAR_RUN_DIR.
+    The database is on VAR_LIB_DIR.
 
     Create the log directory:
         mkdir $DJROOT/eol-django-datavis/log
@@ -145,16 +147,21 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
     LOG_DIR = '/var/log/django'
     VAR_RUN_DIR = '/var/run/django'
+    VAR_LIB_DIR = '/var/run/django'
 
-    Create and set permissions on LOG_DIR and VAR_RUN_DIR:
+    Create and set permissions on LOG_DIR, VAR_RUN_DIR and VAR_LIB_DIR:
 
         mkdir /var/log/django
         sudo chown apache.apache /var/run/django
         sudo chmod 2775 /var/run/django
 
         mkdir /var/run/django
-        sudo chown apache.apache /var/log/django
-        sudo chmod 2775 /var/log/django
+        sudo chown apache.apache /var/run/django
+        sudo chmod 2775 /var/run/django
+
+        mkdir /var/lib/django
+        sudo chown apache.apache /var/lib/django
+        sudo chmod 2775 /var/lib/django
 
 6. Initialize the database. You may want to delete it if the structure of the
    models changes. Need to look into migration.
@@ -208,6 +215,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
 9.b Production server:
     
     See above for creating and setting permissions on VAR_RUN_DIR.
+
+        # Configure system to creates /var/run/django on each boot
+        sudo cp usr/lib/tmpfiles.d/django.conf /usr/lib/tmpfiles.d
+        systemd-tmpfiles --create /usr/lib/tmpfiles.d/django.conf
 
         sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
         sudo systemctl daemon.reload
