@@ -17,6 +17,8 @@ python3 manage.py shell << EOD
 from ncharts.models import Dataset, FileDataset
 from django.core.exceptions import ValidationError
 
+print("{0} datasets".format(len(FileDataset.objects.all())))
+
 for d in FileDataset.objects.all():
     print("d.name=",d.name)
     try:
