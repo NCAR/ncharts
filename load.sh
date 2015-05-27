@@ -1,6 +1,23 @@
 #!/bin/sh
 
-[ $VIRTUAL_ENV ] || source $HOME/virtualenvs/django/bin/activate
+
+prod=true
+[ $# -gt 0 -a "$1" == -d ] && prod=false
+
+if $prod; then
+    [ $VIRTUAL_ENV ] || source /var/django/virtualenvs/django/bin/activate
+    # sudo chown maclean.eol /var/lib/django/db.sqlite3
+    # sudo chmod 0755 /var/lib/django
+    # sudo chmod 0600 /var/lib/django/db.sqlite3
+    # sudo chown maclean.eol /var/log/django/django.log
+    # sudo chown maclean.eol /var/log/django/django_debug.log
+    # sudo chown maclean.eol /var/log/django/datavis.log
+    # sudo chown maclean.eol /var/log/django/datavis_debug.log
+    # sudo chown maclean.eol /var/log/django/ncharts.log
+    # sudo chown maclean.eol /var/log/django/ncharts_debug.log
+else
+    [ $VIRTUAL_ENV ] || source $HOME/virtualenvs/django/bin/activate
+fi
 
 python3 manage.py loaddata projects.json 
 python3 manage.py loaddata platforms.json 
@@ -29,3 +46,16 @@ for d in FileDataset.objects.all():
 
 exit(0)
 EOD
+
+if $prod; then
+    :
+    # sudo chown apache.apache /var/lib/django/db.sqlite3
+    # sudo chmod 0755 /var/lib/django
+    # sudo chmod 0600 /var/lib/django/db.sqlite3
+    # sudo chown apache.apache /var/log/django/django.log
+    # sudo chown apache.apache /var/log/django/django_debug.log
+    # sudo chown apache.apache /var/log/django/datavis.log
+    # sudo chown apache.apache /var/log/django/datavis_debug.log
+    # sudo chown apache.apache /var/log/django/ncharts.log
+    # sudo chown apache.apache /var/log/django/ncharts_debug.log
+fi
