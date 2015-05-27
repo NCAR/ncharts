@@ -85,6 +85,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
         cd $DJROOT/../virtualenvs
         virtualenv -p /usr/bin/python3 django
 
+        On Fedora, had to:
+        virtualenv-3.4 -p /usr/bin/python3 django
+
         DJVIRT=$DJROOT/../virtualenvs/django
         source $DJVIRT/bin/activate
 
@@ -104,7 +107,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
         python3 -m pip install django
         python3 -m pip install numpy
+        python3 -m pip install pytz
         python3 -m pip install netCDF4
+        python3 -m pip install pylint_django
 
    Python3 version of django-datetime-widget.
 
@@ -137,7 +142,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
     Create the log directory:
         mkdir $DJROOT/eol-django-datavis/log
 
-5.a Production server
+5.b Production server
 
     Important!  Set DEBUG = False in datavis/settings.py. The django docs
     warn in several places that using DEBUG = True on a production
@@ -225,6 +230,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
         sudo systemctl enable memcached_django.service
         sudo systemctl start memcached_django.service
 
+        sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
+        sudo systemctl daemon.reload
+        sudo systemctl enable memcached_django.service
+        sudo systemctl start memcached_django.service
 
 10. Configure and start httpd server
 

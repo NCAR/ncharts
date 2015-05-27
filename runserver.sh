@@ -4,7 +4,7 @@
 
 # sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.4
 
-source $HOME/virtualenvs/django/bin/activate
+[ $VIRTUAL_ENV ] || source $HOME/virtualenvs/django/bin/activate
 
 if false; then
 

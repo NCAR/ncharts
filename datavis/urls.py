@@ -4,13 +4,14 @@ from django.views.generic import RedirectView
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'datavis.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
+urlpatterns = [
 
-    url(r'^$', RedirectView.as_view(url='/ncharts')),
+    # redirect empty URL to /ncharts
+    url(r'^$', RedirectView.as_view(url='/ncharts',permanent=True)),
 
+    # If URL starts with ncharts, remove "ncharts/", pass what's
+    # left on to ncharts.urls
     url(r'^ncharts/', include('ncharts.urls', namespace='ncharts'), name="ncharts"),
+
     url(r'^admin/', include(admin.site.urls), name="admin:index")
-)
+]
