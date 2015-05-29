@@ -28,11 +28,15 @@ from ncharts import fileset as nc_fileset
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 class NetCDFDataset(object):
-    """ Alternative class to netCDF4.MFDataset.
+    """A dataset consisting of NetCDF files.
+
+    This is similar to netCDF4.MFDataset, but gets around some of its
+    limitations.
 
     Supports reading a list of time-series variables from a
     collection of files concatenating the results over the
-    time-dimension of the variables.
+    time-dimension of the variables. If a variable is missing in
+    a file, the values for those times will be NaN filled.
 
     Also handles other situations that may arise, such as if the
     non-time dimensions for a variable change from file to file, in
@@ -99,6 +103,17 @@ class NetCDFDataset(object):
             start_time: datetime.datetime of start of fileset scan.
             end_time: end of fileset scan.
             time_names: List of allowed names for time variable.
+
+        Returns:
+            A dict of variables, keyed by name. Each variable value is
+            a dict, containing the following keys:
+                shape: tuple containing the shape of the variable
+                dimnames: list of dimension names
+                dtype: NetCDF data type
+                time_index: index of the time dimension
+                units: units attribute of the NetCDF variable
+                long_name: long_name attribute of the NetCDF variable
+                short_name: short_name attribute of the NetCDF variable
         """
 
         filepaths = self.get_filepaths(start_time, end_time)
@@ -182,16 +197,21 @@ class NetCDFDataset(object):
                             self.station_names = [str(netCDF4.chartostring(v))
                                                   for v in var]
 
+                # look for a time variable
                 if not self.time_name:
-                    # pylint doesn't think ncfile.variables has an items()
-                    # pylint: disable=no-member
-                    for (vname, var) in ncfile.variables.items():
-                        if vname in time_names and tdim.name in var.dimensions:
-                            self.time_name = vname
-                            break
-                    if not self.time_name:
-                        # time variable not found in file
-                        continue
+                    for tname in time_names:
+                        if tname in ncfile.variables:
+                            if tdim.name in ncfile.variables[tname].dimensions:
+                                self.time_name = tname
+                                break
+
+                if not self.time_name or not self.time_name in ncfile.variables:
+                    # time variable not yet found or not in this file
+                    continue
+
+                if not tdim.name in ncfile.variables[self.time_name].dimensions:
+                    # time variable in this file doesn't have a time dimension
+                    continue
 
                 # pylint: disable=no-member
                 for (vname, var) in ncfile.variables.items():
@@ -204,7 +224,7 @@ class NetCDFDataset(object):
                     if vname == self.time_name:
                         continue
 
-                    # var.dimensions is a tuple the dimension names
+                    # var.dimensions is a tuple of dimension names
                     time_index = var.dimensions.index(self.time_dim)
 
                     # Check if we have found this variable in a earlier file
@@ -215,11 +235,10 @@ class NetCDFDataset(object):
                             vname]["dimnames"] = var.dimensions
                         self.variables[vname]["dtype"] = var.dtype
                         self.variables[vname]["time_index"] = time_index
-                        # don't need _FillValue
+                        # Grab certain attributes
                         for att in ["units", "long_name", "short_name"]:
                             if hasattr(var, att):
-                                self.variables[
-                                    vname][att] = getattr(var, att)
+                                self.variables[vname][att] = getattr(var, att)
                             else:
                                 self.variables[vname][att] = ""
                         continue
@@ -363,6 +382,11 @@ class NetCDFDataset(object):
             total_size: Add the total size of times read to this value.
             size_limit: Raise an exception if the total_size exceeds size_limit.
 
+        Returns:
+            A builtin slice object, giving the start and stop indices of the
+            requested time period in the file. The times list argument is
+            also extended with the times read from the file.
+
         Raises:
             exceptions.TooMuchDataException
         """
@@ -383,21 +407,19 @@ class NetCDFDataset(object):
 
             if hasattr(var, "units") and 'since' in var.units:
                 try:
-                    # pylint: disable=pointless-string-statement
-                    """
-                    tvals = [dim for dim in netCDF4.num2date(var[:],
-                        var.units,'standard')]
-                    if tvals[0].tzinfo == None or
-                            tvals[0].tzinfo.utcoffset() == None:
-                        print("tz[0] is naive")
-                    """
-                    # times from netCDF4.num2date are naive.
-
+                    # times from netCDF4.num2date are timezone naive.
+                    # Use replace(tzinfo=pytz.UTC) to assign a timezone.
                     tvals = [
                         d.replace(tzinfo=pytz.UTC) for d in
-                        netCDF4.num2date(
-                            var[:], var.units,
-                            'standard')]
+                        netCDF4.num2date(var[:], var.units, 'standard')]
+
+                    # double check, could be removed.
+                    if tvals[0].tzinfo == None or \
+                            tvals[0].tzinfo.utcoffset() == None:
+                        _logger.error(
+                            "%s: %s: times are timezone naive",
+                            os.path.split(ncpath)[1], self.time_name)
+
                 except IndexError as exc:
                     # most likely has a dimension of 0
                     _logger.error(
@@ -408,8 +430,8 @@ class NetCDFDataset(object):
                 except TypeError:
                     if base_time:
                         _logger.error(
-                            "%s: %s: cannot parse units: %s, "
-                            "using base_time instead",
+                            "%s: %s: cannot parse units: %s. "
+                            "Using base_time instead",
                             os.path.split(ncpath)[1],
                             self.time_name, var.units)
                         tvals = [
@@ -478,15 +500,15 @@ class NetCDFDataset(object):
                     start_time, end_time)
 
             time_slice = slice(istart, iend, 1)
+            tvals = tvals[time_slice]
 
-            tsize = (time_slice.stop - time_slice.start) * \
-                    sys.getsizeof(tvals[0])
+            tsize = sys.getsizeof(tvals)
             if tsize > size_limit:
                 raise exceptions.TooMuchDataException(
                     "too many time values requested, size={0} MB".\
                             format(tsize/(1000 * 1000)))
 
-            times.extend(tvals[time_slice])
+            times.extend(tvals)
             return time_slice
 
     def read_time_series_data(
@@ -510,7 +532,7 @@ class NetCDFDataset(object):
             dim2: Values for second dimension of the variable, such as height.
 
         Returns:
-            A np.ma.array containing the data read.
+            A numpy.ma.array containing the data read.
         """
 
         # which dimension is time?
@@ -686,13 +708,13 @@ class NetCDFDataset(object):
                 continue
 
             try:
+                size1 = sys.getsizeof(times)
+
                 time_slice = self.read_times(
                     ncfile, ncpath, start_time, end_time, times,
                     size_limit - total_size)
 
-                if len(times) > 0:
-                    total_size += (time_slice.stop - time_slice.start) * \
-                        sys.getsizeof(times[0])
+                total_size += sys.getsizeof(times) - size1
 
                 for vname in variables:
 
@@ -703,11 +725,11 @@ class NetCDFDataset(object):
 
                     # selected shape of this variable
                     vshape = vshapes[vname]
-                    total_size += reduce_(
+                    vsize = reduce_(
                         operator.mul, vshape, 1) * \
                         self.variables[vname]["dtype"].itemsize
 
-                    if total_size > size_limit:
+                    if total_size + vsize > size_limit:
                         raise exceptions.TooMuchDataException(
                             "too much data requested, will exceed {} mbytes".
                             format(size_limit/(1000 * 1000)))
@@ -717,14 +739,20 @@ class NetCDFDataset(object):
                         selectdim, dim2)
 
                     if not vname in datadict:
+                        size1 = 0
                         datadict[vname] = vdata
                     else:
                         _logger.debug(
                             "datadict[vname].shape=%s, vdata.shape=%s",
-                                datadict[vname].shape, vdata.shape)
+                            datadict[vname].shape, vdata.shape)
+
+                        size1 = sys.getsizeof(datadict[vname])
+
                         time_index = self.variables[vname]["time_index"]
                         datadict[vname] = np.append(
                             datadict[vname], vdata, axis=time_index)
+
+                    total_size += sys.getsizeof(datadict[vname]) - size1
 
             finally:
                 ncfile.close()
