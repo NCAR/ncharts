@@ -173,11 +173,12 @@ class NChartsJSONEncoder(json.JSONEncoder):
     Also generate a None if data is a nan.
     """
 
-    def default(self, obj): #pylint: disable-msg=method-hidden
+    def default(self, obj): #pylint: disable=method-hidden
         """Implementation of JSONEncoder default method.
 
         Return a serializable object from an np.ndarray.
         """
+
         def roundcheck(val):
             """Round a value to 5 significant digits, returning None for a nan.
             """
@@ -218,19 +219,11 @@ class DatasetView(View):
 
         try:
             dset = dset.filedataset
-        except FileDataset.DoesNotExist as exc:
+        except nc_models.FileDataset.DoesNotExist:
             try:
                 dset = dset.dbdataset
-            except DBDataset.DoesNotExist as exc:
+            except nc_models.DBDataset.DoesNotExist:
                 raise Http404
-
-        '''
-        try:
-            proj = nc_models.Project.objects.get(name=project_name)
-            dset = proj.dataset_set.get(name=dataset_name)
-        except (nc_models.Project.DoesNotExist, nc_models.Dataset.DoesNotExist):
-            raise Http404
-        '''
 
         usersel = None
         request_id = None
@@ -361,10 +354,10 @@ class DatasetView(View):
         dset = usersel.dataset
         try:
             dset = dset.filedataset
-        except FileDataset.DoesNotExist as exc:
+        except nc_models.FileDataset.DoesNotExist as exc:
             try:
                 dset = dset.dbdataset
-            except DBDataset.DoesNotExist as exc:
+            except nc_models.DBDataset.DoesNotExist as exc:
                 raise Http404
 
 
@@ -396,8 +389,8 @@ class DatasetView(View):
             request.POST['time_length_0'],
             request.POST['time_length_units'])
         '''
-        if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
 
+        if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
             dtz = dset.get_timezone()
 
             stime = dtz.localize(
@@ -438,7 +431,7 @@ class DatasetView(View):
         # filedset = None
         # try:
         #     filedset = dset.filedataset
-        # except FileDataset.DoesNotExist as exc:
+        # except nc_models.FileDataset.DoesNotExist as exc:
         #     raise Http404
 
         if isinstance(dset, nc_models.FileDataset):
