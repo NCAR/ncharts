@@ -11,7 +11,10 @@ file LICENSE in this package.
 """
 
 from django import forms
+
 from datetimewidget import widgets
+
+import pytz
 
 # from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
@@ -22,14 +25,21 @@ import sys, logging
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
-__time_units_choices__ = ['day', 'hour', 'minute', 'second']
-__time_len_choices__ = [1, 4, 5, 7, 8, 12, 24, 30]
+TIME_UNITS_CHOICES = ['day', 'hour', 'minute', 'second']
+TIME_LEN_CHOICES = [1, 2, 4, 5, 7, 8, 12, 24, 30]
 
 class FloatWithChoiceWidget(forms.MultiWidget):
-    """MultiWidget for use with TextWithChoiceField.
+    """MultiWidget for use with FloatWithChoiceField.
+
+    First widget is a TextInput so that user can enter any float value,
+    second is a Select widget for quick selection from a list.
 
     """
+
     def __init__(self, choices, attrs=None):
+        """Create the two widgets.
+
+        """
         _widgets = [
             forms.TextInput(attrs=attrs),
             forms.Select(choices=choices, attrs=attrs)
@@ -37,8 +47,16 @@ class FloatWithChoiceWidget(forms.MultiWidget):
         super().__init__(_widgets)
 
     def decompress(self, value):
-        '''Provide the value of this field for the widgets.
-           value is a string'''
+        """Takes a single "compressed" value from the field, and returns
+        a list of two values for the two widgets.
+
+        Complement to FloatWithChoiceField compress method.
+
+        Returns:
+            List containing two string values, the first for the TextInput
+            widget, the second for the Select widget.
+        """
+
         # print("decompress, type(value)=", type(value),
         #         ",value=", repr(value))
         if not value:
@@ -47,17 +65,23 @@ class FloatWithChoiceWidget(forms.MultiWidget):
             val = float(value)
             if val % 1 == 0:
                 value = '{:.0f}'.format(val)
-            if not val in __time_len_choices__:
+            if not val in TIME_LEN_CHOICES:
                 return [value, '0']
         except ValueError:
             value = '1'
         return [value, value]
 
     def render(self, name, value, attrs=None):
+        """Returns HTML for the widget, as a Unicode string.
+
+        """
+
         html = super().render(name, value, attrs)
 
         # add javascript to set the value of the text field
         # from the selection.
+        # TODO: do the reverse. If a users enters a value in the
+        # text field that matches a choice, update the selection.
         html += '''<script>
             (function($) {
                 $("select#%(id)s_1").change(function() {
@@ -65,15 +89,20 @@ class FloatWithChoiceWidget(forms.MultiWidget):
                 });
             })(jQuery);
             </script>''' % {'id': attrs['id']}
+
         return mark_safe(html)
 
-    def format_output(self, rendered_widgets):
-        """Format the output."""
+    def format_output_unused(self, rendered_widgets):
+        """Given a list of rendered widgets (as strings), returns a
+        Unicode string representing the HTML for the whole lot.
+
+        Probably could use the super method.
+        """
+
         return u''.join(rendered_widgets)
 
 class FloatWithChoiceField(forms.MultiValueField):
-    """
-    ChoiceField with an option for a user-submitted "other" value.
+    """ChoiceField with an option for a user-submitted "other" value.
 
     The last item in the choices array passed to __init__ is expected
     to be a choice for "other". This field's cleaned data is a tuple
@@ -95,6 +124,7 @@ class FloatWithChoiceField(forms.MultiValueField):
             forms.FloatField(
                 *args, min_value=min_value, max_value=max_value,
                 required=False, **kwargs),
+            # Like a ChoiceField, but with a coerce function.
             forms.TypedChoiceField(
                 *args, choices=choices, coerce=coerce, **kwargs),
         ]
@@ -106,20 +136,51 @@ class FloatWithChoiceField(forms.MultiValueField):
             require_all_fields=False, **kwargs)
 
     def compress(self, value):
-        '''Return the value for this field from those provided by the widgets.
-           value should be a list of floats of length 2'''
+        """Return a single value for this field from the two component fields.
+
+        First value comes from the FloatField/TextInput widget, second from
+        the TypedChoiceField/Select widget. Both values are floats.
+
+        The render method of the FloatWithChoiceWidget generates
+        javascript that updates the TextInput if the user
+        selects from the Select widget. Therefore, the value
+        result from this MultiValueField is value[0], from the
+        FloatField/TextInput widget.
+        """
+
         # print("compress, type(value)=", type(value), ",value=", value)
-        if not value or not isinstance(value, list) or len(value) < 1:
-            raise ValueError("no value")
+        if not value or not isinstance(value, list) or len(value) != 2:
+            raise ValueError("value not a list of length 2")
+
+        # The values may not be equal if the text widget was
+        # the most recently updated.
+
+        # Return the text widget value
         return value[0]
 
+def timezone_coerce(tzstr):
+    """Function to coerce a string to a timezone.
+    """
+    try:
+        return pytz.timezone(tzstr)
+    except pytz.UnknownTimeZoneError as exc:
+        _logger.error("timezone_coerce: %s", exc)
+    return pytz.utc
+
 class DataSelectionForm(forms.Form):
-    ''' '''
+    """Form for selection of dataset parameters, such as time and variables.
+
+    """
 
     variables = forms.MultipleChoiceField(
         required=True, widget=forms.CheckboxSelectMultiple(
             attrs={'data-mini': 'true'}),
         label='Variables:')
+
+    timezone = forms.TypedChoiceField(
+        required=True,
+        label="time zone",
+        coerce=timezone_coerce)
 
     # pickerPosition: bottom-right, bottom-left
     #       popup calendar box is to lower left or right of textbox & icon
@@ -127,105 +188,41 @@ class DataSelectionForm(forms.Form):
         widget=widgets.DateTimeWidget(
             bootstrap_version=3, options={
                 'format': 'yyyy-mm-dd hh:ii', 'clearBtn': 0, 'todayBtn': 1,
+                # 'format': 'YYYY-MM-DD HH:mm', 'clearBtn': 0, 'todayBtn': 1,
                 'pickerPosition': 'bottom-right'}))
 
     # choices: (value, label)
-    strchoices = [(str(i), str(i),) for i in __time_len_choices__]
-
-    # strchoices.append(('0', 'other', ))
-
     time_length = FloatWithChoiceField(
-        choices=strchoices, label='Time length', min_value=0)
+        choices=[(str(i), str(i),) for i in TIME_LEN_CHOICES],
+        label='Time length', min_value=0)
 
     time_length_units = forms.ChoiceField(
-        choices=[(c, c,) for c in __time_units_choices__],
-        initial=__time_units_choices__[0], label='')
+        choices=[(c, c,) for c in TIME_UNITS_CHOICES],
+        initial=TIME_UNITS_CHOICES[0], label='')
 
-    def __init__(self, *args, dataset=None, selected_vars=[],
-                 start_time=None, time_length=None, **kwargs):
+    def __init__(self, *args, dataset=None, **kwargs):
+        """Set choices for variables and time zone from dataset.
+        """
 
         super().__init__(*args, **kwargs)
 
-        # dataset is not a Field, must be set in __init__ whether
-        # this form is bound or not
         self.dataset = dataset
+        dvars = sorted(dataset.get_variables().keys())
+        self.fields['variables'].choices = [(v, v) for v in dvars]
 
-        # choices is a list of tuples: (value, label)
-        if not hasattr(self.fields['variables'], 'choices') or \
-                len(self.fields['variables'].choices) == 0:
-            _logger.debug(
-                "form variables has no choices, form is_bound=%s",
-                self.is_bound)
-            dvars = sorted(dataset.get_variables().keys())
-            self.fields['variables'].choices = [(v, v) for v in dvars]
+        if len(dataset.timezones.all()) > 0:
+            self.fields['timezone'].choices = \
+                [(v.tz, str(v.tz)) for v in dataset.timezones.all()]
         else:
-            _logger.debug(
-                "variables choices=%s", repr(self.fields['variables'].choices))
+            proj = dataset.project
+            self.fields['timezone'].choices = \
+                [(v.tz, str(v.tz)) for v in proj.timezones.all()]
 
-        # self.files = []
-
-        # bound to data: capable of validating that data and rendering
-        # it as HTML
-        # unbound: no data to validate
-        if not self.is_bound:
-
-            self.fields['start_time'].label = \
-                "Start time (timezone={})".format(dataset.timezone)
-
-            dtz = self.dataset.get_timezone()
-
-            # initial selected variables
-            self.fields['variables'].initial = selected_vars
-
-            # start_time will be timezone aware
-            '''
-            if start_time.tzinfo == None or \
-                start_time.tzinfo.utcoffset(start_time) == None:
-                _logger.debug("form __init__ start_time is timezone naive")
-            else:
-                _logger.debug("form __init__ start_time is timezone aware")
-            '''
-
-            # convert to dataset timezone
-            self.fields['start_time'].initial = \
-                datetime.datetime.fromtimestamp(start_time.timestamp(), tz=dtz)
-
-            if not time_length:
-                time_length = datetime.timedelta(days=1)
-            elif not isinstance(time_length, datetime.timedelta):
-                time_length = datetime.timedelta(seconds=time_length)
-
-            tlen = time_length.total_seconds()
-
-            if tlen >= datetime.timedelta(days=1).total_seconds():
-                tunits = 'day'
-                tlen /= 86400
-            elif tlen >= datetime.timedelta(hours=1).total_seconds():
-                tunits = 'hour'
-                tlen /= 3600
-            elif tlen >= datetime.timedelta(minutes=1).total_seconds():
-                tunits = 'minute'
-                tlen /= 60
-            else:
-                tunits = 'second'
-
-            if tlen in __time_len_choices__:
-                tother = 0
-            else:
-                tlen = 0
-                tother = tlen
-
-            tlen = '{:f}'.format(tlen)
-            '''
-            print("tlen=", tlen, ", tother=", tother)
-
-            print("type(self.fields['time_length'].initial)=",
-                type(self.fields['time_length'].initial))
-            '''
-            self.fields['time_length_units'].initial = tunits
-            self.fields['time_length'].initial = tlen
+        self.fields['variables'].choices = [(v, v) for v in dvars]
 
     def clean(self):
+        """ """
+
         '''
         print('DataSelectionForm clean')
         print("cleaned_data=", cleaned_data)
@@ -233,11 +230,11 @@ class DataSelectionForm(forms.Form):
 
         cleaned_data = super().clean()
 
-        dtz = self.dataset.get_timezone()
-        # print("dtz=",dtz)
         start_time = cleaned_data['start_time']
+        timezone = cleaned_data['timezone']
 
-        # start_time in cleaned data is timezone aware
+        # start_time in cleaned data is timezone aware, but
+        # with the browser's timezone
         """
         A datetime object d is aware if d.tzinfo is not None and
         d.tzinfo.utcoffset(d) does not return None. If d.tzinfo is
@@ -252,7 +249,7 @@ class DataSelectionForm(forms.Form):
 
         # the time fields are in the browser's timezone. Use those exact fields,
         # but interpret them in the dataset timezone
-        start_time = dtz.localize(start_time.replace(tzinfo=None))
+        start_time = timezone.localize(start_time.replace(tzinfo=None))
 
         # Allow user to be sloppy by a week
         if start_time < self.dataset.get_start_time() - \
@@ -268,7 +265,7 @@ class DataSelectionForm(forms.Form):
 
         tunits = cleaned_data['time_length_units']
 
-        if not tunits in __time_units_choices__:
+        if not tunits in TIME_UNITS_CHOICES:
             raise forms.ValidationError('invalid time units: {}'.format(tunits))
 
         if not 'time_length' in cleaned_data:

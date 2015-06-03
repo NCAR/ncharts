@@ -1,13 +1,12 @@
 [
 {
     "fields": {
-        "timezone": "US/Arizona", 
         "variables": [], 
         "platforms": [
             "ISFS"
         ], 
-        "start_time": "2013-09-27T07:00:00Z", 
-        "end_time": "2013-11-03T00:00:00Z", 
+        "start_time": "2013-09-27T07:00:00+00:00", 
+        "end_time": "2013-11-03T00:00:00+00:00", 
         "name": "5 min, geo, tiltcor", 
         "project": "METCRAXII"
     }, 
@@ -24,13 +23,12 @@
 },
 {
     "fields": {
-        "timezone": "US/Arizona", 
         "variables": [], 
         "platforms": [
             "ISFS"
         ], 
-        "start_time": "2013-09-27T07:00:00Z", 
-        "end_time": "2013-11-02T07:00:00Z", 
+        "start_time": "2013-09-27T07:00:00+00:00", 
+        "end_time": "2013-11-02T07:00:00+00:00", 
         "name": "high-rate, geo tilt_cor", 
         "project": "METCRAXII"
     }, 

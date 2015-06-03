@@ -1,7 +1,6 @@
 [
 {
     "fields": {
-        "timezone": "NZ", 
         "variables": [], 
         "platforms": [
             "ISS"
@@ -24,13 +23,12 @@
 },
 {
     "fields": {
-        "timezone": "NZ", 
         "variables": [], 
         "platforms": [
             "GV"
         ], 
-        "start_time": "2014-07-01T04:00:00Z", 
-        "end_time": "2014-07-01T14:00:00Z", 
+        "start_time": "2014-07-01T04:00:00+00:00", 
+        "end_time": "2014-07-01T14:00:00+00:00", 
         "name": "GV-1sec", 
         "project": "DEEPWAVE"
     }, 

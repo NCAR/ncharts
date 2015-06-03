@@ -1,13 +1,12 @@
 [
 {
     "fields": {
-        "timezone": "US/Mountain", 
         "variables": [], 
         "platforms": [
             "GAUS"
         ], 
-        "start_time": "2014-11-05T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2014-11-05T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "wxt_std", 
         "project": "MASCRAD"
     }, 
@@ -24,13 +23,12 @@
 },
 {
     "fields": {
-        "timezone": "US/Mountain", 
         "variables": [], 
         "platforms": [
             "GAUS"
         ], 
-        "start_time": "2014-11-11T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2014-11-11T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "surface_two", 
         "project": "MASCRAD"
     }, 

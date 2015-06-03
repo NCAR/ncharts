@@ -228,6 +228,16 @@ class DatasetView(View):
         usersel = None
         request_id = None
 
+        if len(dset.timezones.all()) > 0:
+            timezone = dset.timezones.all()[0]
+        elif len(dset.project.timezones.all()) > 0:
+            timezone = dset.project.timezones.all()[0]
+        else:
+            _logger.error(
+                "dataset %s of project %s has no associated timezone",
+                 dataset_name, project_name)
+            timezone = nc_models.TimeZone.objects.get(tz='UTC')
+
         if 'request_id' in request.session and request.session['request_id']:
             request_id = request.session['request_id']
             try:
@@ -245,7 +255,7 @@ class DatasetView(View):
             #   not real-time project
             #       start_time, end_time a day at beginning of dataset
 
-            tnow = datetime.datetime.now(pytz.utc)
+            tnow = datetime.datetime.now(timezone.tz)
             delta = datetime.timedelta(days=1)
             if dset.get_end_time() > tnow:
                 stime = tnow - delta
@@ -253,7 +263,9 @@ class DatasetView(View):
                 stime = dset.get_start_time()
 
             usersel = nc_models.UserSelection.objects.create(
-                dataset=dset, start_time=stime,
+                dataset=dset,
+                timezone=timezone.tz,
+                start_time=stime,
                 time_length=delta.total_seconds())
 
             request_id = usersel.id
@@ -281,9 +293,10 @@ class DatasetView(View):
                     project_name, dataset_name)
 
                 usersel.dataset = dset
+                usersel.timezone = timezone
                 usersel.variables = []
 
-                tnow = datetime.datetime.now(pytz.utc)
+                tnow = datetime.datetime.now(timezone.tz)
                 delta = datetime.timedelta(days=1)
                 if dset.get_end_time() > tnow:
                     stime = tnow - delta
@@ -305,9 +318,39 @@ class DatasetView(View):
         else:
             svars = []
 
+        tlen = usersel.time_length
+
+        if tlen >= datetime.timedelta(days=1).total_seconds():
+            tunits = 'day'
+            tlen /= 86400
+        elif tlen >= datetime.timedelta(hours=1).total_seconds():
+            tunits = 'hour'
+            tlen /= 3600
+        elif tlen >= datetime.timedelta(minutes=1).total_seconds():
+            tunits = 'minute'
+            tlen /= 60
+        else:
+            tunits = 'second'
+
+        if tlen in nc_forms.TIME_LEN_CHOICES:
+            tother = 0
+        else:
+            tlen = 0
+            tother = tlen
+
+        tlen = '{:f}'.format(tlen)
+
+
         form = nc_forms.DataSelectionForm(
-            dataset=dset, selected_vars=svars,
-            start_time=usersel.start_time, time_length=usersel.time_length)
+            initial={
+                'variables': svars,
+                'timezone': timezone.tz,
+                'start_time': datetime.datetime.fromtimestamp(
+                    usersel.start_time.timestamp(), tz=timezone.tz),
+                'time_length_units': tunits,
+                'time_length': tlen
+            },
+            dataset=dset)
 
         return render(request, self.template_name,
                       {'form': form, 'dataset': dset})
@@ -391,9 +434,10 @@ class DatasetView(View):
         '''
 
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
-            dtz = dset.get_timezone()
 
-            stime = dtz.localize(
+            timezone = TimeZone.objects.get(tz=request.POST['timezone'])
+
+            stime = timezone.localize(
                 datetime.datetime.strptime(
                     request.POST['start_time'], "%Y-%m-%d %H:%M"))
 
@@ -418,6 +462,7 @@ class DatasetView(View):
             return render(request, self.template_name,
                           {'form': form, 'dataset': dset})
 
+        # Save the user selection from the form
         svars = form.cleaned_data['variables']
 
         stime = form.cleaned_data['start_time']
@@ -425,6 +470,7 @@ class DatasetView(View):
         etime = stime + delt
         usersel.variables = json.dumps(svars)
         usersel.start_time = stime
+        usersel.timezone = form.cleaned_data['timezone']
         usersel.time_length = delt.total_seconds()
         usersel.save()
 

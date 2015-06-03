@@ -1,9 +1,13 @@
-from ncharts.models import Project, Platform, FileDataset, UserSelection, Variable
+from ncharts.models import Project, Platform, FileDataset, UserSelection, Variable, TimeZone
 
 from pytz import timezone, utc
 from datetime import datetime, timedelta
 
 from django.core import serializers
+
+mtntz = TimeZone.objects.create(tz='US/Mountain')
+objs = TimeZone.objects.all()
+serializers.serialize('json',objs)
 
 mttz = timezone("US/Mountain")
 aztz = timezone("US/Arizona")

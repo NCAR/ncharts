@@ -3,43 +3,48 @@
     "fields": {}, 
     "model": "ncharts.project", 
     "location": "Barringer Meteor Crater, AZ", 
+    "timezones": ["US/Arizona", "UTC"],
     "pk": "METCRAXII"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
+    "timezones": ["US/Mountain", "UTC"],
     "pk": "Weather"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
     "location": "New Zealand", 
+    "timezones": ["NZ", "UTC"],
     "pk": "DEEPWAVE"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
     "location": "Boulder", 
+    "timezones": ["US/Mountain", "UTC"],
     "pk": "CentNet Devel"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
     "location": "Greeley, CO", 
+    "timezones": ["US/Mountain", "UTC"],
     "pk": "MASCRAD"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
     "location": "Firestone, CO", 
+    "timezones": ["US/Mountain", "UTC"],
     "pk": "FRONT"
 },
 {
     "fields": {}, 
     "model": "ncharts.project", 
     "location": "Boulder Atmospheric Observatory, Erie, CO", 
+    "timezones": ["US/Mountain", "UTC"],
     "pk": "CABL"
 }
 ]
-
-

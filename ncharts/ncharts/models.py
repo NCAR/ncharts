@@ -10,7 +10,7 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-import os, pytz
+import os, pytz, logging
 
 from django.db import models
 
@@ -19,6 +19,15 @@ from ncharts import netcdf
 from django.core import exceptions as dj_exc
 
 import datetime
+
+from timezone_field import TimeZoneField
+
+_logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
+
+class TimeZone(models.Model):
+    """ """
+    tz = TimeZoneField(default=pytz.utc,
+            primary_key=True)
 
 class Project(models.Model):
     """A field project, with a unique name.
@@ -40,7 +49,13 @@ class Project(models.Model):
 
     name = models.CharField(max_length=64, primary_key=True)
 
-    location = models.CharField(max_length=256,blank=True)
+    location = models.CharField(max_length=256, blank=True)
+
+    timezones = models.ManyToManyField(
+        TimeZone,
+        blank=True,
+        related_name='+',
+        help_text='Supported timezones for plotting data of this project')
 
     def __str__(self):
         return 'Project: %s' % self.name
@@ -71,7 +86,7 @@ class Variable(models.Model):
 
     long_name = models.CharField(max_length=256, blank=True)
 
-def validate_timezone(tzname):
+def validate_timezone_disabled(tzname):
     """Check a timezone string.
 
     Args:
@@ -142,20 +157,22 @@ class Dataset(models.Model):
         Platform,
         help_text='A dataset is associated with one or more platforms')
 
-    timezone = models.CharField(
-        max_length=64, validators=[validate_timezone],
-        help_text='Default timezone of this project')
+    timezones = models.ManyToManyField(
+        TimeZone,
+        help_text='Overrides the timezones of the project')
 
     start_time = models.DateTimeField()
 
     end_time = models.DateTimeField()
 
-    location = models.CharField(max_length=256,blank=True,help_text="Location for dataset if different than for project")
+    location = models.CharField(
+        max_length=256, blank=True,
+        help_text="Location for dataset if different than for project")
 
     # '+' tells django not to create a backwards relation from
     # Variable to Dataset
     variables = models.ManyToManyField(
-        Variable, related_name='+', blank=True)
+        Variable, related_name='+')
 
     # netcdf_time_series, raf_postgres
     # dstype = models.CharField(max_length=64, blank=True)
@@ -170,7 +187,7 @@ class Dataset(models.Model):
         self.platforms.add(platform)
         platform.projects.add(self.project)
 
-    def get_timezone(self):
+    def get_timezone_disabled(self):
         """ self.timezones is a dict object containing tzinfos for named
             timezones
         """
@@ -188,10 +205,12 @@ class Dataset(models.Model):
             timezone = pytz.timezone(self.timezone)
             # print("get_timezone, tz=", timezone)
             self.timezones[self.timezone] = timezone
-            return timezone
+            self.timezones['UTC'] = pytz.utc
         except:
             raise dj_exc.ValidationError(
                 "%s is not a recognized timezone" % self.timezone)
+
+        return timezone
 
     def get_start_time(self):
         '''
@@ -205,11 +224,12 @@ class Dataset(models.Model):
         #    self.start_time.isoformat())
         if self.start_time.tzinfo == None or \
                 self.start_time.tzinfo.utcoffset(self.start_time) == None:
-            tzone = self.get_timezone().localize(self.start_time, is_dst=True)
-            print("Dataset localized start_time:", tzone.isoformat())
-            return tzone
-        else:
-            return self.start_time
+            self.start_time = pytz.utc.localize(self.start_time)
+            _logger.debug(
+                "Dataset localized start_time: %s",
+                self.start_time.isoformat())
+
+        return self.start_time
 
     def get_end_time(self):
         """
@@ -222,14 +242,21 @@ class Dataset(models.Model):
         # print("Dataset get_end_time, end_time=", self.end_time.isoformat())
         if self.end_time.tzinfo == None or \
                 self.end_time.tzinfo.utcoffset(self.end_time) == None:
-            end_time = self.get_timezone().localize(self.end_time, is_dst=True)
-            print("Dataset localized end_time:", end_time.isoformat())
-            return end_time
-        else:
-            return self.end_time
+            self.end_time = pytz.utc.localize(self.end_time)
+            _logger.debug(
+                "Dataset localized end_time: %s",
+                self.end_time.isoformat())
 
-    def get_variables(self):
-        pass
+        return self.end_time
+
+    def get_variables_disabled(self):
+        """Get variables in this dataset.
+
+        Method to be implemented in sub-class.
+
+        Returns:
+        """
+        return []
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
@@ -329,6 +356,8 @@ class UserSelection(models.Model):
     # This ForeignKey cannot be a Dataset, since it is
     # abstract.
     dataset = models.ForeignKey(Dataset, related_name='+')
+
+    timezone = TimeZoneField(blank=False)
 
     start_time = models.DateTimeField()
 

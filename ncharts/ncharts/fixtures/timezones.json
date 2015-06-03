@@ -1,0 +1,37 @@
+[
+{
+    "fields": {},
+    "pk": "UTC",
+    "model": "ncharts.timezone"
+},
+{
+    "fields": {},
+    "pk": "US/Pacific", 
+    "model": "ncharts.timezone"
+},
+{
+    "fields": {},
+    "pk": "US/Arizona", 
+    "model": "ncharts.timezone"
+},
+{
+    "fields": {},
+    "pk": "US/Mountain", 
+    "model": "ncharts.timezone"
+},
+{
+    "fields": {},
+    "pk": "US/Central", 
+    "model": "ncharts.timezone"
+},
+{
+    "fields": {},
+    "pk": "US/Eastern", 
+    "model": "ncharts.timezone" 
+},
+{
+    "fields": {},
+    "pk": "NZ", 
+    "model": "ncharts.timezone"
+}
+]

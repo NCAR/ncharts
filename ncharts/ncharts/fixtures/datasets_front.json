@@ -1,13 +1,12 @@
 [
 {
     "fields": {
-        "timezone": "US/Mountain", 
         "variables": [], 
         "platforms": [
             "SPOL-surface"
         ], 
-        "start_time": "2014-12-29T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2014-12-29T00:00:00+00:00",
+        "end_time": "2015-12-31T00:00:00+00:00",
         "name": "SPOL-FRONT-surface", 
         "project": "FRONT"
     }, 

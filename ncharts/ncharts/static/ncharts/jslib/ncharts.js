@@ -4,33 +4,103 @@
 (function(main_iife_function) {
         main_iife_function(window.jQuery, window, document);
     }(function($,window,document) {
-        var unique = function(arr) {
+        
+        // Put local variables and functions into this namespace
+        local_ns = {}
+
+        local_ns.unique = function(arr) {
             return arr.filter(function(value, index, array) {
                 return array.indexOf(value) === index;
             });
         };
+
+        local_ns.setPlotTimezone = function(val) {
+            // console.log("calling Highcharts.setOptions,val",val);
+            local_ns.plotTimezone = val;
+            local_ns.zone = moment.tz.zone(val);
+            Highcharts.setOptions({
+                global: {
+                    getTimezoneOffset: function(timestamp) {
+                        var timezoneOffset =
+                            -moment.tz(timestamp,local_ns.plotTimezone).utcOffset();
+                        // console.log("timezoneOffset=",timezoneOffset);
+                        return timezoneOffset;
+                    },
+                    // Documentation on this seems wrong. With the current
+                    // logic here, we must set this to true.
+                    useUTC: true,
+                }
+            });
+        };
+
+        // Add support for %Z time formatter
+        Highcharts.dateFormats = {
+            Z: function (timestamp) {
+                return local_ns.zone.abbr(timestamp);
+            }
+        };
+
         $(function() {
-
-            // hide/show the time_length_val input depending on the time_length_choice
-            cval = $("#id_time_length_choice").val();
-            console.log("time_length_val ready, choice val=", cval);
-            if (cval === '' || cval === '0') {
-                console.log("time_length_val show");
-                $( "#id_time_length_val" ).show();
-            }
-            else {
-                console.log("time_length_val hide");
-                $( "#id_time_length_val" ).hide();
-            }
-
-            // console.log("time is " + (typeof time == "undefined"))
-
-            // var ncharts = $("div[id^='time-series']").length
-            // console.log("ncharts=",ncharts)
-
             console.log("DOM is ready!");
 
+            // When doc is ready, grab the selected time zone
+            var tzelem = $("select#id_timezone");
+            var tz = tzelem.val();
+            // console.log("id_timezone new,tz=",tz);
+            local_ns.pickerTimezone = tz;
+            local_ns.setPlotTimezone(tz);
+
+            $("select#id_timezone").change(function() {
+                // When user changes the timezone, adjust the time
+                // in the datetimepicker so that it is the
+                // same moment in time as with the previous timezone.
+                //
+                // Unfortunately datetimepicker time formats
+                // are different than moment time formats:
+                // datetimepicker:  "yyyy-mm-dd hh:ii"
+                // moment:          "YYYY-MM-DD HH:mm"
+                // The moment format is hard-coded here, and so
+                // if the datetimepicker format is changed in
+                // django/python, it must be changed here.
+                //
+                // Also couldn't find out how to get the current
+                // datetimepicker format.
+                //
+                // To avoid formatting times one would get/set
+                // from datetimepicker using javascript Date objects.
+                // However, a javascript Date is either in the
+                // browser's time zone or UTC. I believe there would
+                // always be a problem right around the time of
+                // daylight savings switches, if Date is used.
+
+                // Note that we don't change the value of
+                // the timezone in local_ns, since that must match
+                // what is plotted.
+
+                var picker = $("input#id_start_time");
+                var dstr = picker.val();
+
+                // console.log("picker.val()=",dstr);
+
+                // parse time using current timezone
+                var mom = moment.tz(dstr,'YYYY-MM-DD HH:mm',local_ns.pickerTimezone);
+
+                // get the new timezone
+                var new_tz = $(this).val();
+
+                // save previous value, but don't
+                local_ns.pickerTimezone = new_tz;
+
+                // adjust time for new timezone
+                mom = mom.tz(new_tz);
+
+                // format it, and set it on the picker
+                dstr = mom.format('YYYY-MM-DD HH:mm');
+                picker.val(dstr);
+            });
+
             $("div[id^='time-series']").each(function(index) {
+                console.log("time-series");
 
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
@@ -38,17 +108,17 @@
                 if (long_names.length == 0) {
                     long_names = vnames;
                 }
-                console.log("time-series, time.length=",time.length);
-                console.log("vnames=",vnames,", vunits=",vunits);
+                // console.log("time-series, time.length=",time.length);
+                // console.log("vnames=",vnames,", vunits=",vunits);
 
                 // series and yAxis are arrays of dictionaries
                 var yAxis = [];
                 
-                var unique_units = unique(vunits);
-                console.log("unique_units=",unique_units);
+                var unique_units = local_ns.unique(vunits);
+                // console.log("unique_units=",unique_units);
                 var opposite = false;
                 for (var unit of unique_units) {
-                    console.log("unit=",unit);
+                    // console.log("unit=",unit);
                     ya = {
                         opposite: opposite,
                         title: {
@@ -81,8 +151,10 @@
                     vseries['yAxis'] = unique_units.indexOf(vunit);
                     vseries['tooltip'] = {
                         // valueSuffix: long_name,
+                        headerFormat: '<span style="font-size: 10px">{point.key}</span><br/>',
                         pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + long_name + ',{series.name}: <b>{point.y}</b><br/>',
                         valueDecimals: 6,
+                        xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
                     };
                     /* a checkbox allows one to "select" the series, but
                      * I'm not sure what that does. Clicking it doesn't
@@ -115,6 +187,9 @@
                     },
                     xAxis: {
                         type: 'datetime',
+                        // opted not to add %Z to these formats.
+                        // The timezone is in the xAxis label, and in
+                        // the tooltip popups.
                         dateTimeLabelFormats: {
                             millisecond: '%H:%M:%S.%L',
                             second: '%H:%M:%S',
@@ -127,7 +202,7 @@
                         startOnTick: false,
                         endOnTick: false,
                         title: {
-                            text: 'time'
+                            text: "time (" + local_ns.plotTimezone + ")"
                         },
                     },
                     yAxis: yAxis,

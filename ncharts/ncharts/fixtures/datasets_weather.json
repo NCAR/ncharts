@@ -1,7 +1,7 @@
 [
 {
     "fields": {
-        "timezone": "US/Mountain", 
+        "timezones": ["US/Mountain", "UTC", "US/Pacific", "US/Central", "US/Eastern", "US/Arizona"],
         "variables": [
             1, 
             2, 
@@ -19,8 +19,8 @@
         "platforms": [
             "Weather Station"
         ], 
-        "start_time": "2009-01-01T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2009-01-01T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "flab-5min", 
         "project": "Weather"
     }, 
@@ -29,7 +29,7 @@
 },
 {
     "fields": {
-        "directory": "/net/weather/flab/data", 
+        "directory": "/home/maclean/www/weather/flab/data", 
         "filenames": "flab.%Y%m%d.cdf"
     }, 
     "model": "ncharts.filedataset", 
@@ -37,7 +37,6 @@
 },
 {
     "fields": {
-        "timezone": "US/Mountain", 
         "variables": [
             1, 
             2, 
@@ -55,8 +54,8 @@
         "platforms": [
             "Weather Station"
         ], 
-        "start_time": "2012-06-01T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2012-06-01T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "nwsc-5min", 
         "project": "Weather"
     }, 
@@ -73,7 +72,6 @@
 },
 {
     "fields": {
-        "timezone": "US/Mountain", 
         "variables": [
             1, 
             2, 
@@ -91,8 +89,8 @@
         "platforms": [
             "Weather Station"
         ], 
-        "start_time": "2009-01-01T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2009-01-01T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "mlab-5min", 
         "project": "Weather"
     }, 
@@ -109,7 +107,7 @@
 },
 {
     "fields": {
-        "timezone": "US/Eastern", 
+        "timezones": ["US/Eastern", "UTC"],
         "variables": [
             1, 
             2, 
@@ -127,8 +125,8 @@
         "platforms": [
             "Weather Station"
         ], 
-        "start_time": "2009-01-26T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2009-01-26T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "nsf-5min", 
         "project": "Weather"
     }, 
@@ -145,7 +143,7 @@
 },
 {
     "fields": {
-        "timezone": "US/Mountain", 
+        "timezones": ["US/Mountain", "UTC"],
         "variables": [
             1, 
             2, 
@@ -163,8 +161,8 @@
         "platforms": [
             "Weather Station"
         ], 
-        "start_time": "2013-12-10T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2013-12-10T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "raf-5min", 
         "project": "Weather"
     }, 
@@ -181,7 +179,7 @@
 },
 {
     "fields": {
-        "timezone": "US/Mountain", 
+        "timezones": ["US/Mountain", "UTC"],
         "variables": [
             1, 
             2, 
@@ -199,8 +197,8 @@
         "platforms": [
             "Weather Station"
         ], 
-        "start_time": "2014-02-13T00:00:00Z", 
-        "end_time": "2015-12-31T00:00:00Z", 
+        "start_time": "2014-02-13T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "fireside-5min", 
         "project": "Weather"
     }, 
