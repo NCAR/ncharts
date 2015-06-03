@@ -37,6 +37,8 @@ ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost', '128.117.82.21
 
 # Application definition
 
+# In django, an app is: "a Python package that is specifically intended
+# for use in a Django project".
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,6 +48,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     # 'django.contrib.formtools',
     'datetimewidget',
+    'timezone_field',
     'ncharts',
 )
 

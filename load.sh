@@ -15,6 +15,7 @@ fi
 python3 manage.py loaddata projects.json 
 python3 manage.py loaddata platforms.json 
 python3 manage.py loaddata variables.json 
+python3 manage.py loaddata timezones.json 
 
 for f in ncharts/fixtures/datasets_*.json; do
     ff=${f##*/}
