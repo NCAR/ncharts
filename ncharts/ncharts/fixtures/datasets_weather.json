@@ -29,7 +29,7 @@
 },
 {
     "fields": {
-        "directory": "/home/maclean/www/weather/flab/data", 
+        "directory": "/net/weather/flab/data", 
         "filenames": "flab.%Y%m%d.cdf"
     }, 
     "model": "ncharts.filedataset", 
