@@ -173,7 +173,7 @@ class ModelTestCase(test.TestCase):
         # print(x['data'].keys())
 
         # ndays of 5 minute data
-        self.assertEqual(len(tsd['time']), 86400/(5*60) * ndays + 1)
+        self.assertEqual(len(tsd['time']), 86400/(5*60) * ndays)
         self.assertEqual(len(tsd['data']), len(rvars))
 
         for var in tsd["data"]:
