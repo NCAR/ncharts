@@ -89,6 +89,12 @@ class NetCDFDataset(object):
         Args:
             start_time: datetime.datetime of start of fileset scan.
             end_time: end of fileset scan.
+
+        Returns:
+            List of file path names matching the time period.
+
+        Raises:
+            FileNotFoundError
         """
         return [f.path for f in self.fileset.scan(start_time, end_time)]
 
@@ -114,6 +120,8 @@ class NetCDFDataset(object):
                 units: units attribute of the NetCDF variable
                 long_name: long_name attribute of the NetCDF variable
                 short_name: short_name attribute of the NetCDF variable
+        Raises:
+            FileNotFoundError
         """
 
         filepaths = self.get_filepaths(start_time, end_time)
@@ -490,6 +498,7 @@ class NetCDFDataset(object):
                     os.path.split(ncpath)[1],
                     start_time.isoformat(), end_time.isoformat(),
                     tvals[0].isoformat(), tvals[-1].isoformat())
+                return slice(0)
             else:
                 _logger.debug(
                     "%s: tvals[%d]=%d ,"
@@ -670,6 +679,9 @@ class NetCDFDataset(object):
                     the data for each variable,
                 'dim2': values for second dimension of the data, such as height,
             }.
+
+        Raises:
+            FileNotFoundError
 
         """
 

@@ -235,7 +235,7 @@ class DatasetView(View):
         else:
             _logger.error(
                 "dataset %s of project %s has no associated timezone",
-                 dataset_name, project_name)
+                dataset_name, project_name)
             timezone = nc_models.TimeZone.objects.get(tz='UTC')
 
         if 'request_id' in request.session and request.session['request_id']:
@@ -435,7 +435,7 @@ class DatasetView(View):
 
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
 
-            timezone = TimeZone.objects.get(tz=request.POST['timezone'])
+            timezone = nc_models.TimeZone.objects.get(tz=request.POST['timezone'])
 
             stime = timezone.localize(
                 datetime.datetime.strptime(
@@ -516,6 +516,11 @@ class DatasetView(View):
             try:
                 ncdata = ncdset.read_time_series(
                     savail, start_time=stime, end_time=etime)
+            except FileNotFoundError:
+                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+                form.no_data(repr(exc))
+                return render(request, self.template_name,
+                              {'form': form, 'dataset': dset})
             except nc_exceptions.TooMuchDataException as exc:
                 _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
                 form.too_much_data(repr(exc))

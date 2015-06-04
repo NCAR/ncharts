@@ -267,6 +267,9 @@ class Dir(object):
         Returns:
             A list of matching File objects, sorted by their associated
             path time, whose times fall within [start_time, end_time).
+
+        Raises:
+            FileNotFoundError
         """
 
         files = []
@@ -406,6 +409,13 @@ class Fileset(object):
         Args:
             start_time: A datetime.datetime, start of the time period.
             end_time: A datetime.datetime, end of the time period.
+
+        Returns:
+            A list of matching File objects, sorted by their associated
+            path time, whose times fall within [start_time, end_time).
+
+        Raises:
+            FileNotFoundError
         """
         return self.pdir.scan(start_time, end_time)
 
