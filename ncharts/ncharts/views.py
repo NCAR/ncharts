@@ -435,7 +435,8 @@ class DatasetView(View):
 
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
 
-            timezone = nc_models.TimeZone.objects.get(tz=request.POST['timezone'])
+            timezone = nc_models.TimeZone.objects.get(
+                tz=request.POST['timezone']).tz
 
             stime = timezone.localize(
                 datetime.datetime.strptime(
