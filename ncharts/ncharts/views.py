@@ -293,7 +293,7 @@ class DatasetView(View):
                     project_name, dataset_name)
 
                 usersel.dataset = dset
-                usersel.timezone = timezone
+                usersel.timezone = timezone.tz
                 usersel.variables = []
 
                 tnow = datetime.datetime.now(timezone.tz)
