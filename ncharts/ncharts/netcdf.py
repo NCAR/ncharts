@@ -383,7 +383,7 @@ class NetCDFDataset(object):
             size_limit: Raise an exception if the total_size exceeds size_limit.
 
         Returns:
-            A builtin slice object, giving the start and stop indices of the
+            A built-in slice object, giving the start and stop indices of the
             requested time period in the file. The times list argument is
             also extended with the times read from the file.
 
@@ -470,25 +470,26 @@ class NetCDFDataset(object):
             if len(tvals) == 0:
                 return slice(0)
 
-            istart = 0
-            for istart, tval in enumerate(tvals):
-                if tval >= start_time:
-                    break
-
-            iend = 0
-            for iend, tval in enumerate(reversed(tvals)):
-                if tval < end_time:
-                    break
-            iend = len(tvals) - iend
+            try:
+                istart = next(idx for idx, tval in enumerate(tvals) \
+                        if tval >= start_time)
+                # print("start_time={}, file={},istart={}",
+                #         start_time,ncpath,istart)
+                iend = next(idx for idx, tval in enumerate(reversed(tvals)) \
+                        if tval < end_time)
+                iend = len(tvals) - iend
+                # print("end_time={}, file={},iend={}",
+                #         end_time,ncpath,iend)
+            except StopIteration:
+                return slice(0)
 
             if iend - istart <= 0:
                 _logger.warning(
-                    "%s: no times found, start_time=%s,"
+                    "%s: times in file may not be ordered, start_time=%s,"
                     "end_time=%s, file times=%s - %s",
                     os.path.split(ncpath)[1],
                     start_time.isoformat(), end_time.isoformat(),
                     tvals[0].isoformat(), tvals[-1].isoformat())
-                return slice(0)
             else:
                 _logger.debug(
                     "%s: tvals[%d]=%d ,"
@@ -713,6 +714,11 @@ class NetCDFDataset(object):
                 time_slice = self.read_times(
                     ncfile, ncpath, start_time, end_time, times,
                     size_limit - total_size)
+
+                # time_slice.start is None if nothing to read
+                if time_slice.start is None or \
+                    time_slice.stop <= time_slice.start:
+                    continue
 
                 total_size += sys.getsizeof(times) - size1
 
