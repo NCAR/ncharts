@@ -1,7 +1,6 @@
 [
 {
     "fields": {
-        "timezones": ["US/Mountain", "UTC", "US/Pacific", "US/Central", "US/Eastern", "US/Arizona"],
         "variables": [
             1, 
             2, 
@@ -15,6 +14,7 @@
             10, 
             11
         ], 
+        "timezones": ["US/Mountain", "UTC"],
         "location": "NCAR Foothills Lab, Boulder CO", 
         "platforms": [
             "Weather Station"
@@ -50,6 +50,7 @@
             10, 
             11
         ], 
+        "timezones": ["US/Mountain", "UTC"],
         "location": "NCAR Wyoming Supercomputer Center, Cheyenne WY", 
         "platforms": [
             "Weather Station"
@@ -85,6 +86,7 @@
             10, 
             11
         ], 
+        "timezones": ["US/Mountain", "UTC"],
         "location": "NCAR Mesa Lab, Boulder CO", 
         "platforms": [
             "Weather Station"
@@ -107,7 +109,6 @@
 },
 {
     "fields": {
-        "timezones": ["US/Eastern", "UTC"],
         "variables": [
             1, 
             2, 
@@ -121,6 +122,7 @@
             10, 
             11
         ], 
+        "timezones": ["US/Eastern", "UTC"],
         "location": "NSF Headquarters, Washington DC", 
         "platforms": [
             "Weather Station"
@@ -143,7 +145,6 @@
 },
 {
     "fields": {
-        "timezones": ["US/Mountain", "UTC"],
         "variables": [
             1, 
             2, 
@@ -157,6 +158,7 @@
             10, 
             11
         ], 
+        "timezones": ["US/Mountain", "UTC"],
         "location": "NCAR Research Aircraft Facility, Westminster CO", 
         "platforms": [
             "Weather Station"
@@ -179,7 +181,6 @@
 },
 {
     "fields": {
-        "timezones": ["US/Mountain", "UTC"],
         "variables": [
             1, 
             2, 
@@ -193,6 +194,7 @@
             10, 
             11
         ], 
+        "timezones": ["US/Mountain", "UTC"],
         "location": "Fireside Elementary, Louisville CO", 
         "platforms": [
             "Weather Station"
