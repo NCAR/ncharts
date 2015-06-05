@@ -10,7 +10,7 @@ else
     [ $VIRTUAL_ENV ] || source $HOME/virtualenvs/django/bin/activate
 fi
 
-chmod -R g+w static
+chmod -R ug+w static
 
 python3 manage.py findstatic ncharts/jslib/ncharts.js
 python3 manage.py collectstatic
