@@ -251,7 +251,7 @@
                         margin: 5,
                     },
                     title: {
-                            text: ptitle,
+                        text: ptitle,
                     }
                 });
             });
@@ -443,7 +443,7 @@
                                 headerFormat: vname + "<br/>",
                                 */
                                 headerFormat: '',
-                                pointFormat: 'time:{point.x:%H:%M:%S %Z},' + dim2_name + ':{point.y},' + vname + ':{point.value}'
+                                pointFormat:  dim2_name + '={point.y}, ' + vname + '={point.value}, {point.x:%H:%M:%S %Z}'
                             }
                         }],
                     });
