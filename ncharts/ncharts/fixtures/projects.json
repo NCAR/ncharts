@@ -24,10 +24,10 @@
 },
 {
     "fields": {
+        "location": "Boulder", 
+        "timezones": ["US/Mountain", "UTC"],
     }, 
     "model": "ncharts.project", 
-    "location": "Boulder", 
-    "timezones": ["US/Mountain", "UTC"],
     "pk": "CentNet Devel"
 },
 {
