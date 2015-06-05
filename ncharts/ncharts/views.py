@@ -341,6 +341,7 @@ class DatasetView(View):
 
         form = nc_forms.DataSelectionForm(
             initial={
+                'variables': svars,
                 'timezone': timezone.tz,
                 'start_time': datetime.datetime.fromtimestamp(
                     usersel.start_time.timestamp(), tz=timezone.tz),
