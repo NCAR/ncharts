@@ -183,6 +183,8 @@
                         spacingRight: 20,
                         // marginLeft: 20,
                         // marginRight: 20,
+                        // marginTop: 40,
+                        // marginBottom: 80,
                     },
                     plotOptions: {
                         series: {
@@ -232,7 +234,14 @@
                     series: series,
                     legend: {
                         enabled: true,
-                        rtl: false,
+                        margin: 0,
+                    },
+                    rangeSelector: {
+                        enabled: false,
+                    },
+                    navigator: {
+                        height: 25,
+                        margin: 5,
                     },
                 });
             });
@@ -328,10 +337,34 @@
                         chart: {
                             type: 'heatmap',
                             marginTop: 40,
-                            marginBottom: 40,
+                            marginBottom: 60,
                             zoomType: 'x',
                             panning: true,
                             panKey: 'shift',
+                            plotOptions: {
+                                series: {
+                                    dataGrouping: {
+                                        dateTimeLabelFormats: {
+                                           millisecond:
+                        ['%Y-%m-%d %H:%M:%S.%L %Z', '%Y-%m-%d %H:%M:%S.%L', '-%H:%M:%S.%L %Z'],
+                                           second:
+                        ['%Y-%m-%d %H:%M:%S %Z', '%Y-%m-%d %H:%M:%S', '-%H:%M:%S %Z'],
+                                           minute:
+                        ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                           hour:
+                        ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                           day:
+                        ['%Y-%m-%d %Z', '%Y-%m-%d', '-%m-%d %Z'],
+                                           week:
+                        ['Week from %Y-%m-%d', '%Y-%m-%d', '-%Y-%m-%d'],
+                                           month:
+                        ['%Y-%m', '%Y-%m', '-%Y-%m'],
+                                           year: ['%Y', '%Y', '-%Y']
+                        ['%Y', '%Y', '-%Y'],
+                                        }
+                                    }
+                                }
+                            },
                         },
                         title: {
                             text: long_name + '(' + units + ')'
@@ -352,7 +385,8 @@
                             max: maxtime,
                             */
                             title: {
-                                text: 'time'
+                                margin: 0,
+                                text: "time (" + local_ns.plotTimezone + ")",
                             },
                             /*
                             tickPixelInterval: (maxtime - mintime) / 100,
@@ -399,7 +433,7 @@
                                 headerFormat: vname + "<br/>",
                                 */
                                 headerFormat: '',
-                                pointFormat: 'time:{point.x:%H:%M},' + dim2_name + ':{point.y},' + vname + ':{point.value}'
+                                pointFormat: 'time:{point.x:%H:%M:%S %Z},' + dim2_name + ':{point.y},' + vname + ':{point.value}'
                             }
                         }],
                     });
