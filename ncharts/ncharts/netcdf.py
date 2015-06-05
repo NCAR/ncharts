@@ -94,7 +94,7 @@ class NetCDFDataset(object):
             List of file path names matching the time period.
 
         Raises:
-            FileNotFoundError
+            FileNotFoundError, PermissionError
         """
         return [f.path for f in self.fileset.scan(start_time, end_time)]
 
@@ -121,7 +121,7 @@ class NetCDFDataset(object):
                 long_name: long_name attribute of the NetCDF variable
                 short_name: short_name attribute of the NetCDF variable
         Raises:
-            FileNotFoundError
+            FileNotFoundError, PermissionError
         """
 
         filepaths = self.get_filepaths(start_time, end_time)
@@ -681,7 +681,7 @@ class NetCDFDataset(object):
             }.
 
         Raises:
-            FileNotFoundError
+            FileNotFoundError, PermissionError
 
         """
 
