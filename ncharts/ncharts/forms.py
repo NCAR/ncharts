@@ -202,12 +202,16 @@ class DataSelectionForm(forms.Form):
 
     def __init__(self, *args, dataset=None, **kwargs):
         """Set choices for variables and time zone from dataset.
+
+        Raises: FileNotFoundError, PermissionError
         """
+
+        # raises FileNotFoundError, PermissionError
+        dvars = sorted(dataset.get_variables().keys())
 
         super().__init__(*args, **kwargs)
 
         self.dataset = dataset
-        dvars = sorted(dataset.get_variables().keys())
         self.fields['variables'].choices = [(v, v) for v in dvars]
 
         if len(dataset.timezones.all()) > 0:
@@ -286,7 +290,7 @@ class DataSelectionForm(forms.Form):
             msg = "time length must be positive"
             raise forms.ValidationError(msg)
 
-        end_time = start_time + tdelta
+        # end_time = start_time + tdelta
 
         if not 'variables' in cleaned_data or \
             len(cleaned_data['variables']) == 0:
