@@ -214,8 +214,9 @@
                                    year: ['%Y', '%Y', '-%Y']
                 ['%Y', '%Y', '-%Y'],
                                 }
-                            }
-                        }
+                            },
+                            gapSize: 2,
+                        },
                     },
                     xAxis: {
                         type: 'datetime',
@@ -236,6 +237,7 @@
                         title: {
                             text: "time (" + local_ns.plotTimezone + ")"
                         },
+                        ordinal: false,
                     },
                     yAxis: yAxis,
                     series: series,
@@ -398,9 +400,9 @@
                                 margin: 0,
                                 text: "time (" + local_ns.plotTimezone + ")",
                             },
+                            ordinal: false,
                             /*
                             tickPixelInterval: (maxtime - mintime) / 100,
-                            ordinal: false,
                             */
                         },
                         yAxis: {
