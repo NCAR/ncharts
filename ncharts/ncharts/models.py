@@ -26,8 +26,7 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 class TimeZone(models.Model):
     """ """
-    tz = TimeZoneField(default=pytz.utc,
-            primary_key=True)
+    tz = TimeZoneField(default=pytz.utc, primary_key=True)
 
 class Project(models.Model):
     """A field project, with a unique name.

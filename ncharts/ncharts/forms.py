@@ -322,6 +322,10 @@ class DataSelectionForm(forms.Form):
         """Set an error on this form. """
         self.errors['__all__'] = self.error_class([repr(exc)])
 
+    def data_not_available(self, exc):
+        """Set an error on this form. """
+        self.errors['__all__'] = self.error_class([repr(exc)])
+
     # def get_files(self):
     #     return self.files
 

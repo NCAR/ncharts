@@ -522,6 +522,11 @@ class DatasetView(View):
                 form.no_data(repr(exc))
                 return render(request, self.template_name,
                               {'form': form, 'dataset': dset})
+            except PermissionError:
+                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+                form.data_not_available(repr(exc))
+                return render(request, self.template_name,
+                              {'form': form, 'dataset': dset})
             except nc_exceptions.TooMuchDataException as exc:
                 _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
                 form.too_much_data(repr(exc))

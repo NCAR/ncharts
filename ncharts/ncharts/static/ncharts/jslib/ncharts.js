@@ -137,8 +137,6 @@
                     var vseries = {};
                     var vdata = [];
                     for (var i = 0; i < time.length; i++) {
-                        // var d = new Date((time0 + time[i])*1000);
-                        // d += d.utcOffset
                         vdata.push([(time0 + time[i])*1000, data[vname][i]]);
                     }
                     vseries['data'] = vdata;

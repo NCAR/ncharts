@@ -269,7 +269,7 @@ class Dir(object):
             path time, whose times fall within [start_time, end_time).
 
         Raises:
-            FileNotFoundError
+            FileNotFoundError, PermissionError
         """
 
         files = []
@@ -277,6 +277,9 @@ class Dir(object):
         try:
             pstat = os.stat(self.path)
         except FileNotFoundError as exc:
+            _logger.error(exc)
+            raise
+        except PermissionError as exc:
             _logger.error(exc)
             raise
 
@@ -308,6 +311,9 @@ class Dir(object):
                 except FileNotFoundError as exc:
                     _logger.error(exc)
                     continue    # maybe it was (very) recently deleted
+                except PermissionError as exc:
+                    _logger.error(exc)
+                    continue
                 if stat.S_ISDIR(pstat.st_mode):
                     pdir = Dir.get(
                         subpath, os.path.join(self.pathdesc, nextpath), pathrem)
@@ -415,7 +421,8 @@ class Fileset(object):
             path time, whose times fall within [start_time, end_time).
 
         Raises:
-            FileNotFoundError
+            FileNotFoundError, PermissionError
+
         """
         return self.pdir.scan(start_time, end_time)
 
