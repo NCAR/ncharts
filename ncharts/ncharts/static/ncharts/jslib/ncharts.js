@@ -131,6 +131,13 @@
                 }
 
                 var series = [];
+
+                if (vnames.length > 1) {
+                    ptitle = vnames[0] + "...";
+                }
+                else {
+                    ptitle = vnames[0];
+                }
                 for (var iv = 0; iv < vnames.length; iv++ ) {
                     var vname = vnames[iv];
                     var vunit = vunits[iv];
@@ -243,6 +250,9 @@
                         height: 25,
                         margin: 5,
                     },
+                    title: {
+                            text: ptitle,
+                    }
                 });
             });
 
