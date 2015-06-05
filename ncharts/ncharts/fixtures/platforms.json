@@ -22,7 +22,7 @@
 {
     "fields": {
         "projects": [
-            "DEEPWAVE"
+            "DEEPWAVE", "PECAN"
         ]
     }, 
     "model": "ncharts.platform", 

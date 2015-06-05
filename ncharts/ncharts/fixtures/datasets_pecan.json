@@ -1,0 +1,117 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-05-16T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Ellis, Kansas", 
+        "name": "ISS1_FP3_Ellis_Surface", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 16
+},
+{
+    "fields": {
+        "directory": "/h/eol/iss/project/pecan/data/fp3/isfs_nc", 
+        "filenames": "isfs_%Y%m%d.%H%M%S.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 16
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-05-15T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Ellis, Kansas", 
+        "name": "ISS1_FP3_Ellis_449_mom", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 18
+},
+{
+    "fields": {
+        "directory": "/h/eol/iss/project/pecan/data/fp3/prof449/std/moments", 
+        "filenames": "prof449.%Y%m%d.mom.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 18
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-05-15T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Ellis, Kansas", 
+        "name": "ISS1_FP3_Ellis_449_winds_05", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 19
+},
+{
+    "fields": {
+        "directory": "/h/eol/iss/project/pecan/data/fp3/prof449/std/winds_05", 
+        "filenames": "prof449.%Y%m%d.winds.05.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 19
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-04-23T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Minden, Nebraska", 
+        "name": "ISS2_FP4_Minden_Surface", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 22
+},
+{
+    "fields": {
+        "directory": "/h/eol/iss/project/pecan/data/fp4/isfs_nc", 
+        "filenames": "isfs_%Y%m%d.%H%M%S.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 22
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-04-27T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Brewster, Kansas", 
+        "name": "ISS3_FP5_Brewster_Surface", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 24
+},
+{
+    "fields": {
+        "directory": "/h/eol/iss/project/pecan/data/fp5/isfs_nc", 
+        "filenames": "isfs_%Y%m%d.%H%M%S.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 24
+}
+]

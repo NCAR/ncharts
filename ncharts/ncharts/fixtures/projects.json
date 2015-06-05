@@ -53,5 +53,13 @@
     },
     "model": "ncharts.project", 
     "pk": "CABL"
+},
+{
+    "fields": {
+        "location": "Kansas, Nebraska",
+        "timezones": ["US/Central", "UTC"]
+    },
+    "model": "ncharts.project", 
+    "pk": "PECAN"
 }
 ]
