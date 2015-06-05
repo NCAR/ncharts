@@ -10,6 +10,7 @@ if $prod; then
     sudo chmod -R g+w /var/log/django
 else
     [ $VIRTUAL_ENV ] || source $HOME/virtualenvs/django/bin/activate
+    rm -f db.sqlite3
 fi
 
 python3 manage.py migrate

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# cd dir containing this script - needed when running from user systemd
+dir=$(dirname $0)
+cd $dir
+
 # nohup python manage.py runserver 0.0.0.0:8000 >& /tmp/django.log &
 
 # sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.4
