@@ -85,20 +85,6 @@ class Variable(models.Model):
 
     long_name = models.CharField(max_length=256, blank=True)
 
-def validate_timezone_disabled(tzname):
-    """Check a timezone string.
-
-    Args:
-        tzname: A name of a time zone.
-    Raises:
-        dj_exc.ValidationError
-    """
-    try:
-        pytz.timezone(tzname)
-    except:
-        raise dj_exc.ValidationError(
-            "%s is not a recognized timezone" % tzname)
-
 class Dataset(models.Model):
     """A dataset, whose name should be unique within a project.
 
@@ -186,31 +172,6 @@ class Dataset(models.Model):
         self.platforms.add(platform)
         platform.projects.add(self.project)
 
-    def get_timezone_disabled(self):
-        """ self.timezones is a dict object containing tzinfos for named
-            timezones
-        """
-
-        # TODO: needs a lock
-        # print("get_timezone, self.timezone=", self.timezone)
-        if not hasattr(self, "timezones"):
-            # pylint: disable=attribute-defined-outside-init
-            self.timezones = {}
-
-        if hasattr(self.timezones, self.timezone):
-            return self.timezones[self.timezone]
-
-        try:
-            timezone = pytz.timezone(self.timezone)
-            # print("get_timezone, tz=", timezone)
-            self.timezones[self.timezone] = timezone
-            self.timezones['UTC'] = pytz.utc
-        except:
-            raise dj_exc.ValidationError(
-                "%s is not a recognized timezone" % self.timezone)
-
-        return timezone
-
     def get_start_time(self):
         '''
         A datetime object d is aware if d.tzinfo is not None and
@@ -247,15 +208,6 @@ class Dataset(models.Model):
                 self.end_time.isoformat())
 
         return self.end_time
-
-    def get_variables_disabled(self):
-        """Get variables in this dataset.
-
-        Method to be implemented in sub-class.
-
-        Returns:
-        """
-        return []
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
