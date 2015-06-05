@@ -25,7 +25,6 @@ from ncharts import exceptions as nc_exceptions
 
 import json, math, logging
 import numpy as np
-import pytz
 import datetime
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
@@ -341,16 +340,25 @@ class DatasetView(View):
         tlen = '{:f}'.format(tlen)
 
 
-        form = nc_forms.DataSelectionForm(
-            initial={
-                'variables': svars,
-                'timezone': timezone.tz,
-                'start_time': datetime.datetime.fromtimestamp(
-                    usersel.start_time.timestamp(), tz=timezone.tz),
-                'time_length_units': tunits,
-                'time_length': tlen
-            },
-            dataset=dset)
+        try:
+            form = nc_forms.DataSelectionForm(
+                initial={
+                    'variables': svars,
+                    'timezone': timezone.tz,
+                    'start_time': datetime.datetime.fromtimestamp(
+                        usersel.start_time.timestamp(), tz=timezone.tz),
+                    'time_length_units': tunits,
+                    'time_length': tlen
+                },
+                dataset=dset)
+        except FileNotFoundError as exc:
+            form.no_data(repr(exc))
+            return render(request, self.template_name,
+                          {'form': form, 'dataset': dset})
+        except PermissionError as exc:
+            form.data_not_available(repr(exc))
+            return render(request, self.template_name,
+                          {'form': form, 'dataset': dset})
 
         return render(request, self.template_name,
                       {'form': form, 'dataset': dset})
