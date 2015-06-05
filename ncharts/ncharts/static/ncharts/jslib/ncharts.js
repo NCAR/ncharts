@@ -36,19 +36,20 @@
         // Add support for %Z time formatter
         Highcharts.dateFormats = {
             Z: function (timestamp) {
+                // console.log("zone.abbr=",local_ns.zone.abbr(timestamp));
                 return local_ns.zone.abbr(timestamp);
             }
         };
 
         $(function() {
-            console.log("DOM is ready!");
+            // console.log("DOM is ready!");
 
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
             var tz = tzelem.val();
-            // console.log("id_timezone new,tz=",tz);
             local_ns.pickerTimezone = tz;
             local_ns.setPlotTimezone(tz);
+            // console.log("select#id_timezone tz=",tz)
 
             $("select#id_timezone").change(function() {
                 // When user changes the timezone, adjust the time
@@ -100,7 +101,7 @@
             });
 
             $("div[id^='time-series']").each(function(index) {
-                console.log("time-series");
+                // console.log("time-series");
 
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
@@ -182,6 +183,30 @@
                         spacingRight: 20,
                         // marginLeft: 20,
                         // marginRight: 20,
+                    },
+                    plotOptions: {
+                        series: {
+                            dataGrouping: {
+                                dateTimeLabelFormats: {
+                                   millisecond:
+                ['%Y-%m-%d %H:%M:%S.%L %Z', '%Y-%m-%d %H:%M:%S.%L', '-%H:%M:%S.%L %Z'],
+                                   second:
+                ['%Y-%m-%d %H:%M:%S %Z', '%Y-%m-%d %H:%M:%S', '-%H:%M:%S %Z'],
+                                   minute:
+                ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                   hour:
+                ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                   day:
+                ['%Y-%m-%d %Z', '%Y-%m-%d', '-%m-%d %Z'],
+                                   week:
+                ['Week from %Y-%m-%d', '%Y-%m-%d', '-%Y-%m-%d'],
+                                   month:
+                ['%Y-%m', '%Y-%m', '-%Y-%m'],
+                                   year: ['%Y', '%Y', '-%Y']
+                ['%Y', '%Y', '-%Y'],
+                                }
+                            }
+                        }
                     },
                     xAxis: {
                         type: 'datetime',
