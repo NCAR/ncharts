@@ -463,6 +463,9 @@ class DatasetView(View):
         else:
             form = nc_forms.DataSelectionForm(request.POST, dataset=dset)
 
+        dvars = sorted(dset.get_variables().keys())
+        form.set_variable_choices(dvars)
+
         # print("request.POST=", request.POST)
         if not form.is_valid():
             # print('form ain\'t valid!')
