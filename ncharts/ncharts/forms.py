@@ -203,16 +203,12 @@ class DataSelectionForm(forms.Form):
     def __init__(self, *args, dataset=None, **kwargs):
         """Set choices for variables and time zone from dataset.
 
-        Raises: FileNotFoundError, PermissionError
+        Raises:
         """
-
-        # raises FileNotFoundError, PermissionError
-        dvars = sorted(dataset.get_variables().keys())
 
         super().__init__(*args, **kwargs)
 
         self.dataset = dataset
-        self.fields['variables'].choices = [(v, v) for v in dvars]
 
         if len(dataset.timezones.all()) > 0:
             self.fields['timezone'].choices = \
@@ -222,10 +218,19 @@ class DataSelectionForm(forms.Form):
             self.fields['timezone'].choices = \
                 [(v.tz, str(v.tz)) for v in proj.timezones.all()]
 
-        self.fields['variables'].choices = [(v, v) for v in dvars]
+    def set_variable_choices(self, variables):
+        """Set the available variables in this form.
+
+        Args:
+            variables: list of variable names.
+        """
+        self.fields['variables'].choices = [(v, v) for v in variables]
 
     def clean(self):
-        """ """
+        """
+        
+        """
+        # TODO: add docstring.
 
         '''
         print('DataSelectionForm clean')
