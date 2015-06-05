@@ -350,7 +350,7 @@ class DatasetView(View):
             dataset=dset)
 
         try:
-            dvars = sorted(dataset.get_variables().keys())
+            dvars = sorted(dset.get_variables().keys())
             form.set_variable_choices(dvars)
         except FileNotFoundError as exc:
             form.no_data(repr(exc))
