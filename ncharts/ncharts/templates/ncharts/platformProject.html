@@ -2,7 +2,8 @@
 
 {% block title %}{{ platform.name }} {{ project.name }}{% endblock %}
 
-{% block headline %}{{ platform | escapejs }}, {{ project | escapejs }}{% endblock %}
+{% block headline %}Platform: {{ platform }}, Project: <a href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a>{% endblock %}
+
 
 {% block content %}
 
