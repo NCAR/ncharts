@@ -60,7 +60,8 @@ class Project(models.Model):
         help_text='Supported timezones for plotting data of this project')
 
     def __str__(self):
-        return 'Project: %s' % self.name
+        # return 'Project: %s' % self.name
+        return self.name
 
 class Platform(models.Model):
     """An observing platform with a unique name, deployed on one or more
@@ -75,7 +76,8 @@ class Platform(models.Model):
     projects = models.ManyToManyField(Project)
 
     def __str__(self):
-        return 'Platform: %s' % self.name
+        # return 'Platform: %s' % self.name
+        return self.name
 
 class Variable(models.Model):
     """A variable in a dataset, used if the dataset does not have
@@ -166,7 +168,8 @@ class Dataset(models.Model):
     # dstype = models.CharField(max_length=64, blank=True)
 
     def __str__(self):
-        return 'Dataset: %s' % (self.name,)
+        # return 'Dataset: %s' % (self.name,)
+        return self.name
 
     def add_platform(self, platform):
         """When one does a dataset.platforms.add(isfs), also do
