@@ -26,6 +26,9 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 class TimeZone(models.Model):
     """ """
+
+    # pylint thinks this name is too short
+    # pylint: disable=invalid-name
     tz = TimeZoneField(default=pytz.utc, primary_key=True)
 
 class Project(models.Model):
@@ -163,7 +166,7 @@ class Dataset(models.Model):
     # dstype = models.CharField(max_length=64, blank=True)
 
     def __str__(self):
-        return 'Dataset: %s of %s' % (self.name, self.project)
+        return 'Dataset: %s' % (self.name,)
 
     def add_platform(self, platform):
         """When one does a dataset.platforms.add(isfs), also do
