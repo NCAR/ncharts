@@ -112,16 +112,18 @@
                 // console.log("time-series, time.length=",time.length);
                 // console.log("vnames=",vnames,", vunits=",vunits);
 
-                // series and yAxis are arrays of dictionaries
+                // A yAxis for each unique unit
                 var yAxis = [];
                 
-                var unique_units = local_ns.unique(vunits);
+                // plot in alphabetical order of the units
+                var unique_units = local_ns.unique(vunits).sort();
                 // console.log("unique_units=",unique_units);
+
                 var opposite = false;
                 for (var unit of unique_units) {
-                    // console.log("unit=",unit);
+                    console.log("unit=",unit,", opposite=", opposite);
                     ya = {
-                        opposite: opposite,
+                        opposite: opposite, // doesn't seem to have an effect
                         title: {
                             text: unit,
                         },
@@ -130,8 +132,16 @@
                     opposite = !opposite;
                 }
 
+                /*
+                 * array of objects, one for each input variable, with these keys:
+                 *  name: variable name and units
+                 *  data: 2 column array, containing time, data values
+                 *  yAxis: index of the yaxis to use
+                 *  tooltip: how to display points.
+                 */
                 var series = [];
 
+                var ptitle;
                 if (vnames.length > 1) {
                     ptitle = vnames[0] + "...";
                 }
@@ -279,10 +289,17 @@
                 var dim2_name = dim2['name'];
                 var dim2_units = dim2['units'];
 
+                // organize meta data by variable name,
+                // then plot variables, sorted by name
+                var vmeta = {}
                 for (var iv = 0; iv < vnames.length; iv++) {
-                    vname = vnames[iv];
-                    long_name = long_names[iv];
-                    units = vunits[iv];
+                    vmeta[vname[iv]] =
+                        {'long_name': long_names[iv], 'units': vunits[iv]};
+                }
+
+                for (vname in vnames.sort()) {
+                    long_name = vmeta[vname]['long_name'];
+                    units = vmeta[vname]['units'];
 
                     minval = Number.POSITIVE_INFINITY;
                     maxval = Number.NEGATIVE_INFINITY;
@@ -445,7 +462,7 @@
                                 headerFormat: vname + "<br/>",
                                 */
                                 headerFormat: '',
-                                pointFormat:  dim2_name + '={point.y}, ' + vname + '={point.value}, {point.x:%H:%M:%S %Z}'
+                                pointFormat: vname + '={point.value}, ' + dim2_name + '={point.y}, {point.x:%H:%M:%S %Z}',
                             }
                         }],
                     });
