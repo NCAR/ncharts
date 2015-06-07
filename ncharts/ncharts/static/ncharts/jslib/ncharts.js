@@ -109,27 +109,38 @@
                 if (long_names.length == 0) {
                     long_names = vnames;
                 }
+
+                var vmeta = {}
+                for (var iv = 0; iv < vnames.length; iv++) {
+                    // console.log("vnames[iv]=", vnames[iv])
+                    vmeta[vnames[iv]] =
+                        {long_name: long_names[iv], units: vunits[iv]};
+                }
+                vnames = vnames.sort()
                 // console.log("time-series, time.length=",time.length);
                 // console.log("vnames=",vnames,", vunits=",vunits);
 
                 // A yAxis for each unique unit
                 var yAxis = [];
                 
-                // plot in alphabetical order of the units
+                // One plot for all variable with the same units.
+                // This has already been organized by python.
+                // unique_units will have length 1 here.
                 var unique_units = local_ns.unique(vunits).sort();
-                // console.log("unique_units=",unique_units);
 
-                var opposite = false;
+                // create a yAxis
                 for (var unit of unique_units) {
-                    console.log("unit=",unit,", opposite=", opposite);
                     ya = {
-                        opposite: opposite, // doesn't seem to have an effect
                         title: {
                             text: unit,
                         },
+                        opposite: false,
+                        // docs seem to indicate that the default for
+                        // ordinal is true, but the default seems to be
+                        // false. We'll set it to false to make sure
+                        ordinal: false,
                     };
                     yAxis.push(ya);
-                    opposite = !opposite;
                 }
 
                 /*
@@ -150,20 +161,17 @@
                 }
                 for (var iv = 0; iv < vnames.length; iv++ ) {
                     var vname = vnames[iv];
-                    var vunit = vunits[iv];
-                    var long_name = long_names[iv];
+                    var vunit = vmeta[vname]['units']
+                    var long_name = vmeta[vname]['long_name']
                     var vseries = {};
                     var vdata = [];
                     for (var i = 0; i < time.length; i++) {
                         vdata.push([(time0 + time[i])*1000, data[vname][i]]);
                     }
                     vseries['data'] = vdata;
-                    if (unique_units.length > 1) {
-                        vseries['name'] = vname + '(' + vunit + ')';
-                    }
-                    else {
-                        vseries['name'] = vname;
-                    }
+                    vseries['name'] = vname;
+
+                    // which axis does this one belong to? Will always be 1
                     vseries['yAxis'] = unique_units.indexOf(vunit);
                     vseries['tooltip'] = {
                         // valueSuffix: long_name,
@@ -270,13 +278,17 @@
 
             $("div[id^='heatmap']").each(function(index) {
 
+                // one plot per variable, vnames will have length of 1
+
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
                 var long_names = $( this ).data("long_names");
 
-                console.log("heatmap, vnames=",vnames,
+                /*
+                console.log("heatmap, vnames.length=",vnames.length,
                         ",time.length=",time.length,
                         ",dim2.length=",dim2['data'].length);
+                */
 
                 if (long_names.length == 0) {
                     long_names = vnames;
@@ -289,15 +301,24 @@
                 var dim2_name = dim2['name'];
                 var dim2_units = dim2['units'];
 
+                // This is mostly unnecessary.
                 // organize meta data by variable name,
                 // then plot variables, sorted by name
                 var vmeta = {}
                 for (var iv = 0; iv < vnames.length; iv++) {
-                    vmeta[vname[iv]] =
-                        {'long_name': long_names[iv], 'units': vunits[iv]};
+                    // console.log("vnames[iv]=", vnames[iv])
+                    vmeta[vnames[iv]] =
+                        {long_name: long_names[iv], units: vunits[iv]};
+                }
+                vnames = vnames.sort()
+                for (var iv = 0; iv < vnames.length; iv++) {
+                    // console.log("vnames[iv]=", vnames[iv])
                 }
 
-                for (vname in vnames.sort()) {
+                // console.log("vnames=",vnames);
+                for (var iv = 0; iv < vnames.length; iv++) {
+                    var vname = vnames[iv];
+                    // console.log("vname=", vname);
                     long_name = vmeta[vname]['long_name'];
                     units = vmeta[vname]['units'];
 
@@ -338,11 +359,13 @@
                             chart_data.push([tx, dim2['data'][j],dx]);
                         }
                     } 
+                    /*
                     console.log("heatmap, chart_data.length=",chart_data.length,
                             ", chart_data[0].length=",chart_data[0].length);
                     console.log("heatmap, minval=",minval,", maxval=",maxval);
 
                     console.log("heatmap, colsize=", (maxtime - mintime) / 20);
+                    */
                     // var colsize = 3600 * 1000;
                     var colsize = (maxtime - mintime) / (time.length - 1);
                     var rowsize = (maxdim2 - mindim2) / (dim2.length - 1);
@@ -355,12 +378,14 @@
                     }
                     */
 
+                    /*
                     for (var i = 0; i < chart_data.length && i < 10; i++) {
                         for (var j = 0; j < chart_data[i].length; j++) {
                             console.log("chart_data[",i,"]=",
                                 chart_data[i][0],",",chart_data[i][1],",",chart_data[i][2]);
                         }
                     }
+                    */
 
                     $( this ).highcharts({
                         chart: {
@@ -418,9 +443,6 @@
                                 text: "time (" + local_ns.plotTimezone + ")",
                             },
                             ordinal: false,
-                            /*
-                            tickPixelInterval: (maxtime - mintime) / 100,
-                            */
                         },
                         yAxis: {
                             title: {
@@ -429,9 +451,6 @@
                             min: mindim2,
                             max: maxdim2,
                             tickWidth: 2,
-                            /*
-                            ordinal: false,
-                            */
                         },
                         colorAxis: {
                             stops: [
