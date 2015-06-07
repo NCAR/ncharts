@@ -27,6 +27,8 @@ import json, math, logging
 import numpy as np
 import datetime
 
+import collections
+
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 class StaticView(TemplateView):
@@ -591,7 +593,8 @@ class DatasetView(View):
 
         # Create plot groups dictionary, for each
         # group, the variables in the group, their units, long_names, plot_type
-        plot_groups = {}
+        # Use OrderedDict so the plots come out in this order
+        plot_groups = collections.OrderedDict()
 
         units = [v['units'] for v in variables.values()]
 
@@ -602,8 +605,10 @@ class DatasetView(View):
             # loop over unique units
 
             # Cannot combine variables with same units on a heatmap
+            # one plot per variable.
             if ptype == 'heatmap':
-                for vname, var in variables.items():
+                for vname in sorted(variables):
+                    var = variables[vname];
                     if var['plot_type'] == ptype:
                         plot_groups['g{}'.format(grpid)] = {
                             'variables': mark_safe(json.dumps([vname])),
@@ -618,7 +623,7 @@ class DatasetView(View):
                         grpid += 1
             else:
                 # unique units
-                for unit in set(units):
+                for unit in sorted(set(units)):
                     uvars = [vname for vname, var in variables.items() \
                         if var['plot_type'] == ptype and var['units'] == unit]
                     # uvars is list of variables with units unit
