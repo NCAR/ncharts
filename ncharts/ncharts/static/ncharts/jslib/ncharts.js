@@ -487,17 +487,20 @@
                     });
                 }
             });
-            /*
-            $("#id_time_length_choice").change(function() {
-                console.log("time_length_choice change, val=",$(this).val());
-                if ($(this).val() == '0' || $(this).val() == '') {
-                    $("#id_time_length_val").show();
-                }
-                else {
-                    $("#id_time_length_val").hide();
+            $("#id_variables_clear").change(function() {
+                console.log("id_variables_clear change, val=",$(this).prop("checked"));
+                if ($(this).prop("checked")) {
+                    $('.variable-checkbox:checked').removeAttr('checked');
+                    $(this).removeAttr('checked');
                 }
             });
-            */
+            $("#id_variables_all").change(function() {
+                console.log("id_variables_clear change, val=",$(this).prop("checked"));
+                if ($(this).prop("checked")) {
+                    $('.variable-checkbox:checked').prop('checked',true);
+                    $(this).removeAttr('checked');
+                }
+            });
         });
     })
 );
