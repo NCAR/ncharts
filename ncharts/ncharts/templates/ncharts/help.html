@@ -6,27 +6,33 @@
 
 {% block content %}
 
-<h4>Bugs and Idiosyncracies</h4>
-<ul>
-    <li>Response will be slow if you ask for a large quantity of data. Data reduction and compression are not supported.</li>
-    <li>Plots do not appear on the stock Android browser on phones. Use Chrome instead.</li>
-    <li>On phones, to scroll up or down , try swiping on the right-hand side to activate a small scrollbar.</li>
-</ul>
-
-<h4>Other Help</h4>
+<h4>Help</h4>
 <ul>
     <li>1-D Time Series Traces</li>
     <ul>
         <li>When a time zone is selected the start time will be adjusted to indicate the same moment in time. The time labels on the plot will be in the selected time zone.</li>
         <li>After changing a selection of variables, time or time zone, hit Plot to update the plot, as it is not automatically updated when a selection is made.</li>
         <li>All selected variables with the same units will be plotted together.</li>
-        <li>Click on the variable name at the bottom of a plot to toggle the visibility of the trace, and dynamically rescale the remaining traces.</li>
+        <li>The sequence of plots is alphabetical by units.</li>
+        <li>For all variables with the same units, the sequence in the legend will be alphabetical, by name.</li>
+        <li>Click on the variable name in the legend at the bottom of a plot to toggle the visibility of the trace, and dynamically rescale the remaining traces.</li>
         <li>Use the sliders on the "navigator" trace below the chart to zoom in, and drag the selection to pan back and forth in time</li>
     </ul>
-    <li>Time X Height Plots (Currently only 449 profiler data from DEEPWAVE)</li>
+
+    <li>Time X Height Plots (Currently only 449 profiler)</li>
     <ul>
+        <li>The plots will be in alphabetical order, by variable name.</li>
         <li>For time X height plots, drag a rectangle across the plot to zoom in time.</li>
     </ul>
+</ul>
+
+<h4>Bugs and Idiosyncracies</h4>
+<ul>
+    <li>Response will be slow if you ask for a large quantity of data. Data reduction and compression are not supported.</li>
+    <li>Plots do not appear on the stock Android browser on phones. Use Chrome instead.</li>
+    <li>On phones, to scroll up or down , try swiping on the right-hand side to activate a small scrollbar.</li>
+    <li>Clicking Today in the datetime widget will set the time and date to the current time, in the browser's local time zone. It will then be interpreted in the selected time zone.</li>
+    <li>If you return to plot a previous dataset, you may have to do a browser refresh to see the variables and time you selected previously.</li>
 </ul>
 
 {% endblock %}

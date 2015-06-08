@@ -200,8 +200,68 @@ class NChartsJSONEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, obj)
 
+def selection_id_name(project_name, dataset_name):
+    """Create a name for saving the user's data selection in their session.
+
+    Args:
+        project_name
+        dataset_name
+
+    Returns: name built from project and dataset names.
+
+    A dataset name is unique within a project.
+    In order to allow the user to easily browse multiple
+    datasets, and save their previous selections, their
+    selection is saved in the session under the name
+    'pdid_' + project_name + '_' + dataset_name.
+
+    django reserves session values starting with underscore,
+    so we prepend 'pdid' to the name, just in the rare case
+    that the project would start with an underscore.
+    """
+
+    return 'pdid_' + project_name + '_' + dataset_name
+
+def get_selection_from_session(session, project_name, dataset_name):
+    """Return the user's selection of dataset parameters,
+    given a session, project and dataset.
+
+    Args:
+        session
+        project_name
+        dataset_name
+    Raises:
+        Http404
+    Returns:
+        The nc_models.UserSelection for the project and dataset
+        associated with the session.
+    """
+
+    usersel = None
+    sel_id_name = selection_id_name(project_name, dataset_name)
+    request_id = session.get(sel_id_name)
+    if request_id:
+        usersel = get_object_or_404(nc_models.UserSelection.objects,
+                                    id=request_id)
+    else:
+        session.set_test_cookie()
+    return usersel
+
+def save_selection_to_session(
+        session, project_name, dataset_name, usersel):
+    """Save the user' selection of dataset parameters to the session.
+
+    Args:
+        session
+        project_name
+        dataset_name
+        usersel: nc_models.UserSelection
+    """
+    sel_id_name = selection_id_name(project_name, dataset_name)
+    session[sel_id_name] = usersel.id
+
 class DatasetView(View):
-    """Render a form where the user can choose parameters of dataset.
+    """Render a form where the user can choose parameters to plot a dataset.
     """
 
     template_name = 'ncharts/dataset.html'
@@ -209,15 +269,19 @@ class DatasetView(View):
     # model = nc_models.UserSelection
     # fields = ['variables']
 
+
     def get(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a get request where the user has specified a
         project and dataset.
 
         """
+        _logger.debug("get, dataset %s of project %s",
+                      dataset_name, project_name)
 
         proj = get_object_or_404(nc_models.Project.objects, name=project_name)
         dset = get_object_or_404(proj.dataset_set, name=dataset_name)
 
+        # cast to a FileDataset, or if that fails, a DBDataset
         try:
             dset = dset.filedataset
         except nc_models.FileDataset.DoesNotExist:
@@ -225,9 +289,6 @@ class DatasetView(View):
                 dset = dset.dbdataset
             except nc_models.DBDataset.DoesNotExist:
                 raise Http404
-
-        usersel = None
-        request_id = None
 
         if len(dset.timezones.all()) > 0:
             timezone = dset.timezones.all()[0]
@@ -239,14 +300,12 @@ class DatasetView(View):
                 dataset_name, project_name)
             timezone = nc_models.TimeZone.objects.get(tz='UTC')
 
-        if 'request_id' in request.session and request.session['request_id']:
-            request_id = request.session['request_id']
-            try:
-                usersel = nc_models.UserSelection.objects.get(id=request_id)
-            except nc_models.UserSelection.DoesNotExist:
-                pass
-        else:
-            request.session.set_test_cookie()
+        usersel = None
+        try:
+            usersel = get_selection_from_session(
+                request.session, project_name, dataset_name)
+        except Http404:
+            pass
 
         if not usersel:
             # print('DatasetView get, dset.variables=', dset.variables)
@@ -269,30 +328,23 @@ class DatasetView(View):
                 start_time=stime,
                 time_length=delta.total_seconds())
 
-            request_id = usersel.id
-            request.session['request_id'] = request_id
+            save_selection_to_session(
+                request.session, project_name, dataset_name, usersel)
             _logger.info(
-                "get, new session, request_id=%d, project=%s,"
-                " dataset=%s", request_id, project_name, dataset_name)
+                "get, new session, selection id=%d, project=%s,"
+                " dataset=%s", usersel.id, project_name, dataset_name)
 
         else:
             if usersel.dataset.pk == dset.pk:
-                _logger.info(
-                    "get, old session, same dataset, request_id=%d, "
-                    "project=%s,dataset=%s",
-                    request_id, project_name, dataset_name)
                 # could check that usersel.dataset.name == dataset_name and
                 # usersel.dataset.project.name == project_name
                 # but I believe that is unnecessary, since the pk members
                 # are unique.
+                pass
             else:
-                # User has changed dataset of interest
-                _logger.info(
-                    "get, old session, new dataset, request_id=%d, "
-                    "dataset.pk=%d, old dataset.pk=%d, project=%s, dataset=%s",
-                    request_id, dset.pk, usersel.dataset.pk,
-                    project_name, dataset_name)
-
+                # Dataset stored under in user session
+                # doesn't match that for project and dataset name.
+                # Probably a server restart
                 usersel.dataset = dset
                 usersel.timezone = timezone.tz
                 usersel.variables = []
@@ -314,9 +366,16 @@ class DatasetView(View):
 
         # variables selected previously by user
         if usersel.variables:
-            # print('DatasetView get, usersel.variables=', usersel.variables)
             svars = json.loads(usersel.variables)
+            _logger.debug(
+                "get, old session, same dataset, " \
+                "project=%s, dataset=%s, variables=%s",
+                project_name, dataset_name, usersel.variables)
         else:
+            _logger.debug(
+                "get, old session, same dataset, "
+                "project=%s, dataset=%s, variables=%s",
+                project_name, dataset_name, usersel.variables)
             svars = []
 
         tlen = usersel.time_length
@@ -341,12 +400,22 @@ class DatasetView(View):
 
         tlen = '{:f}'.format(tlen)
 
+        # when sending times to datetimepicker, make them naive,
+        # with values set as approproate for the dataset timezone
+        start_time = datetime.datetime.fromtimestamp(
+            usersel.start_time.timestamp(), tz=timezone.tz).replace(tzinfo=None)
+
+        _logger.debug(
+            "get, old session, same dataset, "
+            "project=%s, dataset=%s, start_time=%s, vars=%s",
+            project_name, dataset_name,
+            start_time, usersel.variables)
+
         form = nc_forms.DataSelectionForm(
             initial={
                 'variables': svars,
                 'timezone': timezone.tz,
-                'start_time': datetime.datetime.fromtimestamp(
-                    usersel.start_time.timestamp(), tz=timezone.tz),
+                'start_time': start_time,
                 'time_length_units': tunits,
                 'time_length': tlen
             },
@@ -389,20 +458,26 @@ class DatasetView(View):
             # Either this server was restarted, or you need to
             # enable cookies in your browser. Then please try again.")
 
-        if 'request_id' not in request.session or \
-                not request.session['request_id']:
-            # not sure if it is possible for a post to come in
-            # without a session id, but we'll redirect them to the get.
-            _logger.error("post but no request_id, redirecting to get")
+        try:
+            usersel = get_selection_from_session(
+                request.session, project_name, dataset_name)
+        except Http404:
+            pass
+
+        if not usersel:
+            # There is probably a scenario where a POST can come in
+            # without selection id. Redirect them back to the get.
+            _logger.error(
+                "post but no session value for project %s, "
+                "dataset %s, redirecting to get",
+                project_name, dataset_name)
             # Uses the name='dataset' in urls.py
             return redirect(
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
 
-        usersel = get_object_or_404(
-            nc_models.UserSelection.objects,
-            id=request.session['request_id'])
         dset = usersel.dataset
+
         try:
             dset = dset.filedataset
         except nc_models.FileDataset.DoesNotExist as exc:
@@ -413,17 +488,15 @@ class DatasetView(View):
 
 
         _logger.info(
-            "post, old session, request_id=%d, project=%s,dataset=%s",
-            request.session['request_id'], dset.project.name, dset.name)
+            "post, old session, project=%s,dataset=%s",
+            dset.project.name, dset.name)
 
-        # dataset name and project name from URL should agree with
-        # session values. There are probably situations where that may
-        # be violated such as a user re-posting an old form.
+        # dataset name and project name from POST should agree with
+        # those in the cached dataset.
         if dset.name != dataset_name or dset.project.name != project_name:
             _logger.error(
-                "post, old session, request_id=%d, project=%s, dataset=%s, "
-                "url project=%s, dataset=%d",
-                request.session['request_id'],
+                "post, old session, project=%s, dataset=%s, "
+                "url project=%s, dataset=%s",
                 dset.project.name, dset.name,
                 project_name, dataset_name)
 
@@ -433,13 +506,8 @@ class DatasetView(View):
         # vars = [ v.name for v in dset.variables.all() ]
 
         # page-backward or page-forward in time
-        # better to implement a javascript button that manipulates the
+        # TODO: implement a javascript button that manipulates the
         # html field directly
-        '''
-        print("POST, time inputs=",
-            request.POST['time_length_0'],
-            request.POST['time_length_units'])
-        '''
 
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
 
@@ -608,7 +676,7 @@ class DatasetView(View):
             # one plot per variable.
             if ptype == 'heatmap':
                 for vname in sorted(variables):
-                    var = variables[vname];
+                    var = variables[vname]
                     if var['plot_type'] == ptype:
                         plot_groups['g{}'.format(grpid)] = {
                             'variables': mark_safe(json.dumps([vname])),
