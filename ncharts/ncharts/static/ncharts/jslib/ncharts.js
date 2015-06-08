@@ -488,17 +488,17 @@
                 }
             });
             $("#id_variables_clear").change(function() {
-                console.log("id_variables_clear change, val=",$(this).prop("checked"));
+                // console.log("id_variables_clear change, val=",$(this).prop("checked"));
                 if ($(this).prop("checked")) {
-                    $('.variable-checkbox:checked').removeAttr('checked');
-                    $(this).removeAttr('checked');
+                    $('#variable-checkbox :checked').prop('checked',false);
+                    $(this).prop('checked',false);
                 }
             });
             $("#id_variables_all").change(function() {
-                console.log("id_variables_clear change, val=",$(this).prop("checked"));
+                // console.log("id_variables_all change, val=",$(this).prop("checked"));
                 if ($(this).prop("checked")) {
-                    $('.variable-checkbox:checked').prop('checked',true);
-                    $(this).removeAttr('checked');
+                    $('#variable-checkbox :not(:checked)').prop('checked',true);
+                    $(this).prop('checked',false);
                 }
             });
         });

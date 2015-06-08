@@ -25,18 +25,18 @@
                         <h3 class="panel-title">Variables</h3>
                     </div>
                     <div class="panel panel-primary">
-                        <div class="variable-checkbox">
-                        {% for var in form.variables %}
-                            {{ var }}
-                        {% endfor %}
-                        </div>
                         <div class="input-group">
                             {% if form.variables|length < 20 %}
                             <label for="id_variables_all">
-                                <input data-mini="true" id="id_variables_all" type="checkbox" value="all"/>all</label>
+                                <input data-mini="true" id="id_variables_all" type="checkbox" value="set all"/>set all</label>
                             {% endif %}
                             <label for="id_variables_clear">
-                                <input data-mini="true" id="id_variables_clear" type="checkbox" value="clear"/>clear</label>
+                                <input data-mini="true" id="id_variables_clear" type="checkbox" value="clear all"/>clear all</label>
+                        </div>
+                        <div id="variable-checkbox">
+                        {% for var in form.variables %}
+                            {{ var }}
+                        {% endfor %}
                         </div>
                     </div>
                 </div>
