@@ -10,6 +10,11 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
+# TODO:
+#   cronjob to iterate over user sessions, age off expired ones,
+#   remove any UserSelection instances that are not associated
+#   with a session.
+
 from django.shortcuts import render, get_object_or_404, redirect
 
 from django.http import HttpResponse, Http404
@@ -235,6 +240,10 @@ def get_selection_from_session(session, project_name, dataset_name):
     Returns:
         The nc_models.UserSelection for the project and dataset
         associated with the session.
+
+    Note that for this to work, caching must be turned off for this view
+    in django, otherwise the get() method may not be called, and the
+    previous selection will not be displayed.
     """
 
     usersel = None
@@ -268,7 +277,6 @@ class DatasetView(View):
     # form_class = nc_forms.DataSelectionForm
     # model = nc_models.UserSelection
     # fields = ['variables']
-
 
     def get(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a get request where the user has specified a
@@ -485,7 +493,6 @@ class DatasetView(View):
                 dset = dset.dbdataset
             except nc_models.DBDataset.DoesNotExist as exc:
                 raise Http404
-
 
         _logger.info(
             "post, old session, project=%s,dataset=%s",

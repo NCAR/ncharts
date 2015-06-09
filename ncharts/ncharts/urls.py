@@ -12,6 +12,8 @@ file LICENSE in this package.
 
 from django.conf.urls import patterns, url
 
+from django.views.decorators.cache import never_cache
+
 from ncharts import views
 
 # format of a pattern:
@@ -35,7 +37,7 @@ urlpatterns = [
     url(r'^projects/(?P<project_name>[^/]+)/?$', views.project, name='project'),
 
     url(r'^projects/(?P<project_name>[^/]+)/(?P<dataset_name>[^/]+)/?$',
-        views.DatasetView.as_view(), name='dataset'),
+        never_cache(views.DatasetView.as_view()), name='dataset'),
 
     url(r'^platforms/?$', views.platforms, name='platforms'),
 
