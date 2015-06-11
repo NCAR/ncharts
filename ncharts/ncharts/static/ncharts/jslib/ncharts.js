@@ -142,7 +142,7 @@
                         }
 
                         for (var iv = 0; iv < vnames.length; iv++ ) {
-                            while (chart.series[iv].data[0] !== undefined &&
+                            while (chart.series[iv].data.length &&
                                 tx > chart.series[iv].data[0]['x'] + local_ns.time_length) {
                                 // chart.series[iv].removePoint(0,true);
                                 chart.series[iv].data[0].remove();
@@ -196,7 +196,7 @@
                             }
                         }
                         for (var iv = 0; iv < vnames.length; iv++ ) {
-                            while (chart.series[iv].data[0] !== undefined &&
+                            while (chart.series[iv].data.length &&
                                 tx > chart.series[iv].data[0]['x'] + local_ns.time_length) {
                                 // chart.series[iv].removePoint(0,true);
                                 chart.series[iv].data[0].remove();
