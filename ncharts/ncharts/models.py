@@ -302,16 +302,18 @@ class UserSelection(models.Model):
     """Fields returned from the data selection form.
 
     The automatic primary key 'id' of an instance of this model
-    is stored in the session, and so the previous selection of
-    the user is maintained in the database.
+    is stored in the user's session by project and dataset name,
+    and so when a user's returns to view this dataset, their
+    previous selections are provided.
     """
 
     variables = models.TextField()  # list of variables, stringified by json
 
-    # '+' tells django not to create a backwards relation
-    # from Dataset to UserSelection
-    # This ForeignKey cannot be a Dataset, since it is
-    # abstract.
+    # The selected Dataset. Dataset is a base class for several
+    # types of Datasets. Since it is used here as a ForeignKey,
+    # it cannot be abstract.
+    # related_name='+' tells django not to create a backwards relation
+    # from Dataset to UserSelection, which we don't need.
     dataset = models.ForeignKey(Dataset, related_name='+')
 
     timezone = TimeZoneField(blank=False)
