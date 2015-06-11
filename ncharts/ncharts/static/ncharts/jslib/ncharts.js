@@ -150,7 +150,7 @@
                     });
 
                     $("div[id^='heatmap']").each(function(index) {
-                        var chart = $( this ).highcharts();
+                        chart = $( this ).highcharts();
                         var vnames =  $( this ).data("variables");
                         for (idata = 0; idata < time.length - 1; idata++) {
                             var tx = (time0 + time[idata]) * 1000;
