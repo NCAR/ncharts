@@ -25,7 +25,7 @@
 {
     "fields": {
         "location": "Boulder", 
-        "timezones": ["US/Mountain", "UTC"],
+        "timezones": ["US/Mountain", "UTC"]
     }, 
     "model": "ncharts.project", 
     "pk": "CentNet Devel"
