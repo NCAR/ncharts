@@ -729,7 +729,7 @@ class DataView(View):
 
         """
 
-        debug = True
+        debug = False
 
         _logger.debug(
             "get, selection_id=%s, last_time=%s",
