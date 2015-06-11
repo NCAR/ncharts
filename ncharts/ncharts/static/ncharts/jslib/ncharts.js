@@ -103,13 +103,13 @@
                         if (vnames.length == 0) {
                             return
                         }
+                        // loop up to last point
                         for (idata = 0; idata < time.length - 1; idata++) {
                             var tx = (time0 + time[idata]) * 1000;
                             for (var iv = 0; iv < vnames.length; iv++ ) {
                                 var vname = vnames[iv];
                                 // console.log("first time=",chart.series[iv].data[0]);
-                                if (iv == 0 &&
-                                    chart.series[iv].data[0] !== undefined) {
+                                if (iv == 0 && chart.series[iv].data.length) {
                                     start_time = chart.series[iv].data[0]['x'];
                                 }
                                 var shift = false;
@@ -122,11 +122,11 @@
                                     [tx,data[vname][idata]], false, shift);
                             }
                         }
+                        // for last point, update chart
                         var tx = (time0 + time[idata]) * 1000;
                         for (var iv = 0; iv < vnames.length; iv++ ) {
                             var vname = vnames[iv];
-                            if (iv == 0 &&
-                                chart.series[iv].data[0] !== undefined) {
+                            if (iv == 0 && chart.series[iv].data.length) {
                                 // first time in series
                                 start_time = chart.series[iv].data[0]['x'];
                             }
@@ -153,12 +153,12 @@
                     $("div[id^='heatmap']").each(function(index) {
                         chart = $( this ).highcharts();
                         var vnames =  $( this ).data("variables");
+                        // loop up to last point
                         for (idata = 0; idata < time.length - 1; idata++) {
                             var tx = (time0 + time[idata]) * 1000;
                             for (var iv = 0; iv < vnames.length; iv++) {
                                 var vname = vnames[iv];
-                                if (iv == 0 &&
-                                    chart.series[iv].data[0] !== undefined) {
+                                if (iv == 0 && chart.series[iv].data.length) {
                                     start_time = chart.series[iv].data[0]['x'];
                                 }
                                 var shift = false;
@@ -170,7 +170,7 @@
                                 for (var j = 0; j < dim2['data'].length; j++) {
                                     dx = data[vname][idata][j];
                                     chart.series[iv].addPoint(
-                                        [tx,dim2['data'],dx], false,shift);
+                                        [tx,dim2['data'][j],dx], false,shift);
                                 }
                             }
                         }
@@ -178,7 +178,7 @@
                         for (var iv = 0; iv < vnames.length; iv++ ) {
                             var vname = vnames[iv];
                             if (iv == 0 &&
-                                chart.series[iv].data[0] !== undefined) {
+                                chart.series[iv].data.length) {
                                 // first time in series
                                 start_time = chart.series[iv].data[0]['x'];
                             }
@@ -192,12 +192,13 @@
                             for (var j = 0; j < dim2['data'].length; j++) {
                                 dx = data[vname][idata][j];
                                 chart.series[iv].addPoint(
-                                    [tx,dim2['data'],dx], true, shift);
+                                    [tx,dim2['data'][j],dx], true, shift);
                             }
                         }
                         for (var iv = 0; iv < vnames.length; iv++ ) {
                             while (chart.series[iv].data.length &&
                                 tx > chart.series[iv].data[0]['x'] + local_ns.time_length) {
+                                console.log("series ",iv," length=",chart.series[iv].data.length);
                                 // chart.series[iv].removePoint(0,true);
                                 chart.series[iv].data[0].remove();
                             }
