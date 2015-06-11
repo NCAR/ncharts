@@ -750,7 +750,7 @@ class DataView(View):
             etime = stime + datetime.timedelta(seconds=600)
 
         _logger.debug("DataView.get, stime=%s, etime=%s",
-                stime,etime)
+                      stime, etime)
 
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()
@@ -760,7 +760,7 @@ class DataView(View):
                 dsvars = ncdset.get_variables(
                     start_time=stime, end_time=etime)
             except OSError as exc:
-                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+                _logger.error("%s, %s: %s", dset.project.name, dset.name, exc)
                 raise Http404(str(exc))
 
         elif isinstance(dset, nc_models.DBDataset):
@@ -779,7 +779,7 @@ class DataView(View):
         try:
             if isinstance(dset, nc_models.FileDataset):
                 print("read_time_series, stime={},etime={}".format(
-                    stime,etime))
+                    stime, etime))
                 ncdata = ncdset.read_time_series(
                     savail, start_time=stime, end_time=etime)
                 print("read_time_series, len(ncdata['time'])={}".format(

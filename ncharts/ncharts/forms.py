@@ -17,7 +17,7 @@ from datetimewidget import widgets
 import pytz
 
 # from django.utils.encoding import force_text
-from django.utils.safestring import mark_safe
+# from django.utils.safestring import mark_safe
 
 import datetime
 
