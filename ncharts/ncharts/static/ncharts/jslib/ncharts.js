@@ -93,28 +93,25 @@
                         return;
                     }
 
-                    var start_time;
-                    var chart;
-                    var idata;
-
                     $("div[id^='time-series']").each(function(index) {
-                        chart = $( this ).highcharts();
+                        var chart = $( this ).highcharts();
                         var vnames = $( this ).data("variables").sort();
                         if (vnames.length == 0) {
                             return
                         }
+                        var idata;
                         // loop up to last point
                         for (idata = 0; idata < time.length - 1; idata++) {
                             var tx = (time0 + time[idata]) * 1000;
+                            var start_time = tx;
+                            if (chart.series[0].data.length) {
+                                start_time = chart.series[0].data[0]['x'];
+                            }
                             for (var iv = 0; iv < vnames.length; iv++ ) {
                                 var vname = vnames[iv];
                                 // console.log("first time=",chart.series[iv].data[0]);
-                                if (iv == 0 && chart.series[iv].data.length) {
-                                    start_time = chart.series[iv].data[0]['x'];
-                                }
                                 var shift = false;
-                                if (start_time !== undefined &&
-                                    tx > start_time + local_ns.time_length) {
+                                if (tx > start_time + local_ns.time_length) {
                                     shift = true;
                                 }
                                 // console.log("start_time=",new Date(start_time),",shift=",shift);
@@ -124,15 +121,14 @@
                         }
                         // for last point, update chart
                         var tx = (time0 + time[idata]) * 1000;
+                        var start_time = tx;
+                        if (chart.series[0].data.length) {
+                            start_time = chart.series[0].data[0]['x'];
+                        }
                         for (var iv = 0; iv < vnames.length; iv++ ) {
                             var vname = vnames[iv];
-                            if (iv == 0 && chart.series[iv].data.length) {
-                                // first time in series
-                                start_time = chart.series[iv].data[0]['x'];
-                            }
                             var shift = false;
-                            if (start_time !== undefined &&
-                                tx > start_time + local_ns.time_length) {
+                            if (tx > start_time + local_ns.time_length) {
                                 shift = true;
                             }
                             // console.log("start_time=",new Date(start_time),",shift=",shift);
@@ -148,27 +144,35 @@
                                 // chart.series[iv].data[0].remove();
                             }
                         }
+                        if (index == 0 && chart.series[0].data.length) {
+                            local_ns.start_time = chart.series[0].data[0]['x'];
+                        }
                     });
 
                     $("div[id^='heatmap']").each(function(index) {
-                        chart = $( this ).highcharts();
+                        var chart = $( this ).highcharts();
                         var vnames =  $( this ).data("variables");
+                        if (vnames.length == 0) {
+                            return
+                        }
+                        var idata;
 
                         var t0 =  new Date();
-                        console.log("heatmap ",t0,", adding ",time.length," points")
+                        console.log("heatmap ",t0,", adding ",time.length,
+                                " points, dim2['data'].length=",dim2['data'].length)
 
                         // loop up to last point
                         for (idata = 0; idata < time.length - 1; idata++) {
                             var tx = (time0 + time[idata]) * 1000;
+                            var start_time = tx;
+                            if (chart.series[0].data.length) {
+                                start_time = chart.series[0].data[0]['x'];
+                            }
                             for (var iv = 0; iv < vnames.length; iv++) {
                                 var vname = vnames[iv];
-                                if (iv == 0 && chart.series[iv].data.length) {
-                                    start_time = chart.series[iv].data[0]['x'];
-                                }
                                 var shift = false;
                                 /*
-                                if (start_time !== undefined &&
-                                    tx > start_time + local_ns.time_length) {
+                                if (tx > start_time + local_ns.time_length) {
                                     shift = true;
                                 }
                                 */
@@ -183,17 +187,15 @@
                             }
                         }
                         var tx = (time0 + time[idata]) * 1000;
+                        var start_time = tx;
+                        if (chart.series[0].data.length) {
+                            start_time = chart.series[0].data[0]['x'];
+                        }
                         for (var iv = 0; iv < vnames.length; iv++ ) {
                             var vname = vnames[iv];
-                            if (iv == 0 &&
-                                chart.series[iv].data.length) {
-                                // first time in series
-                                start_time = chart.series[iv].data[0]['x'];
-                            }
                             var shift = false;
                             /*
-                            if (start_time !== undefined &&
-                                tx > start_time + local_ns.time_length) {
+                            if (tx > start_time + local_ns.time_length) {
                                 shift = true;
                             }
                             */
@@ -208,7 +210,7 @@
                             }
                         }
                         var t1 =  new Date();
-                        console.log("added ", idata, " points, elapsed time=",(t1 - t0)/1000," seconds");
+                        console.log("added ", idata+1, " points, elapsed time=",(t1 - t0)/1000," seconds");
                         t0 = t1;
                         var npts = 0;
                         for (var iv = 0; iv < vnames.length; iv++ ) {
@@ -228,18 +230,19 @@
                         t1 =  new Date();
                         console.log("chart redraw, elapsed time=",(t1 - t0)/1000," seconds");
                         t0 = t1;
-                    });
 
-                    // idata will be time.length-1
-                    local_ns.last_time = time0 + time[idata];   // seconds
-                    // console.log("idata=",idata,", last_time=", local_ns.last_time);
+                        if (index == 0 && chart.series[0].data.length) {
+                            local_ns.start_time = chart.series[0].data[0]['x'];
+                        }
+                    });
 
                     // update the start time on the datetimepicker from
                     // first time in chart (milliseconds)
-                    //
-                    if (chart.series.length > 0 && chart.series[0].data.length > 0) {
-                        local_ns.update_start_time(chart.series[0].data[0]['x']);
-                    }
+                    local_ns.update_start_time(local_ns.start_time);
+
+                    // last time, will be passed to servers in next ajax GET.
+                    // Check for time.length>0 has been done above
+                    local_ns.last_time = time0 + time[time.length-1];   // seconds
                     setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
                 }
             });
