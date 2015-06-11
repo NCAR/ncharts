@@ -269,14 +269,28 @@ def save_selection_to_session(
     sel_id_name = selection_id_name(project_name, dataset_name)
     session[sel_id_name] = usersel.id
 
+def get_dataset(usersel):
+    """Return the dataset from a UserSelection, casting to either
+    a FileDataset or DBDataset.
+
+    """
+    dset = usersel.dataset
+
+    try:
+        dset = dset.filedataset
+    except nc_models.FileDataset.DoesNotExist as exc:
+        try:
+            dset = dset.dbdataset
+        except nc_models.DBDataset.DoesNotExist as exc:
+            raise Http404
+
+    return dset
+
 class DatasetView(View):
     """Render a form where the user can choose parameters to plot a dataset.
     """
 
     template_name = 'ncharts/dataset.html'
-    # form_class = nc_forms.DataSelectionForm
-    # model = nc_models.UserSelection
-    # fields = ['variables']
 
     def get(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a get request where the user has specified a
@@ -287,6 +301,8 @@ class DatasetView(View):
                       dataset_name, project_name)
 
         proj = get_object_or_404(nc_models.Project.objects, name=project_name)
+
+        # Get the named dataset of the project
         dset = get_object_or_404(proj.dataset_set, name=dataset_name)
 
         # cast to a FileDataset, or if that fails, a DBDataset
@@ -429,13 +445,14 @@ class DatasetView(View):
             },
             dataset=dset)
 
+        if dset.end_time < datetime.datetime.now(timezone.tz):
+            form.fields['track_real_time'].widget.attrs['disabled'] = True
+
         try:
             dvars = sorted(dset.get_variables().keys())
             form.set_variable_choices(dvars)
-        except FileNotFoundError as exc:
+        except OSError as exc:
             form.no_data(repr(exc))
-        except PermissionError as exc:
-            form.data_not_available(repr(exc))
 
         return render(request, self.template_name,
                       {'form': form, 'dataset': dset})
@@ -484,19 +501,7 @@ class DatasetView(View):
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
 
-        dset = usersel.dataset
-
-        try:
-            dset = dset.filedataset
-        except nc_models.FileDataset.DoesNotExist as exc:
-            try:
-                dset = dset.dbdataset
-            except nc_models.DBDataset.DoesNotExist as exc:
-                raise Http404
-
-        _logger.info(
-            "post, old session, project=%s,dataset=%s",
-            dset.project.name, dset.name)
+        dset = get_dataset(usersel)
 
         # dataset name and project name from POST should agree with
         # those in the cached dataset.
@@ -545,7 +550,7 @@ class DatasetView(View):
 
         # print("request.POST=", request.POST)
         if not form.is_valid():
-            # print('form ain\'t valid!')
+            _logger.error('User form is not valid!: %s', repr(form.errors))
             return render(request, self.template_name,
                           {'form': form, 'dataset': dset})
 
@@ -568,17 +573,23 @@ class DatasetView(View):
         #     raise Http404
 
         if isinstance(dset, nc_models.FileDataset):
-            # print("view, len(files)=", len(files))
             ncdset = dset.get_netcdf_dataset()
 
             # a variable can be in a dataset, but not in a certain set of files.
-            # savail: selected and available variables, using set intersection
-            dsvars = ncdset.get_variables(start_time=stime, end_time=etime)
+            try:
+                dsvars = ncdset.get_variables(
+                    start_time=stime, end_time=etime)
+            except OSError as exc:
+                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+                form.no_data(repr(exc))
+                return render(request, self.template_name,
+                              {'form': form, 'dataset': dset})
 
         elif isinstance(dset, nc_models.DBDataset):
             dbcon = dset.get_connection()
             dsvars = dbcon.get_variables(start_time=stime, end_time=etime)
 
+        # selected and available variables, using set intersection
         savail = list(set(svars) & set(dsvars.keys()))
 
         if len(savail) == 0:
@@ -599,45 +610,29 @@ class DatasetView(View):
         else:
             variables = {k:dsvars[k] for k in savail}
 
-        if isinstance(dset, nc_models.FileDataset):
-            try:
+        try:
+            if isinstance(dset, nc_models.FileDataset):
                 ncdata = ncdset.read_time_series(
                     savail, start_time=stime, end_time=etime)
-            except FileNotFoundError:
-                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
-                form.no_data(repr(exc))
-                return render(request, self.template_name,
-                              {'form': form, 'dataset': dset})
-            except PermissionError:
-                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
-                form.data_not_available(repr(exc))
-                return render(request, self.template_name,
-                              {'form': form, 'dataset': dset})
-            except nc_exceptions.TooMuchDataException as exc:
-                _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
-                form.too_much_data(repr(exc))
-                return render(request, self.template_name,
-                              {'form': form, 'dataset': dset})
-            except nc_exceptions.NoDataException as exc:
-                _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
-                form.no_data(repr(exc))
-                return render(request, self.template_name,
-                              {'form': form, 'dataset': dset})
-        else:
-            try:
+            else:
                 ncdata = dbcon.read_time_series(
                     savail, start_time=stime, end_time=etime)
-            except nc_exceptions.TooMuchDataException as exc:
-                _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
-                form.too_much_data(repr(exc))
-                return render(request, self.template_name,
-                              {'form': form, 'dataset': dset})
-            except nc_exceptions.NoDataException as exc:
-                _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
-                form.no_data(repr(exc))
-                return render(request, self.template_name,
-                              {'form': form, 'dataset': dset})
 
+        except OSError as exc:
+            _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+            form.no_data(repr(exc))
+            return render(request, self.template_name,
+                          {'form': form, 'dataset': dset})
+        except nc_exceptions.TooMuchDataException as exc:
+            _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
+            form.too_much_data(repr(exc))
+            return render(request, self.template_name,
+                          {'form': form, 'dataset': dset})
+        except nc_exceptions.NoDataException as exc:
+            _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
+            form.no_data(repr(exc))
+            return render(request, self.template_name,
+                          {'form': form, 'dataset': dset})
 
         # As an easy compression, subtract first time from all times,
         # reducing the number of characters sent.
@@ -646,19 +641,19 @@ class DatasetView(View):
             time0 = ncdata['time'][0].timestamp()
         time = json.dumps([x.timestamp() - time0 for x in ncdata['time']])
 
-        def type_by_dimension(dim):
+        def type_by_shape(shape):
             """Crude function to return a plot type, given a dimension.
             """
-            if len(dim.shape) == 1:
+            if len(shape) == 1:
                 return 'time-series'
-            elif len(dim.shape) == 2:
+            elif len(shape) == 2:
                 return 'heatmap'
             else:
                 return 'none'
 
         plot_types = set()
         for vname, var in variables.items():
-            ptype = type_by_dimension(ncdata['data'][vname])
+            ptype = type_by_shape(ncdata['data'][vname].shape)
             var['plot_type'] = ptype
             plot_types.add(ptype)
 
@@ -715,7 +710,115 @@ class DatasetView(View):
         return render(
             request, self.template_name, {
                 'form': form,
-                'dataset': dset, 'plot_groups': plot_groups,
-                'time0': time0, 'time': mark_safe(time),
-                'data': mark_safe(data), 'dim2': mark_safe(dim2)})
+                'dataset': dset,
+                'plot_groups': plot_groups,
+                'selid': usersel.id,
+                'time0': time0,
+                'time': mark_safe(time),
+                'data': mark_safe(data),
+                'dim2': mark_safe(dim2),
+                'time_length': usersel.time_length
+                })
+
+class DataView(View):
+    """Respond to ajax request for data.
+    """
+
+    def get(self, request, *args, selection_id, **kwargs):
+        """Respond to a ajax get request.
+
+        """
+
+        debug = True
+
+        _logger.debug(
+            "get, selection_id=%s, last_time=%s",
+            selection_id, request.GET.get('last_time', '0'))
+        usersel = get_object_or_404(nc_models.UserSelection.objects,
+                                    id=selection_id)
+        last_time = float(request.GET.get('last_time', '0'))
+
+        dset = get_dataset(usersel)
+        svars = json.loads(usersel.variables)
+        timezone = usersel.timezone
+        delt = usersel.time_length
+
+        stime = datetime.datetime.fromtimestamp(last_time, tz=timezone)
+        if not debug:
+            etime = datetime.datetime.now(timezone)
+        else:
+            etime = stime + datetime.timedelta(seconds=600)
+
+        _logger.debug("DataView.get, stime=%s, etime=%s",
+                stime,etime)
+
+        if isinstance(dset, nc_models.FileDataset):
+            ncdset = dset.get_netcdf_dataset()
+
+            # a variable can be in a dataset, but not in a certain set of files.
+            try:
+                dsvars = ncdset.get_variables(
+                    start_time=stime, end_time=etime)
+            except OSError as exc:
+                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+                raise Http404(str(exc))
+
+        elif isinstance(dset, nc_models.DBDataset):
+            dbcon = dset.get_connection()
+            dsvars = dbcon.get_variables(start_time=stime, end_time=etime)
+
+        # selected and available variables, using set intersection
+        savail = list(set(svars) & set(dsvars.keys()))
+
+        if len(savail) == 0:
+            exc = nc_exceptions.NoDataException(
+                "variables {} not found in dataset".format(svars))
+            _logger.warn(repr(exc))
+            raise Http404(str(exc))
+
+        try:
+            if isinstance(dset, nc_models.FileDataset):
+                print("read_time_series, stime={},etime={}".format(
+                    stime,etime))
+                ncdata = ncdset.read_time_series(
+                    savail, start_time=stime, end_time=etime)
+                print("read_time_series, len(ncdata['time'])={}".format(
+                    len(ncdata['time'])))
+                if len(ncdata['time']) > 0:
+                    print("time[0]={}".format(ncdata['time'][0]))
+            else:
+                ncdata = dbcon.read_time_series(
+                    savail, start_time=stime, end_time=etime)
+        except OSError as exc:
+            _logger.error("%s, %s: %s", dset.project.name, dset.name, exc)
+            raise Http404(str(exc))
+        except nc_exceptions.TooMuchDataException as exc:
+            _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
+            raise Http404(str(exc))
+        except nc_exceptions.NoDataException as exc:
+            _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
+            # make up some data
+            vdata = {}
+            for var in savail:
+                vdata[var] = np.array([0.], dtype=np.dtype("float32"))
+            ncdata = {
+                'time': [etime],
+                'data': vdata,
+                'dim2': []}
+
+        # As an easy compression, subtract first time from all times,
+        # reducing the number of characters sent.
+        time0 = 0
+        if len(ncdata['time']) > 0:
+            time0 = ncdata['time'][0].timestamp()
+        time = json.dumps([x.timestamp() - time0 for x in ncdata['time']])
+
+        data = json.dumps(ncdata['data'], cls=NChartsJSONEncoder)
+
+        dim2 = json.dumps(ncdata['dim2'], cls=NChartsJSONEncoder)
+
+        data = {'time0': time0, 'time': time, 'data': data, 'dim2': dim2}
+
+        # return HttpResponse(data.items(), content_type="application/json")
+        return HttpResponse(json.dumps(data), content_type="application/json")
 

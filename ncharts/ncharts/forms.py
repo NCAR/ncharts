@@ -71,36 +71,6 @@ class FloatWithChoiceWidget(forms.MultiWidget):
             value = '1'
         return [value, value]
 
-    def render(self, name, value, attrs=None):
-        """Returns HTML for the widget, as a Unicode string.
-
-        """
-
-        html = super().render(name, value, attrs)
-
-        # add javascript to set the value of the text field
-        # from the selection.
-        # TODO: do the reverse. If a users enters a value in the
-        # text field that matches a choice, update the selection.
-        html += '''<script>
-            (function($) {
-                $("select#%(id)s_1").change(function() {
-                    $("input#%(id)s_0").val(this.value);
-                });
-            })(jQuery);
-            </script>''' % {'id': attrs['id']}
-
-        return mark_safe(html)
-
-    def format_output_unused(self, rendered_widgets):
-        """Given a list of rendered widgets (as strings), returns a
-        Unicode string representing the HTML for the whole lot.
-
-        Probably could use the super method.
-        """
-
-        return u''.join(rendered_widgets)
-
 class FloatWithChoiceField(forms.MultiValueField):
     """ChoiceField with an option for a user-submitted "other" value.
 
@@ -191,6 +161,10 @@ class DataSelectionForm(forms.Form):
                 # 'format': 'YYYY-MM-DD HH:mm', 'clearBtn': 0, 'todayBtn': 1,
                 'pickerPosition': 'bottom-right'}))
 
+    # this should only be enabled if the end time of the project
+    # is in the future.
+    track_real_time = forms.BooleanField(required=False, initial=False)
+
     # choices: (value, label)
     time_length = FloatWithChoiceField(
         choices=[(str(i), str(i),) for i in TIME_LEN_CHOICES],
@@ -228,7 +202,7 @@ class DataSelectionForm(forms.Form):
 
     def clean(self):
         """
-        
+
         """
         # TODO: add docstring.
 

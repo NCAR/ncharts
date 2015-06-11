@@ -36,6 +36,8 @@ urlpatterns = [
 
     url(r'^projects/(?P<project_name>[^/]+)/?$', views.project, name='project'),
 
+    # Don't cache the dataset, so that we can display the user's
+    # previous selection, and not what was cached.
     url(r'^projects/(?P<project_name>[^/]+)/(?P<dataset_name>[^/]+)/?$',
         never_cache(views.DatasetView.as_view()), name='dataset'),
 
@@ -47,4 +49,7 @@ urlpatterns = [
 
     url(r'^platforms/(?P<platform_name>[^/]+)/(?P<project_name>[^/]+)/?$',
         views.platform_project, name='platformProject'),
+
+    url(r'^data/(?P<selection_id>[0-9]+)$',
+        never_cache(views.DataView.as_view()), name='data'),
 ]

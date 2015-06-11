@@ -50,6 +50,8 @@
                         <strong>{{ form.start_time.errors }} {{ form.time_length.errors }} {{ form.time_length_units.errors }}</strong>
                         <span class="label label-default">Start:</span>
                         {{ form.start_time }}
+                        <span class="label label-default">Track Real Time:</span>
+                        {{ form.track_real_time }}
                         <span class="label label-default">Time Zone:</span>
                         {{ form.timezone }}
                         <span class="label label-default">Length:</span>
@@ -57,6 +59,7 @@
                     </div>
                 </div>
             </div>
+            {{ form.selection_id }}
         </div>
                 
         <div class="row">
@@ -83,6 +86,10 @@
         // dim2 is values for 2nd dimension for heatmap plots
         var data = jQuery.parseJSON('{{ data }}');
         var dim2 = jQuery.parseJSON('{{ dim2 }}');
+        // url to use with ajax to get real time data
+{% if form.track_real_time.value %}
+        var ajaxurl = "{% url 'ncharts:data' selid %}";
+{% endif %}
     </script>
 
     {% for group,val in plot_groups.items %}
@@ -94,6 +101,7 @@
             jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
             jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
             jQuery.data(div,"dim2_name","{{ dim2.name }}");
+            jQuery.data(div,"ajaxurl","{% url 'ncharts:data' selid %}");
         </script>
     {% endfor %}
 {% endif %}

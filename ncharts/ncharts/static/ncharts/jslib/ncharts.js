@@ -32,6 +32,36 @@
                 }
             });
         };
+        local_ns.update_start_time = function(val) {
+            console.log("updating start_time, val=",val);
+            var mom = moment(val).tz(local_ns.pickerTimezone);
+            // format it, and set it on the picker
+            var dstr = mom.format('YYYY-MM-DD HH:mm');
+            console.log("updating start_time, dstr=",dstr);
+            $("input#id_start_time").val(dstr);
+        }
+
+        // set the value of local_ns.time_length in units of milliseconds
+        local_ns.update_time_length = function(time_length,time_length_units) {
+            console.log("update_time_length, len=",time_length,", units=",
+                    time_length_units);
+            switch(time_length_units) {
+            case "day":
+                time_length *= 24;
+            case "hour":
+                time_length *= 60;
+            case "minute":
+                time_length *= 60;
+            case "second":
+                time_length *= 1000;    // milliseconds
+                break;
+            }
+            local_ns.time_length = time_length;
+
+            if (local_ns.track_real_time) {
+                local_ns.update_start_time(Date.now() - local_ns.time_length);
+            }
+        }
 
         // Add support for %Z time formatter
         Highcharts.dateFormats = {
@@ -40,6 +70,150 @@
                 return local_ns.zone.abbr(timestamp);
             }
         };
+
+        local_ns.do_ajax = function() {
+            // console.log("do_ajax");
+            $.ajax({
+                url: ajaxurl,
+                timeout: 10 * 1000,
+                data: {
+                    // send the last time of the current plot to server
+                    last_time: local_ns.last_time,
+                },
+                dataType: "json",
+                success: function(indata) {
+
+                    var time0 = indata['time0']
+                    var time = $.parseJSON(indata['time'])
+                    var data = $.parseJSON(indata['data'])
+
+                    // console.log("ajax success!, now=",new Date(),",time0=",time0);
+
+                    if (time.length == 0) {
+                        return;
+                    }
+
+                    var start_time;
+                    var chart;
+                    var idata;
+
+                    $("div[id^='time-series']").each(function(index) {
+                        chart = $( this ).highcharts();
+                        var vnames =  $( this ).data("variables");
+                        if (vnames.length == 0) {
+                            return
+                        }
+                        for (idata = 0; idata < time.length - 1; idata++) {
+                            var tx = (time0 + time[idata]) * 1000;
+                            for (var iv = 0; iv < vnames.length; iv++ ) {
+                                var vname = vnames[iv];
+                                // console.log("first time=",chart.series[iv].data[0]);
+                                if (iv == 0 &&
+                                    chart.series[iv].data[0] !== undefined) {
+                                    start_time = chart.series[iv].data[0]['x'];
+                                }
+                                var shift = false;
+                                if (start_time !== undefined &&
+                                    tx > start_time + local_ns.time_length) {
+                                    shift = true;
+                                }
+                                // console.log("start_time=",new Date(start_time),",shift=",shift);
+                                chart.series[iv].addPoint(
+                                    [tx,data[vname][idata]], false, shift);
+                            }
+                        }
+                        var tx = (time0 + time[idata]) * 1000;
+                        for (var iv = 0; iv < vnames.length; iv++ ) {
+                            var vname = vnames[iv];
+                            if (iv == 0 &&
+                                chart.series[iv].data[0] !== undefined) {
+                                // first time in series
+                                start_time = chart.series[iv].data[0]['x'];
+                            }
+                            var shift = false;
+                            if (start_time !== undefined &&
+                                tx > start_time + local_ns.time_length) {
+                                shift = true;
+                            }
+                            // console.log("start_time=",new Date(start_time),",shift=",shift);
+                            // for last point set redraw=true
+                            chart.series[iv].addPoint(
+                                [tx,data[vname][idata]], true, shift);
+                        }
+
+                        for (var iv = 0; iv < vnames.length; iv++ ) {
+                            while (chart.series[iv].data[0] !== undefined &&
+                                tx > chart.series[iv].data[0]['x'] + local_ns.time_length) {
+                                chart.series[iv].removePoint(0,true);
+                            }
+                        }
+                    });
+
+                    $("div[id^='heatmap']").each(function(index) {
+                        var chart = $( this ).highcharts();
+                        var vnames =  $( this ).data("variables");
+                        for (idata = 0; idata < time.length - 1; idata++) {
+                            var tx = (time0 + time[idata]) * 1000;
+                            for (var iv = 0; iv < vnames.length; iv++) {
+                                var vname = vnames[iv];
+                                if (iv == 0 &&
+                                    chart.series[iv].data[0] !== undefined) {
+                                    start_time = chart.series[iv].data[0]['x'];
+                                }
+                                var shift = false;
+                                if (start_time !== undefined &&
+                                    tx > start_time + local_ns.time_length) {
+                                    shift = true;
+                                }
+                                // console.log("start_time=",new Date(start_time),",shift=",shift);
+                                for (var j = 0; j < dim2['data'].length; j++) {
+                                    dx = data[vname][idata][j];
+                                    chart.series[iv].addPoint(
+                                        [tx,dim2['data'],dx], false,shift);
+                                }
+                            }
+                        }
+                        var tx = (time0 + time[idata]) * 1000;
+                        for (var iv = 0; iv < vnames.length; iv++ ) {
+                            var vname = vnames[iv];
+                            if (iv == 0 &&
+                                chart.series[iv].data[0] !== undefined) {
+                                // first time in series
+                                start_time = chart.series[iv].data[0]['x'];
+                            }
+                            var shift = false;
+                            if (start_time !== undefined &&
+                                tx > start_time + local_ns.time_length) {
+                                shift = true;
+                            }
+                            // console.log("start_time=",new Date(start_time),",shift=",shift);
+                            // for last point set redraw=true
+                            for (var j = 0; j < dim2['data'].length; j++) {
+                                dx = data[vname][idata][j];
+                                chart.series[iv].addPoint(
+                                    [tx,dim2['data'],dx], true, shift);
+                            }
+                        }
+                        for (var iv = 0; iv < vnames.length; iv++ ) {
+                            while (chart.series[iv].data[0] !== undefined &&
+                                tx > chart.series[iv].data[0]['x'] + local_ns.time_length) {
+                                chart.series[iv].removePoint(0,true);
+                            }
+                        }
+                    });
+
+                    // idata will be time.length-1
+                    local_ns.last_time = time0 + time[idata];   // seconds
+                    // console.log("idata=",idata,", last_time=", local_ns.last_time);
+
+                    // update the start time on the datetimepicker from
+                    // first time in chart (milliseconds)
+                    local_ns.update_start_time(chart.series[0].data[0]['x']);
+
+                    setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
+                }
+            });
+        }
 
         $(function() {
             // console.log("DOM is ready!");
@@ -100,7 +274,87 @@
                 picker.val(dstr);
             });
 
+            $("#id_variables_clear").change(function() {
+                // console.log("id_variables_clear change, val=",$(this).prop("checked"));
+                if ($(this).prop("checked")) {
+                    $('#variable-checkbox :checked').prop('checked',false);
+                    $(this).prop('checked',false);
+                }
+            });
+            $("#id_variables_all").change(function() {
+                // console.log("id_variables_all change, val=",$(this).prop("checked"));
+                if ($(this).prop("checked")) {
+                    $('#variable-checkbox :not(:checked)').prop('checked',true);
+                    $(this).prop('checked',false);
+                }
+            });
+
+            // set the time_length
+            local_ns.update_time_length(
+                $("input#id_time_length_0").val(),
+                 $("select#id_time_length_units").val());
+
+            /* If the user wants to track real time with ajax. */
+            local_ns.track_real_time = $("input#id_track_real_time").prop("checked");
+            $("input#id_track_real_time").change(function() {
+                local_ns.track_real_time = $(this).prop("checked");
+                if (local_ns.track_real_time) {
+                    local_ns.update_start_time(Date.now() - local_ns.time_length);
+                }
+            });
+
+            // time_length text widget
+            $("input#id_time_length_0").change(function() {
+                var time_length = $(this).val();
+                var time_length_units = $("select#id_time_length_units").val();
+                local_ns.update_time_length(time_length,time_length_units);
+            });
+
+            // time_length select widget
+            $("select#id_time_length_1").change(function() {
+                var time_length = $(this).val();
+                var time_length_units = $("select#id_time_length_units").val();
+                $("input#id_time_length_0").val(time_length);
+                local_ns.update_time_length(time_length,time_length_units);
+            });
+
+            // time_length units select widget
+            $("select#id_time_length_units").change(function() {
+                var time_length_units = $(this).val();
+                var time_length = $("input#id_time_length_0").val();
+                local_ns.update_time_length(time_length,time_length_units);
+            });
+
+            // console.log("track_real_time=",local_ns.track_real_time);
+            // Everything below here depends on time and data
+            // being passed.
+            if (window.time === undefined) return
+
+
+            // local_ns.last_time is passed to the server
+            // by ajax 
+            if (time.length > 0) {
+                local_ns.last_time = time0 + time[time.length - 1];
+            }
+            else {
+                local_ns.last_time = time0;
+            }
+
+            if (local_ns.track_real_time) {
+                // mean delta-t of data
+                local_ns.ajaxTimeout = 1000;
+                if (time.length > 1) {
+                    // set ajax update period to 1/2 the data deltat
+                    local_ns.ajaxTimeout = Math.max(
+                        local_ns.ajaxTimeout,
+                        (time[time.length-1] - time[0]) / (time.length - 1) * 1000 / 2
+                        );
+                }
+                setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
+            }
+
             $("div[id^='time-series']").each(function(index) {
+
                 // console.log("time-series");
 
                 var vnames =  $( this ).data("variables");
@@ -165,9 +419,10 @@
                     var long_name = vmeta[vname]['long_name']
                     var vseries = {};
                     var vdata = [];
-                    for (var i = 0; i < time.length; i++) {
-                        vdata.push([(time0 + time[i])*1000, data[vname][i]]);
+                    for (var idata = 0; idata < time.length; idata++) {
+                        vdata.push([(time0 + time[idata])*1000, data[vname][idata]]);
                     }
+
                     vseries['data'] = vdata;
                     vseries['name'] = vname;
 
@@ -311,9 +566,9 @@
                         {long_name: long_names[iv], units: vunits[iv]};
                 }
                 vnames = vnames.sort()
-                for (var iv = 0; iv < vnames.length; iv++) {
+                // for (var iv = 0; iv < vnames.length; iv++) {
                     // console.log("vnames[iv]=", vnames[iv])
-                }
+                // }
 
                 // console.log("vnames=",vnames);
                 for (var iv = 0; iv < vnames.length; iv++) {
@@ -325,31 +580,16 @@
                     minval = Number.POSITIVE_INFINITY;
                     maxval = Number.NEGATIVE_INFINITY;
 
-                    var datetime = true;
 
-                    if (datetime) {
-                        mintime = (time0 + time[0]) * 1000;
-                        maxtime = (time0 + time[time.length-1]) * 1000;
-                    }
-                    else {
-                        // mintime = time[0] * 1000;
-                        // maxtime = time[time.length-1] * 1000;
-                        mintime = time[0];
-                        maxtime = time[time.length-1];
-                    }
+                    mintime = (time0 + time[0]) * 1000;
+                    maxtime = (time0 + time[time.length-1]) * 1000;
 
                     mindim2 = dim2['data'][0];
                     maxdim2 = dim2['data'][dim2['data'].length-1];
 
                     var chart_data = [];
                     for (var i = 0; i < time.length; i++) {
-                        if (datetime) {
-                            var tx = (time0 + time[i]) * 1000;
-                        }
-                        else {
-                            // var tx = time[i] * 1000;
-                            var tx = time[i];
-                        }
+                        var tx = (time0 + time[i]) * 1000;
                         for (var j = 0; j < dim2['data'].length; j++) {
                             dx = data[vname][i][j];
                             if (dx !== null) {
@@ -359,33 +599,10 @@
                             chart_data.push([tx, dim2['data'][j],dx]);
                         }
                     } 
-                    /*
-                    console.log("heatmap, chart_data.length=",chart_data.length,
-                            ", chart_data[0].length=",chart_data[0].length);
-                    console.log("heatmap, minval=",minval,", maxval=",maxval);
 
-                    console.log("heatmap, colsize=", (maxtime - mintime) / 20);
-                    */
                     // var colsize = 3600 * 1000;
                     var colsize = (maxtime - mintime) / (time.length - 1);
                     var rowsize = (maxdim2 - mindim2) / (dim2.length - 1);
-
-                    /*
-                    for (var i = 0; i < chart_data.length; i++) {
-                        if (chart_data[i][2] === null) {
-                            chart_data[i][2] = minval;
-                        }
-                    }
-                    */
-
-                    /*
-                    for (var i = 0; i < chart_data.length && i < 10; i++) {
-                        for (var j = 0; j < chart_data[i].length; j++) {
-                            console.log("chart_data[",i,"]=",
-                                chart_data[i][0],",",chart_data[i][1],",",chart_data[i][2]);
-                        }
-                    }
-                    */
 
                     $( this ).highcharts({
                         chart: {
@@ -485,20 +702,6 @@
                             }
                         }],
                     });
-                }
-            });
-            $("#id_variables_clear").change(function() {
-                // console.log("id_variables_clear change, val=",$(this).prop("checked"));
-                if ($(this).prop("checked")) {
-                    $('#variable-checkbox :checked').prop('checked',false);
-                    $(this).prop('checked',false);
-                }
-            });
-            $("#id_variables_all").change(function() {
-                // console.log("id_variables_all change, val=",$(this).prop("checked"));
-                if ($(this).prop("checked")) {
-                    $('#variable-checkbox :not(:checked)').prop('checked',true);
-                    $(this).prop('checked',false);
                 }
             });
         });
