@@ -820,7 +820,7 @@ class DataView(View):
 
         """
 
-        debug = True
+        debug = False
 
         if not request.session.test_cookie_worked():
             # The django server is backed by memcached, so I believe
@@ -909,18 +909,20 @@ class DataView(View):
                 else:
                     ncdata = dbcon.read_time_series(
                         [vname], start_time=stime, end_time=etime)
-                try:
-                    lastok = np.where(~np.isnan(ncdata['data'][vname]))[0][-1]
-                    time_last_ok = ncdata['time'][lastok]
-                except IndexError:
-                    # all data nan. Only send those after datatimes[1]
-                    # index of first time > datatimes[1]
-                    idx = next(
-                        x for x in ncdata['time'] if x > time_last) - 1
-                    ncdata['time'] = ncdata['time'][idx:]
-                    ncdata['data'] = ncdata['data'][idx:]
-
-                time_last = ncdata['time'][-1]
+                if len(ncdata['time']) > 0:
+                    try:
+                        lastok = np.where(
+                            ~np.isnan(ncdata['data'][vname]))[0][-1]
+                        time_last_ok = ncdata['time'][lastok]
+                    except IndexError:
+                        # all data nan. Only send those after time_last
+                        # index of first time > time_last
+                        idx = next(
+                            x for x in ncdata['time'] if x > time_last) - 1
+                        _logger.warn("all data nan, idx=%d",idx)
+                        ncdata['time'] = ncdata['time'][idx:]
+                        ncdata['data'] = ncdata['data'][idx:]
+                    time_last = ncdata['time'][-1]
             except OSError as exc:
                 _logger.error("%s, %s: %s", dset.project.name, dset.name, exc)
                 raise Http404(str(exc))
