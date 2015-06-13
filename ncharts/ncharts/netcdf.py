@@ -385,7 +385,7 @@ class NetCDFDataset(object):
             start_time: A datetime.datetme. Times greater than or equal
                 to start_time are read.
             end_time: A datetime.datetme. Times less than end_time are read.
-            times: A list of datetime.datetimes, the times read are
+            times: A list of UTC timestamps, the times read are
                 appended to this list.
             total_size: Add the total size of times read to this value.
             size_limit: Raise an exception if the total_size exceeds size_limit.
@@ -418,15 +418,8 @@ class NetCDFDataset(object):
                     # times from netCDF4.num2date are timezone naive.
                     # Use replace(tzinfo=pytz.UTC) to assign a timezone.
                     tvals = [
-                        d.replace(tzinfo=pytz.UTC) for d in
+                        d.replace(tzinfo=pytz.UTC).timestamp() for d in
                         netCDF4.num2date(var[:], var.units, 'standard')]
-
-                    # double check, could be removed.
-                    if tvals[0].tzinfo == None or \
-                            tvals[0].tzinfo.utcoffset() == None:
-                        _logger.error(
-                            "%s: %s: times are timezone naive",
-                            os.path.split(ncpath)[1], self.time_name)
 
                 except IndexError as exc:
                     # most likely has a dimension of 0
@@ -442,24 +435,16 @@ class NetCDFDataset(object):
                             "Using base_time instead",
                             os.path.split(ncpath)[1],
                             self.time_name, var.units)
-                        tvals = [
-                            datetime.fromtimestamp(
-                                base_time +
-                                val, tz=pytz.utc) for val in var[:]]
+                        tvals = [base_time + val for val in var[:]]
                     else:
                         _logger.error(
                             "%s: %s: cannot parse units: %s",
                             os.path.split(ncpath)[1],
                             self.time_name, var.units)
-                        tvals = [
-                            datetime.fromtimestamp(val, tz=pytz.utc)
-                            for val in var[:]]
+                        tvals = [val for val in var[:]]
             else:
                 try:
-                    tvals = [
-                        datetime.fromtimestamp(
-                            base_time + val,
-                            tz=pytz.utc) for val in var[:]]
+                    tvals = [base_time + val for val in var[:]]
                 except IndexError as exc:
                     # most likely has a dimension of 0
                     _logger.error(
@@ -480,24 +465,28 @@ class NetCDFDataset(object):
 
             try:
                 istart = next(idx for idx, tval in enumerate(tvals) \
-                        if tval >= start_time)
+                        if tval >= start_time.timestamp())
                 # print("start_time={}, file={},istart={}",
                 #         start_time,ncpath,istart)
                 iend = next(idx for idx, tval in enumerate(reversed(tvals)) \
-                        if tval < end_time)
+                        if tval < end_time.timestamp())
                 iend = len(tvals) - iend
                 # print("end_time={}, file={},iend={}",
                 #         end_time,ncpath,iend)
             except StopIteration:
                 return slice(0)
 
-            if iend - istart <= 0:
+            if iend - istart == 0:
+                return slice(0)
+            elif iend - istart < 0:
                 _logger.warning(
-                    "%s: times in file may not be ordered, start_time=%s,"
-                    "end_time=%s, file times=%s - %s",
+                    "%s: times in file are not ordered, start_time=%s,"
+                    "end_time=%s, file times=%s - %s, istart=%d, iend=%d",
                     os.path.split(ncpath)[1],
                     start_time.isoformat(), end_time.isoformat(),
-                    tvals[0].isoformat(), tvals[-1].isoformat())
+                    datetime.fromtimestamp(tvals[0], tz=pytz.utc).isoformat(),
+                    datetime.fromtimestamp(tvals[-1], tz=pytz.utc).isoformat(),
+                    istart,iend)
                 return slice(0)
             else:
                 _logger.debug(
@@ -505,8 +494,8 @@ class NetCDFDataset(object):
                     "tvals[%d]=%d, "
                     "start_time=%s, end_time=%s",
                     os.path.split(ncpath)[1],
-                    istart, tvals[istart].timestamp(),
-                    iend, tvals[iend-1].timestamp(),
+                    istart, tvals[istart],
+                    iend, tvals[iend-1],
                     start_time, end_time)
 
             time_slice = slice(istart, iend, 1)
@@ -673,8 +662,7 @@ class NetCDFDataset(object):
 
         Returns:
             A dict containing: {
-                'time' : list of datetime.datetime objects, which are aware
-                    of time zone and DST,
+                'time' : list of UTC timestamps,
                 'data': dict, by variable name of numpy.ndarray containing
                     the data for each variable,
                 'dim2': values for second dimension of the data, such as height,

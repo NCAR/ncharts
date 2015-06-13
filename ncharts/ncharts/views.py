@@ -17,7 +17,7 @@ file LICENSE in this package.
 
 from django.shortcuts import render, get_object_or_404, redirect
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseForbidden
 
 from django.views.generic.edit import View
 from django.views.generic import TemplateView
@@ -28,7 +28,7 @@ from ncharts import models as nc_models
 from ncharts import forms as nc_forms
 from ncharts import exceptions as nc_exceptions
 
-import json, math, logging
+import json, math, logging, threading
 import numpy as np
 import datetime
 
@@ -227,6 +227,28 @@ def selection_id_name(project_name, dataset_name):
 
     return 'pdid_' + project_name + '_' + dataset_name
 
+def get_selection_id_from_session(session, project_name, dataset_name):
+    """Return the user's selection of dataset parameters,
+    given a session, project and dataset.
+
+    Args:
+        session
+        project_name
+        dataset_name
+    Raises:
+        Http404
+    Returns:
+        The nc_models.UserSelection for the project and dataset
+        associated with the session.
+
+    Note that for this to work, caching must be turned off for this view
+    in django, otherwise the get() method may not be called, and the
+    previous selection will not be displayed.
+    """
+
+    sel_id_name = selection_id_name(project_name, dataset_name)
+    return session.get(sel_id_name)
+
 def get_selection_from_session(session, project_name, dataset_name):
     """Return the user's selection of dataset parameters,
     given a session, project and dataset.
@@ -246,9 +268,8 @@ def get_selection_from_session(session, project_name, dataset_name):
     previous selection will not be displayed.
     """
 
+    request_id = get_selection_id_from_session(session, project_name, dataset_name)
     usersel = None
-    sel_id_name = selection_id_name(project_name, dataset_name)
-    request_id = session.get(sel_id_name)
     if request_id:
         usersel = get_object_or_404(nc_models.UserSelection.objects,
                                     id=request_id)
@@ -278,10 +299,10 @@ def get_dataset(usersel):
 
     try:
         dset = dset.filedataset
-    except nc_models.FileDataset.DoesNotExist as exc:
+    except nc_models.FileDataset.DoesNotExist:
         try:
             dset = dset.dbdataset
-        except nc_models.DBDataset.DoesNotExist as exc:
+        except nc_models.DBDataset.DoesNotExist:
             raise Http404
 
     return dset
@@ -291,6 +312,63 @@ class DatasetView(View):
     """
 
     template_name = 'ncharts/dataset.html'
+
+    __sent_data_times = {}
+    __sent_data_times_lock = threading.Lock()
+
+    @classmethod
+    def set_sent_data_times(cls, requestid, vname, time_last_ok, time_last):
+        """Class method, for a request id, and a variable, set the time of the
+        last non-nan data sent, and the time of the last value sent.
+
+        Args:
+            cls:
+            requestid: id from UserSelection
+            vname: name of variable
+            time_last_ok: time of last data value sent for the variable
+                that was non a NAN
+            time_last: time of last data value sent for the variable
+
+        """
+        cls.__sent_data_times_lock.acquire()
+
+        if not requestid in cls.__sent_data_times:
+            cls.__sent_data_times[requestid] = {}
+        cls.__sent_data_times[requestid][vname] = [time_last_ok, time_last]
+        cls.__sent_data_times_lock.release()
+
+    @classmethod
+    def get_sent_data_times(cls, requestid, vname):
+        """Class method, for a request id, and a variable, get the time of the
+        last non-nan data sent, and the time of the last value sent.
+
+        Args:
+            cls:
+            requestid: id from UserSelection
+            vname: name of variable
+
+        Returns:
+            List of length 2:
+                [0]: time of last data value sent for the variable
+                    that was non a NAN
+                [1]: time of last data value sent for the variable
+        """
+        cls.__sent_data_times_lock.acquire()
+
+        if not requestid in cls.__sent_data_times:
+            return [None, None]
+        if not vname in cls.__sent_data_times[requestid]:
+            return [None, None]
+
+        if len(cls.__sent_data_times[requestid][vname]) != 2:
+            return [None, None]
+
+        time_last_ok = cls.__sent_data_times[requestid][vname][0]
+        time_last = cls.__sent_data_times[requestid][vname][1]
+
+        cls.__sent_data_times_lock.release()
+
+        return [time_last_ok, time_last]
 
     def get(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a get request where the user has specified a
@@ -445,8 +523,8 @@ class DatasetView(View):
             },
             dataset=dset)
 
-        if dset.end_time < datetime.datetime.now(timezone.tz):
-            form.fields['track_real_time'].widget.attrs['disabled'] = True
+        # if dset.end_time < datetime.datetime.now(timezone.tz):
+        #     form.fields['track_real_time'].widget.attrs['disabled'] = True
 
         try:
             dvars = sorted(dset.get_variables().keys())
@@ -634,12 +712,25 @@ class DatasetView(View):
             return render(request, self.template_name,
                           {'form': form, 'dataset': dset})
 
+        for vname in savail:
+            try:
+                # works for any shape, as long as time is the first dimension
+                lastok = np.where(~np.isnan(ncdata['data'][vname]))[0][-1]
+                time_last_ok = ncdata['time'][lastok]
+            except IndexError:
+                # all data is nan
+                time_last_ok = datetime.datetime.min.timestamp()
+
+            time_last = ncdata['time'][-1]
+            DatasetView.set_sent_data_times(
+                usersel.id, vname, time_last_ok, time_last)
+
         # As an easy compression, subtract first time from all times,
         # reducing the number of characters sent.
         time0 = 0
         if len(ncdata['time']) > 0:
-            time0 = ncdata['time'][0].timestamp()
-        time = json.dumps([x.timestamp() - time0 for x in ncdata['time']])
+            time0 = ncdata['time'][0]
+        time = json.dumps([x - time0 for x in ncdata['time']])
 
         def type_by_shape(shape):
             """Crude function to return a plot type, given a dimension.
@@ -729,96 +820,145 @@ class DataView(View):
 
         """
 
-        debug = False
+        debug = True
 
-        _logger.debug(
-            "get, selection_id=%s, last_time=%s",
-            selection_id, request.GET.get('last_time', '0'))
+        if not request.session.test_cookie_worked():
+            # The django server is backed by memcached, so I believe
+            # this won't happen when the django server is restarted,
+            # but will happen if the memcached daemon is restarted.
+            _logger.error(
+                "session cookie check failed. Either this server "
+                "was restarted, or the user needs to enable cookies")
+
+            # redirect back to square one
+            return redirect('ncharts:projectsPlatforms')
+
+            # return HttpResponse("Your cookie is not recognized.
+            # Either this server was restarted, or you need to
+            # enable cookies in your browser. Then please try again.")
+
+        # selection id is passed in the get
         usersel = get_object_or_404(nc_models.UserSelection.objects,
                                     id=selection_id)
-        last_time = float(request.GET.get('last_time', '0'))
-
         dset = get_dataset(usersel)
-        svars = json.loads(usersel.variables)
-        timezone = usersel.timezone
-        delt = usersel.time_length
 
-        stime = datetime.datetime.fromtimestamp(last_time, tz=timezone)
-        if not debug:
-            etime = datetime.datetime.now(timezone)
+        dataset_name = dset.name
+        project_name = dset.project.name
+
+        request_id = get_selection_id_from_session(request.session, project_name, dataset_name)
+
+        if request_id:
+            if not request_id == usersel.id:
+                _logger.warning(
+                    "DataView get, selection_id=%s, for project=%s, dataset=%s"
+                    " does not match selection id from sesson=%d",
+                    selection_id, project_name, dataset_name, request_id)
+                return HttpResponseForbidden(
+                    "Unknown browser session, start over")
         else:
-            etime = stime + datetime.timedelta(seconds=600)
-
-        _logger.debug("DataView.get, stime=%s, etime=%s",
-                      stime, etime)
+            _logger.warning(
+                "DataView get, selection_id=%s, for project=%s, dataset=%s"
+                " not found in session",
+                selection_id, project_name, dataset_name)
+            return HttpResponseForbidden("Unknown browser session, start over")
 
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()
+        elif isinstance(dset, nc_models.DBDataset):
+            dbcon = dset.get_connection()
 
-            # a variable can be in a dataset, but not in a certain set of files.
+        # selected variables
+        svars = json.loads(usersel.variables)
+
+        if len(svars) == 0:
+            _logger.warn("variables not found for id=%d", usersel.id)
+            return redirect(
+                'ncharts:dataset', project_name=project_name,
+                dataset_name=dataset_name)
+
+        timezone = usersel.timezone
+
+        all_vars_data = {}
+
+        for vname in svars:
+
+            # timetag of last non-nan sample for this variable sent to client
+            # timetag of last sample for this variable sent to client
+            [time_last_ok, time_last] = \
+                    DatasetView.get_sent_data_times(usersel.id, vname)
+            if not time_last_ok:
+                _logger.warn(
+                    "data times not found for id=%d, variable=%s",
+                    usersel.id, vname)
+                return redirect(
+                    'ncharts:dataset', project_name=project_name,
+                    dataset_name=dataset_name)
+
+            stime = datetime.datetime.fromtimestamp(
+                time_last_ok + 0.001, tz=timezone)
+
+            if not debug:
+                etime = datetime.datetime.now(timezone)
+            else:
+                etime = stime + datetime.timedelta(seconds=3600)
+
             try:
-                dsvars = ncdset.get_variables(
-                    start_time=stime, end_time=etime)
+                if isinstance(dset, nc_models.FileDataset):
+                    ncdata = ncdset.read_time_series(
+                        [vname], start_time=stime, end_time=etime)
+                else:
+                    ncdata = dbcon.read_time_series(
+                        [vname], start_time=stime, end_time=etime)
+                try:
+                    lastok = np.where(~np.isnan(ncdata['data'][vname]))[0][-1]
+                    time_last_ok = ncdata['time'][lastok]
+                except IndexError:
+                    # all data nan. Only send those after datatimes[1]
+                    # index of first time > datatimes[1]
+                    idx = next(
+                        x for x in ncdata['time'] if x > time_last) - 1
+                    ncdata['time'] = ncdata['time'][idx:]
+                    ncdata['data'] = ncdata['data'][idx:]
+
+                time_last = ncdata['time'][-1]
             except OSError as exc:
                 _logger.error("%s, %s: %s", dset.project.name, dset.name, exc)
                 raise Http404(str(exc))
+            except nc_exceptions.TooMuchDataException as exc:
+                _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
+                raise Http404(str(exc))
+            except nc_exceptions.NoDataException as exc:
+                _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
+                # make up some data
+                ncdata = {
+                    'time': [etime.timestamp()],
+                    'data':
+                        {vname: np.array([], dtype=np.dtype("float32"))},
+                    'dim2': []}
 
-        elif isinstance(dset, nc_models.DBDataset):
-            dbcon = dset.get_connection()
-            dsvars = dbcon.get_variables(start_time=stime, end_time=etime)
+            DatasetView.set_sent_data_times(
+                usersel.id, vname, time_last_ok, time_last)
 
-        # selected and available variables, using set intersection
-        savail = list(set(svars) & set(dsvars.keys()))
+            # As an easy compression, subtract first time from all times,
+            # reducing the number of characters sent.
+            time0 = 0
+            if len(ncdata['time']) > 0:
+                time0 = ncdata['time'][0]
+            time = json.dumps([x - time0 for x in ncdata['time']])
 
-        if len(savail) == 0:
-            exc = nc_exceptions.NoDataException(
-                "variables {} not found in dataset".format(svars))
-            _logger.warn(repr(exc))
-            raise Http404(str(exc))
+            data = json.dumps(ncdata['data'][vname], cls=NChartsJSONEncoder)
 
-        try:
-            if isinstance(dset, nc_models.FileDataset):
-                print("read_time_series, stime={},etime={}".format(
-                    stime, etime))
-                ncdata = ncdset.read_time_series(
-                    savail, start_time=stime, end_time=etime)
-                print("read_time_series, len(ncdata['time'])={}".format(
-                    len(ncdata['time'])))
-                if len(ncdata['time']) > 0:
-                    print("time[0]={}".format(ncdata['time'][0]))
-            else:
-                ncdata = dbcon.read_time_series(
-                    savail, start_time=stime, end_time=etime)
-        except OSError as exc:
-            _logger.error("%s, %s: %s", dset.project.name, dset.name, exc)
-            raise Http404(str(exc))
-        except nc_exceptions.TooMuchDataException as exc:
-            _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
-            raise Http404(str(exc))
-        except nc_exceptions.NoDataException as exc:
-            _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
-            # make up some data
-            vdata = {}
-            for var in savail:
-                vdata[var] = np.array([0.], dtype=np.dtype("float32"))
-            ncdata = {
-                'time': [etime],
-                'data': vdata,
-                'dim2': []}
+            dim2 = []
+            if 'data' in ncdata['dim2']:
+                dim2 = json.dumps(ncdata['dim2']['data'],
+                    cls=NChartsJSONEncoder)
 
-        # As an easy compression, subtract first time from all times,
-        # reducing the number of characters sent.
-        time0 = 0
-        if len(ncdata['time']) > 0:
-            time0 = ncdata['time'][0].timestamp()
-        time = json.dumps([x.timestamp() - time0 for x in ncdata['time']])
+            all_vars_data[vname] = {
+                'time0': time0,
+                'time': time,
+                'data': data,
+                'dim2': dim2
+            }
 
-        data = json.dumps(ncdata['data'], cls=NChartsJSONEncoder)
-
-        dim2 = json.dumps(ncdata['dim2'], cls=NChartsJSONEncoder)
-
-        data = {'time0': time0, 'time': time, 'data': data, 'dim2': dim2}
-
-        # return HttpResponse(data.items(), content_type="application/json")
-        return HttpResponse(json.dumps(data), content_type="application/json")
+        return HttpResponse(json.dumps(all_vars_data), content_type="application/json")
 
