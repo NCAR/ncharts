@@ -10,7 +10,7 @@
 <ul>
     <li>1-D Time Series Traces</li>
     <ul>
-        <li>To plot real-time data as it arrives, check the "Track Real Time" box. This option is only available for datasets whose end time is in the future. Your browser will poll the server for new data, at a time interval equal to 1/2 the average delta-T of the data. The plot will scroll and and start time will be updated when new data arrives.</li>
+        <li>To plot real-time data as it arrives, check the "Track Real Time" box. This option is only enabled for datasets whose end time is in the future. Your browser will poll the server for new data, at a time interval equal to 1/2 the average delta-T of the data. The plot will scroll and and start time will be updated when new data arrives.</li>
         <li>When a time zone is selected the start time will be adjusted to indicate the same moment in time. The time labels on the plot will be in the selected time zone.</li>
         <li>After changing a selection of variables, time or time zone, hit Plot to update the plot, as it is not automatically updated when a selection is made.</li>
         <li>All selected variables with the same units will be plotted together.</li>
@@ -35,6 +35,10 @@
     <li>On phones, to scroll up or down , try swiping on the right-hand side to activate a small scrollbar.</li>
     <li>Clicking Today in the datetime widget will set the time and date to the current time, in the browser's local time zone. It will then be interpreted in the selected time zone.</li>
     <li>If you return to plot a previous dataset, you may have to do a browser refresh to see the variables and time you selected previously.</li>
+    <li>Real-Time Data Updates</li>
+    <ul>
+        <li>Real-time updates contain data for each variable whose time is later than the last non-missing value. If values previous to the last non-missing value were updated by data processing, they will not be updated in the Ncharts display. Click on the Plot button to do a complete refresh.</li>
+    <ul>
 </ul>
 
 {% endblock %}
