@@ -800,12 +800,12 @@
                             ],
                             min: minval,
                             max: maxval,
+                            reversed: false,
                             // minColor: '#FFFFFF',
                             // maxColor: Highcharts.getOptions().colors[0]
                         },
                         legend: {
                             title: vname,
-                            reversed: false,
                             align: 'right',
                             layout: 'vertical',
                             margin: 15,
