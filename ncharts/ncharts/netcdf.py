@@ -399,6 +399,8 @@ class NetCDFDataset(object):
             exceptions.TooMuchDataException
         """
 
+        debug = False
+
         base_time = None
 
         if self.base_time and \
@@ -486,17 +488,21 @@ class NetCDFDataset(object):
                     start_time.isoformat(), end_time.isoformat(),
                     datetime.fromtimestamp(tvals[0], tz=pytz.utc).isoformat(),
                     datetime.fromtimestamp(tvals[-1], tz=pytz.utc).isoformat(),
-                    istart,iend)
+                    istart, iend)
                 return slice(0)
-            else:
+            elif debug:
                 _logger.debug(
-                    "%s: tvals[%d]=%d ,"
-                    "tvals[%d]=%d, "
+                    "%s: tvals[%d]=%s, tvals[%d]=%s, "
                     "start_time=%s, end_time=%s",
                     os.path.split(ncpath)[1],
-                    istart, tvals[istart],
-                    iend, tvals[iend-1],
-                    start_time, end_time)
+                    istart,
+                    datetime.fromtimestamp(
+                        tvals[istart], tz=pytz.utc).isoformat(),
+                    iend,
+                    datetime.fromtimestamp(
+                        tvals[iend-1], tz=pytz.utc).isoformat(),
+                    start_time.isoformat(),
+                    end_time.isoformat())
 
             time_slice = slice(istart, iend, 1)
             tvals = tvals[time_slice]
@@ -533,6 +539,8 @@ class NetCDFDataset(object):
         Returns:
             A numpy.ma.array containing the data read.
         """
+
+        debug = False
 
         # which dimension is time?
         time_index = self.variables[vname]["time_index"]
@@ -580,7 +588,7 @@ class NetCDFDataset(object):
                         dim2['name'] = dim
                         dim2['units'] = ''
 
-            if time_slice.stop - time_slice.start > 0:
+            if debug and time_slice.stop - time_slice.start > 0:
                 _logger.debug(
                     "%s: %s: time_slice.start,"
                     "time_slice.stop=%d,%d, idx[1:]=%s",
@@ -601,8 +609,8 @@ class NetCDFDataset(object):
                 vdata = np.ndarray.astype(vdtype)
 
             if len(vshape) > 0 and tuple(vshape[1:]) != vdata.shape[1:]:
-                print("vshape[1:]={0}, vdata.shape[1:]={1}".format(
-                    vshape[1:], vdata.shape[1:]))
+                # print("vshape[1:]={0}, vdata.shape[1:]={1}".format(
+                #     vshape[1:], vdata.shape[1:]))
                 # changing shape. Add support for final dimension
                 # increasing. vshape should be the largest expected shape
                 shape = list(vdata.shape)
@@ -672,6 +680,8 @@ class NetCDFDataset(object):
             FileNotFoundError, PermissionError
 
         """
+
+        debug = False
 
         if not self.time_name:
             self.get_variables(start_time, end_time)
@@ -748,9 +758,10 @@ class NetCDFDataset(object):
                         size1 = 0
                         datadict[vname] = vdata
                     else:
-                        _logger.debug(
-                            "datadict[vname].shape=%s, vdata.shape=%s",
-                            datadict[vname].shape, vdata.shape)
+                        if debug:
+                            _logger.debug(
+                                "datadict[%s].shape=%s, vdata.shape=%s",
+                                vname, datadict[vname].shape, vdata.shape)
 
                         size1 = sys.getsizeof(datadict[vname])
 
@@ -770,12 +781,13 @@ class NetCDFDataset(object):
             _logger.warning(repr(exc))
             raise exc
 
-        for vname in datadict.keys():
+        if debug:
+            for vname in datadict.keys():
+                _logger.debug(
+                    "datadict[%s].shape=%s",
+                    vname, repr(datadict[vname].shape))
             _logger.debug(
-                "datadict[%s].shape=%s",
-                vname, repr(datadict[vname].shape))
-        _logger.debug(
-            "total_size=%d", total_size)
+                "total_size=%d", total_size)
 
         return {"time" : times, "data": datadict, "dim2": dim2}
 
