@@ -375,8 +375,13 @@ class DatasetView(View):
         project and dataset.
 
         """
-        _logger.debug("get, dataset %s of project %s",
-                      dataset_name, project_name)
+
+        debug = False
+
+        if debug:
+            _logger.debug(
+                "DatasetView get, dataset %s of project %s",
+                dataset_name, project_name)
 
         proj = get_object_or_404(nc_models.Project.objects, name=project_name)
 
@@ -469,15 +474,17 @@ class DatasetView(View):
         # variables selected previously by user
         if usersel.variables:
             svars = json.loads(usersel.variables)
-            _logger.debug(
-                "get, old session, same dataset, " \
-                "project=%s, dataset=%s, variables=%s",
-                project_name, dataset_name, usersel.variables)
+            if debug:
+                _logger.debug(
+                    "get, old session, same dataset, " \
+                    "project=%s, dataset=%s, variables=%s",
+                    project_name, dataset_name, usersel.variables)
         else:
-            _logger.debug(
-                "get, old session, same dataset, "
-                "project=%s, dataset=%s, variables=%s",
-                project_name, dataset_name, usersel.variables)
+            if debug:
+                _logger.debug(
+                    "get, old session, same dataset, "
+                    "project=%s, dataset=%s, no variables",
+                    project_name, dataset_name)
             svars = []
 
         tlen = usersel.time_length
@@ -507,11 +514,12 @@ class DatasetView(View):
         start_time = datetime.datetime.fromtimestamp(
             usersel.start_time.timestamp(), tz=timezone.tz).replace(tzinfo=None)
 
-        _logger.debug(
-            "get, old session, same dataset, "
-            "project=%s, dataset=%s, start_time=%s, vars=%s",
-            project_name, dataset_name,
-            start_time, usersel.variables)
+        if debug:
+            _logger.debug(
+                "DatasetView get, old session, same dataset, "
+                "project=%s, dataset=%s, start_time=%s, vars=%s",
+                project_name, dataset_name,
+                start_time, usersel.variables)
 
         form = nc_forms.DataSelectionForm(
             initial={
@@ -845,21 +853,22 @@ class DataView(View):
         dataset_name = dset.name
         project_name = dset.project.name
 
-        request_id = get_selection_id_from_session(request.session, project_name, dataset_name)
+        request_id = get_selection_id_from_session(
+            request.session, project_name, dataset_name)
 
         if request_id:
             if not request_id == usersel.id:
                 _logger.warning(
-                    "DataView get, selection_id=%s, for project=%s, dataset=%s"
+                    "%s, %s: DataView get, selection_id=%s"
                     " does not match selection id from sesson=%d",
-                    selection_id, project_name, dataset_name, request_id)
+                    project_name, dataset_name, selection_id, request_id)
                 return HttpResponseForbidden(
                     "Unknown browser session, start over")
         else:
             _logger.warning(
-                "DataView get, selection_id=%s, for project=%s, dataset=%s"
+                "%s, %s: DataView get, selection_id=%s"
                 " not found in session",
-                selection_id, project_name, dataset_name)
+                project_name, dataset_name, selection_id)
             return HttpResponseForbidden("Unknown browser session, start over")
 
         if isinstance(dset, nc_models.FileDataset):
@@ -871,7 +880,9 @@ class DataView(View):
         svars = json.loads(usersel.variables)
 
         if len(svars) == 0:
-            _logger.warn("variables not found for id=%d", usersel.id)
+            _logger.warn(
+                "%s, %s: variables not found for id=%d",
+                project_name, dataset_name, usersel.id)
             return redirect(
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
@@ -888,8 +899,8 @@ class DataView(View):
                     DatasetView.get_sent_data_times(usersel.id, vname)
             if not time_last_ok:
                 _logger.warn(
-                    "data times not found for id=%d, variable=%s",
-                    usersel.id, vname)
+                    "%s, %s: data times not found for id=%d, variable=%s",
+                    project_name, dataset_name, usersel.id, vname)
                 return redirect(
                     'ncharts:dataset', project_name=project_name,
                     dataset_name=dataset_name)
@@ -909,34 +920,67 @@ class DataView(View):
                 else:
                     ncdata = dbcon.read_time_series(
                         [vname], start_time=stime, end_time=etime)
-                if len(ncdata['time']) > 0:
-                    try:
-                        lastok = np.where(
-                            ~np.isnan(ncdata['data'][vname]))[0][-1]
-                        time_last_ok = ncdata['time'][lastok]
-                    except IndexError:
-                        # all data nan. Only send those after time_last
-                        # index of first time > time_last
-                        idx = next(
-                            x for x in ncdata['time'] if x > time_last) - 1
-                        _logger.warn("all data nan, idx=%d",idx)
+                try:
+                    lastok = np.where(
+                        ~np.isnan(ncdata['data'][vname]))[0][-1]
+                    time_last_ok = ncdata['time'][lastok]
+                    if debug:
+                        _logger.debug(
+                            "Dataview Get, %s, %s: variable=%s, last_time_ok=%s"
+                            "stime=%s, etime=%s",
+                            project_name, dataset_name, vname,
+                            datetime.datetime.fromtimestamp(
+                                time_last_ok, tz=timezone).isoformat(),
+                            stime.isoformat(), etime.isoformat())
+                except IndexError:
+                    # all data nan. Only send those after time_last
+                    if debug:
+                        _logger.debug(
+                            "Dataview Get, %s, %s: variable=%s, all data nan, " \
+                            "stime=%s, etime=%s",
+                            project_name, dataset_name, vname,
+                            stime.isoformat(), etime.isoformat())
+
+                    # index of first time > time_last
+                    idx = next((i for i, t in enumerate(ncdata['time']) \
+                        if t > time_last), -1)
+                    if idx >= 0:
                         ncdata['time'] = ncdata['time'][idx:]
-                        ncdata['data'] = ncdata['data'][idx:]
-                    time_last = ncdata['time'][-1]
+                        ncdata['data'][vname] = ncdata['data'][vname][idx:]
+                        time_last = ncdata['time'][-1]
+                    else:
+                        if debug:
+                            _logger.debug(
+                                "Dataview Get, %s, %s: variable=%s, no new data, "
+                                "stime=%s, etime=%s, time_last=%s",
+                                project_name, dataset_name, vname,
+                                stime.isoformat(), etime.isoformat(),
+                                datetime.datetime.fromtimestamp(
+                                    time_last, tz=timezone).isoformat())
+                        ncdata['time'] = []
+                        ncdata['data'][vname] = []
             except OSError as exc:
-                _logger.error("%s, %s: %s", dset.project.name, dset.name, exc)
+                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 raise Http404(str(exc))
             except nc_exceptions.TooMuchDataException as exc:
-                _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
+                _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
                 raise Http404(str(exc))
             except nc_exceptions.NoDataException as exc:
-                _logger.warn("%s, %s: %s", dset.project.name, dset.name, exc)
+                if debug:
+                    _logger.debug(
+                        "Dataview Get, %s, %s: variable=%s, no data: %s, "
+                        "stime=%s, etime=%s, time_last=%s",
+                        project_name, dataset_name, vname, exc,
+                        stime.isoformat(),
+                        etime.isoformat(),
+                        datetime.datetime.fromtimestamp(
+                            time_last, tz=timezone).isoformat())
                 # make up some data
                 ncdata = {
-                    'time': [etime.timestamp()],
-                    'data':
-                        {vname: np.array([], dtype=np.dtype("float32"))},
+                    'time': [],
+                    'data': {vname: []},
                     'dim2': []}
+                # {vname: np.array([], dtype=np.dtype("float32"))},
 
             DatasetView.set_sent_data_times(
                 usersel.id, vname, time_last_ok, time_last)
@@ -944,16 +988,17 @@ class DataView(View):
             # As an easy compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0 = 0
+            dim2 = []
             if len(ncdata['time']) > 0:
                 time0 = ncdata['time'][0]
+                if 'data' in ncdata['dim2']:
+                    dim2 = json.dumps(
+                        ncdata['dim2']['data'],
+                        cls=NChartsJSONEncoder)
+
             time = json.dumps([x - time0 for x in ncdata['time']])
 
             data = json.dumps(ncdata['data'][vname], cls=NChartsJSONEncoder)
-
-            dim2 = []
-            if 'data' in ncdata['dim2']:
-                dim2 = json.dumps(ncdata['dim2']['data'],
-                    cls=NChartsJSONEncoder)
 
             all_vars_data[vname] = {
                 'time0': time0,
@@ -962,5 +1007,10 @@ class DataView(View):
                 'dim2': dim2
             }
 
-        return HttpResponse(json.dumps(all_vars_data), content_type="application/json")
+        # jstr = json.dumps(all_vars_data)
+        # _logger.debug("json data=%s",jstr)
+        # return HttpResponse(jstr, content_type="application/json")
+        return HttpResponse(
+            json.dumps(all_vars_data),
+            content_type="application/json")
 

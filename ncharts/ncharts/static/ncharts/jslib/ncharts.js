@@ -90,17 +90,18 @@
             // console.log("do_ajax");
             $.ajax({
                 url: ajaxurl,
-                timeout: 10 * 1000,
+                timeout: 30 * 1000,
                 data: {
                     // send the last time of the current plot to server
                     // last_time: local_ns.last_time,
                 },
                 dataType: "json",
+                error: function(jqXHR, error_type, errstr) { console.log("ajax error=",errstr); },
                 success: function(indata) {
 
-                    // console.log("ajax success!, now=",new Date(),",time0=",time0);
-                    //
-                    var first_time;
+                    // console.log("ajax success!, now=",new Date(),",
+                    // time0=",time0);
+                    var first_time = null;
 
                     $("div[id^='time-series']").each(function(index) {
                         var chart = $( this ).highcharts();
@@ -110,6 +111,11 @@
                         }
                         for (var iv = 0; iv < vnames.length; iv++ ) {
                             var vname = vnames[iv];
+
+                            if (chart.series[iv].data.length > 0) {
+                                first_time = chart.series[iv].data[0]['x'];
+                            }
+
                             if (!(vname in indata)) {
                                 continue;
                             }
@@ -120,12 +126,6 @@
                                 continue;
                             }
 
-                            if (chart.series[iv].data.length > 0) {
-                                first_time = chart.series[iv].data[0]['x'];
-                            }
-                            else {
-                                first_time = 0;
-                            }
                             // console.log("first_time=",local_ns.format_time(first_time));
 
                             var time0 = indata[vname]['time0']
@@ -203,6 +203,11 @@
                         var t0, t1;
                         for (var iv = 0; iv < vnames.length; iv++ ) {
                             var vname = vnames[iv];
+
+                            if (chart.series[iv].data.length > 0) {
+                                first_time = chart.series[iv].data[0]['x'];
+                            }
+
                             if (!(vname in indata)) {
                                 continue;
                             }
@@ -210,12 +215,6 @@
 
                             if (time.length == 0) {
                                 continue;
-                            }
-                            if (chart.series[iv].data.length > 0) {
-                                first_time = chart.series[iv].data[0]['x'];
-                            }
-                            else {
-                                first_time = 0;
                             }
 
                             var time0 = indata[vname]['time0']
@@ -262,7 +261,7 @@
                                     if (ctx == tx) {    // same time, replace it
                                         for (var j = 0; j < dim2.length; j++) {
                                             dx = data[idata][j];
-                                            chart.series[iv].data[ix+j].update(dx,redraw);
+                                            chart.series[iv].data[ix+j].update([tx,dim2[j],dx],redraw);
                                         }
                                     }
                                     else {
@@ -309,7 +308,9 @@
 
                     // update the start time on the datetimepicker from
                     // first time in chart (milliseconds)
-                    local_ns.update_start_time(first_time);
+                    if (first_time) {
+                        local_ns.update_start_time(first_time);
+                    }
 
                     // schedule again
                     setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
@@ -464,6 +465,8 @@
                 // console.log("ajaxTimeout=",local_ns.ajaxTimeout);
             }
 
+            var first_time = null;
+
             $("div[id^='time-series']").each(function(index) {
 
                 // console.log("time-series");
@@ -535,6 +538,9 @@
                     var vdata = [];
                     for (var idata = 0; idata < time.length; idata++) {
                         vdata.push([(time0 + time[idata])*1000, data[vname][idata]]);
+                    }
+                    if (time.length) {
+                        first_time = (time0 + time[0]) * 1000;
                     }
 
                     vseries['data'] = vdata;
@@ -713,6 +719,9 @@
                             chart_data.push([tx, dim2['data'][j],dx]);
                         }
                     } 
+                    if (time.length) {
+                        first_time = (time0 + time[0]) * 1000;
+                    }
 
                     // var colsize = 3600 * 1000;
                     var colsize = (maxtime - mintime) / (time.length - 1);
@@ -796,7 +805,7 @@
                         },
                         legend: {
                             title: vname,
-                            reversed: true,
+                            reversed: false,
                             align: 'right',
                             layout: 'vertical',
                             margin: 15,
@@ -813,11 +822,15 @@
                                 */
                                 headerFormat: '',
                                 pointFormat: vname + '={point.value}, ' + dim2_name + '={point.y}, {point.x:%H:%M:%S %Z}',
+                                xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
                             }
                         }],
                     });
                 }
             });
+            if (first_time) {
+                local_ns.update_start_time(first_time);
+            }
         });
     })
 );
