@@ -218,15 +218,10 @@
                                                 ", ix=", ix, ", len=",
                                                 series.data.length); 
                                         }
-
                                         series.addPoint([tx,dx],redraw,false);
-                                        if (ctx > tx && ix == 0) {
-                                            first_time = series.data[0]['x'];
-                                        }
                                     }
                                 }
                             }
-                            // chart.redraw();
 
                             var npts = 0
                             while ((l = series.data.length) > 1 &&
@@ -237,7 +232,7 @@
                                 npts++;
                             }
                             if (npts && local_ns.debug_level) {
-                                console.log("removed ",npts," points, time_length=",
+                                console.log("var=",vname," removed ",npts," points, time_length=",
                                         local_ns.time_length);
                             }
                             if (local_ns.debug_level) {
@@ -247,6 +242,8 @@
                                     ", chart.series[",iv,"].data.length=", series.data.length)
                             }
                         }
+                        // charts of multiple variables sometimes take a while to redraw
+                        // if (chart.series.length > 1) chart.redraw();
                     });
 
                     $("div[id^='heatmap']").each(function(index) {
