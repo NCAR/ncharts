@@ -356,8 +356,9 @@ class Fileset(object):
     datetime descriptors, such as %Y, %m and %d.
 
     Attributes:
-        path: A str, path with possible strptime descriptors to the dataset.
-        pdir: Dir corresponding to initial non-descriptor part of path.
+        path: A str, path with possible strptime descriptors.
+        pdir: Dir corresponding to initial portion directory path up to
+            a directory or file name with strptime descriptors.
     """
 
     __cached_filesets = {}
@@ -388,6 +389,9 @@ class Fileset(object):
                 pathrem = tail
 
         self.pdir = Dir.get(path, path, pathrem)
+
+    def __str__(self):
+        return self.path
 
     @staticmethod
     def get(path):
