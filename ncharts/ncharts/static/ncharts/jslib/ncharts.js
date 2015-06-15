@@ -8,7 +8,7 @@
         // Put local variables and functions into this namespace
         local_ns = {}
 
-        local_ns.debug = false;
+        local_ns.debug_level = 0;
 
         local_ns.find_x_ge = function(arr,val) {
             var index = null;
@@ -142,7 +142,7 @@
                             }
 
                             // shouldn't often happen in this ajax function
-                            if (series.data.length == 0) {
+                            if (series.data.length == 0 && local_ns.debug_level) {
                                 console.log("ajax, iv=",iv,", vname=",vname,
                                     ", series.data.length=",series.data.length);
                             }
@@ -173,17 +173,6 @@
                                             series.data.length);
                                     }
                                 }
-                                /*
-                                if (dl > 0) {
-                                    console.log("tx=",local_ns.format_time(tx),
-                                        ", last chart time=",
-                                            local_ns.format_time(series.data[dl-1]['x']), 
-                                        ", dl=",dl,", ix=",ix);
-                                } else {
-                                    console.log("tx=",local_ns.format_time(tx),
-                                        ", dl=",dl,", ix=",ix);
-                                }
-                                */
 
                                 // later time than all in chart, add with possible shift
                                 if (ix == series.data.length) {
@@ -220,7 +209,7 @@
                                     }
                                     else {
                                         // shift=false, adding in middle
-                                        if (local_ns.debug) {
+                                        if (local_ns.debug_level > 1) {
                                             console.log("var=",vname,
                                                 " insert time, tx=",
                                                 local_ns.format_time(tx),
@@ -247,14 +236,16 @@
                                 first_time = series.data[0]['x'];
                                 npts++;
                             }
-                            if (npts) {
+                            if (npts && local_ns.debug_level) {
                                 console.log("removed ",npts," points, time_length=",
                                         local_ns.time_length);
                             }
-                            console.log("time-series ajax function done, var= ",vname,
-                                ", itimes.length=",itimes.length,
-                                ", first_time=", local_ns.format_time(first_time),
-                                ", chart.series[",iv,"].data.length=", series.data.length)
+                            if (local_ns.debug_level) {
+                                console.log("time-series ajax function done, var= ",vname,
+                                    ", itimes.length=",itimes.length,
+                                    ", first_time=", local_ns.format_time(first_time),
+                                    ", chart.series[",iv,"].data.length=", series.data.length)
+                            }
                         }
                     });
 
@@ -285,7 +276,7 @@
                             var vdata = $.parseJSON(indata[vname]['data'])
                             var dim2 = $.parseJSON(indata[vname]['dim2'])
 
-                            if (local_ns.debug) {
+                            if (local_ns.debug_level > 1) {
                                 t0 =  new Date();
                                 console.log("heatmap ",t0,", vname=",vname,", adding ",itimes.length,
                                         " points, dim2.length=",dim2.length)
@@ -347,7 +338,7 @@
                                     }
                                 }
                             }
-                            if (local_ns.debug) {
+                            if (local_ns.debug_level > 1) {
                                 t1 =  new Date();
                                 console.log("added ", itimes.length, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
@@ -361,18 +352,20 @@
                                 first_time = series.data[0]['x'];
                                 npts++;
                             }
-                            if (local_ns.debug) {
+                            if (local_ns.debug_level > 1) {
                                 t1 =  new Date();
                                 console.log("removed ", npts, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
                             }
-                            console.log("heatmap ajax function done, var= ",vname,
-                                ", itimes.length=",itimes.length,
-                                ", first_time=", local_ns.format_time(first_time),
-                                ", chart.series[",iv,"].data.length=", series.data.length)
+                            if (local_ns.debug_level) {
+                                console.log("heatmap ajax function done, var= ",vname,
+                                    ", itimes.length=",itimes.length,
+                                    ", first_time=", local_ns.format_time(first_time),
+                                    ", chart.series[",iv,"].data.length=", series.data.length)
+                            }
                         }
                         chart.redraw();
-                        if (local_ns.debug) {
+                        if (local_ns.debug_level > 1) {
                             t1 =  new Date();
                             console.log("chart redraw, elapsed time=",(t1 - t0)/1000," seconds");
                             t0 = t1;
@@ -518,12 +511,17 @@
                                 (plot_times.length - 1) * 1000 / 2)
                         );
                 }
-                if (local_ns.debug) {
+                if (local_ns.debug_level > 1) {
                     // update more frequently for debugging
                     local_ns.ajaxTimeout = 10 * 1000;
                 }
+
+                // start AJAX
                 setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
-                console.log("ajaxTimeout=",local_ns.ajaxTimeout);
+
+                if (local_ns.debug_level) {
+                    console.log("ajaxTimeout=",local_ns.ajaxTimeout);
+                }
             }
 
             var first_time = null;
@@ -602,7 +600,7 @@
                     // which axis does this one belong to? Will always be 0
                     vseries['yAxis'] = unique_units.indexOf(vunit);
                     series.push(vseries);
-                    if (local_ns.debug) {
+                    if (local_ns.debug_level > 1) {
                         console.log("initial, vname=",vname,", series[",iv,"].length=",
                                 series[iv].data.length);
                     }
