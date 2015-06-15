@@ -727,7 +727,7 @@ class DatasetView(View):
                 time_last_ok = ncdata['time'][lastok]
             except IndexError:
                 # all data is nan
-                time_last_ok = datetime.datetime.min.timestamp()
+                time_last_ok = (stime - datetime.timedelta(seconds=0.001)).timestamp()
 
             time_last = ncdata['time'][-1]
             DatasetView.set_sent_data_times(
