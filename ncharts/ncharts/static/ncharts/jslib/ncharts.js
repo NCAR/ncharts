@@ -229,7 +229,7 @@
                             // chart.redraw();
 
                             var npts = 0
-                            while ((l = series.data.length > 1) &&
+                            while ((l = series.data.length) > 1 &&
                                 series.data[l-1]['x'] >
                                     series.data[0]['x'] + local_ns.time_length) {
                                 series.removePoint(0,true);
@@ -254,10 +254,12 @@
                         // update heatmap plots from ajax data
                         var chart = $( this ).highcharts();
 
-                        var t0, t1;
+                        var t0 = new Date();
+                        var t1;
                         for (var iv = 0; iv < chart.series.length; iv++ ) {
                             var series = chart.series[iv];
                             var vname = series.name;
+                            // console.log("vname=",vname)
 
                             if (series.data.length > 0) {
                                 first_time = series.data[0]['x'];
@@ -277,7 +279,7 @@
                             var dim2 = $.parseJSON(indata[vname]['dim2'])
 
                             if (local_ns.debug_level > 1) {
-                                t0 =  new Date();
+                                t0 = new Date();
                                 console.log("heatmap ",t0,", vname=",vname,", adding ",itimes.length,
                                         " points, dim2.length=",dim2.length)
                             }
@@ -301,7 +303,7 @@
 
                                 // later time than all in chart, add with possible shift
                                 if (ix == series.data.length) {
-                                    var shift = (first_time &&
+                                    var shift = (false && first_time &&
                                         (tx > first_time + local_ns.time_length)) ? true : false;
                                     for (var j = 0; j < dim2.length; j++) {
                                         dx = vdata[idata][j];
@@ -339,13 +341,13 @@
                                 }
                             }
                             if (local_ns.debug_level > 1) {
-                                t1 =  new Date();
+                                t1 = new Date();
                                 console.log("added ", itimes.length, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
                             }
                             // remove points
                             var npts = 0;
-                            while ((l = series.data.length > 1) &&
+                            while ((l = series.data.length) > 1 &&
                                 series.data[l-1]['x'] >
                                     series.data[0]['x'] + local_ns.time_length) {
                                 series.removePoint(0,redraw);
@@ -353,7 +355,7 @@
                                 npts++;
                             }
                             if (local_ns.debug_level > 1) {
-                                t1 =  new Date();
+                                t1 = new Date();
                                 console.log("removed ", npts, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
                             }
@@ -366,7 +368,7 @@
                         }
                         chart.redraw();
                         if (local_ns.debug_level > 1) {
-                            t1 =  new Date();
+                            t1 = new Date();
                             console.log("chart redraw, elapsed time=",(t1 - t0)/1000," seconds");
                             t0 = t1;
                         }
@@ -511,7 +513,7 @@
                                 (plot_times.length - 1) * 1000 / 2)
                         );
                 }
-                if (local_ns.debug_level > 1) {
+                if (local_ns.debug_level > 2) {
                     // update more frequently for debugging
                     local_ns.ajaxTimeout = 10 * 1000;
                 }
@@ -862,6 +864,7 @@
                             // xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
                         },
                         series:[{
+                            name: vname,
                             data: chart_data,
                             colsize: colsize,
                             rowsize: rowsize,
