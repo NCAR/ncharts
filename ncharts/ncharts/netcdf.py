@@ -84,6 +84,9 @@ class NetCDFDataset(object):
         self.station_dim = None
         self.station_names = None
 
+    def __str__(self):
+        return "NetCDFDataset, path=" + str(self.fileset)
+
     def get_filepaths(self, start_time, end_time):
         """Return the file path names matching the time period.
         Args:
@@ -776,9 +779,11 @@ class NetCDFDataset(object):
 
         if len(times) == 0:
             exc = exceptions.NoDataException(
-                "no data found between {} and {}".
-                format(start_time.isoformat(), end_time.isoformat()))
-            _logger.warning(repr(exc))
+                "{}: no data found between {} and {}".
+                format(
+                    str(self), start_time.isoformat(),
+                    end_time.isoformat()))
+            # _logger.warning("%s: %s", str(self), repr(exc))
             raise exc
 
         if debug:
