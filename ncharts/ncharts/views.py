@@ -765,16 +765,12 @@ class DatasetView(View):
         # Use OrderedDict so the plots come out in this order
         plot_groups = collections.OrderedDict()
 
-        units = [v['units'] for v in variables.values()]
-
         # loop over plot_types
         grpid = 0
         for ptype in plot_types:
             # print("ptype=", ptype)
-            # loop over unique units
 
-            # Cannot combine variables with same units on a heatmap
-            # one plot per variable.
+            # For a heatmap, one plot per variable.
             if ptype == 'heatmap':
                 for vname in sorted(variables):
                     var = variables[vname]
@@ -782,19 +778,28 @@ class DatasetView(View):
                         plot_groups['g{}'.format(grpid)] = {
                             'variables': mark_safe(json.dumps([vname])),
                             'units':
-                                mark_safe(json.dumps(
-                                    [variables[vname]['units']])),
+                                mark_safe(json.dumps([var['units']])),
                             'long_names':
-                                mark_safe(json.dumps(
-                                    [variables[vname]['long_name']])),
+                                mark_safe(json.dumps([var['long_name']])),
                             'plot_type': mark_safe(ptype),
                         }
                         grpid += 1
             else:
+                # unique units, in alphabetical order by the name of the
+                # first variable which uses it. It is better to
+                # have plots in alphabetical order by the first variable
+                # plotted, rather than by their units.
+                uunits = []
+                # sorted(dict) becomes a list of sorted keys
+                for vname in sorted(variables):
+                    units = variables[vname]['units']
+                    if not units in uunits:
+                        uunits.append(units)
+
                 # unique units
-                for unit in sorted(set(units)):
-                    uvars = [vname for vname, var in variables.items() \
-                        if var['plot_type'] == ptype and var['units'] == unit]
+                for unit in uunits:
+                    uvars = sorted([vname for vname, var in variables.items() \
+                        if var['plot_type'] == ptype and var['units'] == unit])
                     # uvars is list of variables with units unit
                     plot_groups['g{}'.format(grpid)] = {
                         'variables': mark_safe(json.dumps(uvars)),
@@ -968,11 +973,9 @@ class DataView(View):
             except nc_exceptions.NoDataException as exc:
                 if debug:
                     _logger.debug(
-                        "Dataview Get, %s, %s: variable=%s, no data: %s, "
-                        "stime=%s, etime=%s, time_last=%s",
-                        project_name, dataset_name, vname, exc,
-                        stime.isoformat(),
-                        etime.isoformat(),
+                        "Dataview Get: %s, %s ,%s: variable=%s, "
+                        ", time_last=%s",
+                        project_name, dataset_name, exc, vname,
                         datetime.datetime.fromtimestamp(
                             time_last, tz=timezone).isoformat())
                 # make up some data
