@@ -91,19 +91,32 @@
             $.ajax({
                 url: ajaxurl,
                 timeout: 30 * 1000,
-                data: {
-                    // send the last time of the current plot to server
-                    // last_time: local_ns.last_time,
+                // No data is sent to the server. In the ajax url is a numeric id which
+                // is used to map to the user's selection.
+                dataType: "json",   // type of data back from server
+
+                error: function(jqXHR, error_type, errorThrown) {
+                    /*
+                     * From http://api.jquery.com/jquery.ajax/:
+                     * Possible values for the second argument (besides null) are
+                     * "timeout", "error", "abort", and "parsererror".
+                     * When an HTTP error occurs, errorThrown receives the textual
+                     * portion of the HTTP status, such as "Not Found" or "Internal Server Error." 
+                     */
+                    console.log("ajax error_type=",error_type);
+                    console.log("ajax errorThrown=",errorThrown);
+                    // schedule again
+                    setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
                 },
-                dataType: "json",
-                error: function(jqXHR, error_type, errstr) { console.log("ajax error=",errstr); },
                 success: function(indata) {
 
                     // console.log("ajax success!, now=",new Date(),",
                     // itime0=",itime0);
-                    var first_time = null;
+                    var first_time = null;  // first plotted time
 
                     $("div[id^='time-series']").each(function(index) {
+
+                        // update time series plots from ajax data
                         var chart = $( this ).highcharts();
 
                         for (var iv = 0; iv < chart.series.length; iv++ ) {
@@ -231,16 +244,23 @@
                                 series.data[l-1]['x'] >
                                     series.data[0]['x'] + local_ns.time_length) {
                                 series.removePoint(0,true);
+                                first_time = series.data[0]['x'];
                                 npts++;
                             }
                             if (npts) {
                                 console.log("removed ",npts," points, time_length=",
                                         local_ns.time_length);
                             }
+                            console.log("time-series ajax function done, var= ",vname,
+                                ", itimes.length=",itimes.length,
+                                ", first_time=", local_ns.format_time(first_time),
+                                ", chart.series[",iv,"].data.length=", series.data.length)
                         }
                     });
 
                     $("div[id^='heatmap']").each(function(index) {
+
+                        // update heatmap plots from ajax data
                         var chart = $( this ).highcharts();
 
                         var t0, t1;
@@ -273,10 +293,14 @@
 
                             var ix = 0;
                             var tx;
+
+                            // redraw == true results in very slow performance on heatmaps.
+                            // Instead we wait and do a chart.redraw() when all points have
+                            // been updated.
+                            var redraw = false;
+
                             for (var idata = 0; idata < itimes.length; idata++) {
-                                // redraw == true results in very slow performance.
-                                // var redraw = (idata == itimes.length - 1 ? true : false);
-                                var redraw = false;
+                                // redraw = (idata == itimes.length - 1 ? true : false);
 
                                 tx = (itime0 + itimes[idata]) * 1000;
 
@@ -328,11 +352,13 @@
                                 console.log("added ", itimes.length, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
                             }
+                            // remove points
                             var npts = 0;
                             while ((l = series.data.length > 1) &&
                                 series.data[l-1]['x'] >
                                     series.data[0]['x'] + local_ns.time_length) {
-                                series.removePoint(0,false);
+                                series.removePoint(0,redraw);
+                                first_time = series.data[0]['x'];
                                 npts++;
                             }
                             if (local_ns.debug) {
@@ -340,6 +366,10 @@
                                 console.log("removed ", npts, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
                             }
+                            console.log("heatmap ajax function done, var= ",vname,
+                                ", itimes.length=",itimes.length,
+                                ", first_time=", local_ns.format_time(first_time),
+                                ", chart.series[",iv,"].data.length=", series.data.length)
                         }
                         chart.redraw();
                         if (local_ns.debug) {
@@ -571,13 +601,6 @@
 
                     // which axis does this one belong to? Will always be 0
                     vseries['yAxis'] = unique_units.indexOf(vunit);
-                    vseries['tooltip'] = {
-                        // valueSuffix: long_name,
-                        headerFormat: '<span style="font-size: 10px">{point.key}</span><br/>',
-                        pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + long_name + ',{series.name}: <b>{point.y}</b><br/>',
-                        valueDecimals: 6,
-                        xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
-                    };
                     series.push(vseries);
                     if (local_ns.debug) {
                         console.log("initial, vname=",vname,", series[",iv,"].length=",
@@ -662,6 +685,14 @@
                     },
                     scrollbar: {
                         enabled: false,
+                    },
+                    tooltip: {
+                        // valueSuffix: long_name,
+                        headerFormat: '<span style="font-size: 10px">{point.key}</span><br/>',
+                        pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + long_name + ',{series.name}: <b>{point.y}</b><br/>',
+                        valueDecimals: 6,
+                        xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
+                        shared: true,
                     },
                     navigator: {
                         height: 25,
@@ -821,19 +852,21 @@
                             margin: 15,
                             verticalAlign: 'bottom'
                         },
+                        tooltip: {
+                            enabled: true,
+                            /*
+                            headerFormat: vname + "<br/>",
+                            */
+                            headerFormat: '',
+                            pointFormat:
+                                vname + '={point.value}, ' + dim2_name +
+                                '={point.y}, {point.x:%Y-%m-%d %H:%M:%S.%L %Z}',
+                            // xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
+                        },
                         series:[{
                             data: chart_data,
                             colsize: colsize,
                             rowsize: rowsize,
-                            tooltip: {
-                                enabled: true,
-                                /*
-                                headerFormat: vname + "<br/>",
-                                */
-                                headerFormat: '',
-                                pointFormat: vname + '={point.value}, ' + dim2_name + '={point.y}, {point.x:%H:%M:%S %Z}',
-                                xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
-                            }
                         }],
                     });
                 }
