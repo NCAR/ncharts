@@ -43,7 +43,7 @@
             });
         };
         local_ns.format_time = function(val, format) {
-            format = typeof format !== "undefined" ? format : 'YYYY-MM-DD HH:mm ZZ';
+            format = typeof format !== "undefined" ? format : 'YYYY-MM-DD HH:mm:ss ZZ';
             var mom = moment(val).tz(local_ns.pickerTimezone);
             // format it, and set it on the picker
             return mom.format(format);
@@ -100,53 +100,71 @@
                 success: function(indata) {
 
                     // console.log("ajax success!, now=",new Date(),",
-                    // time0=",time0);
+                    // itime0=",itime0);
                     var first_time = null;
 
                     $("div[id^='time-series']").each(function(index) {
                         var chart = $( this ).highcharts();
-                        var vnames = $( this ).data("variables").sort();
-                        if (vnames.length == 0) {
-                            return
-                        }
-                        for (var iv = 0; iv < vnames.length; iv++ ) {
-                            var vname = vnames[iv];
 
-                            if (chart.series[iv].data.length > 0) {
-                                first_time = chart.series[iv].data[0]['x'];
-                            }
+                        for (var iv = 0; iv < chart.series.length; iv++ ) {
+                            var series = chart.series[iv];
+                            var vname = series.name;
+
+                            if (vname == 'Navigator') continue;
 
                             if (!(vname in indata)) {
                                 continue;
                             }
-                            var time = $.parseJSON(indata[vname]['time'])
 
-                            // console.log("variable=",vname,", time.length=",time.length);
-                            if (time.length == 0) {
+                            if (series.data.length > 0) {
+                                first_time = series.data[0]['x'];
+                            }
+
+                            var itimes = $.parseJSON(indata[vname]['time'])
+
+                            // console.log("variable=",vname,",
+                            //     plot_times.length=",plot_times.length);
+                            if (itimes.length == 0) {
                                 continue;
+                            }
+
+                            // shouldn't often happen in this ajax function
+                            if (series.data.length == 0) {
+                                console.log("ajax, iv=",iv,", vname=",vname,
+                                    ", series.data.length=",series.data.length);
                             }
 
                             // console.log("first_time=",local_ns.format_time(first_time));
 
-                            var time0 = indata[vname]['time0']
-                            var data = $.parseJSON(indata[vname]['data'])
+                            var itime0 = indata[vname]['time0'];
+                            var vdata = $.parseJSON(indata[vname]['data']);
 
                             var ix = 0;
                             var tx;
-                            for (var idata = 0; idata < time.length; idata++) {
-                                var redraw = (idata == time.length - 1 ? true : false);
-                                tx = (time0 + time[idata]) * 1000;
-                                var dx = data[idata];
+                            for (var idata = 0; idata < itimes.length; idata++) {
+                                var redraw = (idata == itimes.length - 1 ? true : false);
+                                tx = (itime0 + itimes[idata]) * 1000;
+                                var dx = vdata[idata];
 
-                                // var dl = chart.series[iv].data.length; 
-                                for ( ; ix < chart.series[iv].data.length; ix++) {
-                                    if (chart.series[iv].data[ix]['x'] >= tx) break;
+                                // var dl = series.data.length; 
+                                for ( ; ix < series.data.length; ix++) {
+                                    try {
+                                        if (series.data[ix]['x'] >= tx) break;
+                                    }
+                                    catch(err) {
+                                        console.log("error in looping over chart times, ",
+                                            "var=",vname,
+                                            ", data time, tx=",
+                                            local_ns.format_time(tx),
+                                            ", ix=", ix, ", len=",
+                                            series.data.length);
+                                    }
                                 }
                                 /*
                                 if (dl > 0) {
                                     console.log("tx=",local_ns.format_time(tx),
                                         ", last chart time=",
-                                            local_ns.format_time(chart.series[iv].data[dl-1]['x']), 
+                                            local_ns.format_time(series.data[dl-1]['x']), 
                                         ", dl=",dl,", ix=",ix);
                                 } else {
                                     console.log("tx=",local_ns.format_time(tx),
@@ -155,140 +173,166 @@
                                 */
 
                                 // later time than all in chart, add with possible shift
-                                if (ix == chart.series[iv].data.length) {
-                                    var shift =
-                                        (tx > first_time + local_ns.time_length) ? true : false;
-                                    chart.series[iv].addPoint([tx,dx],redraw,shift);
+                                if (ix == series.data.length) {
+                                    var shift = (first_time &&
+                                        (tx > first_time + local_ns.time_length)) ? true : false;
+
+                                    // With StockChart, saw this exception frequently:
+                                    // "TypeError: Cannot read property 'x' of undefined"
+                                    series.addPoint([tx,dx],redraw,shift);
                                     if (shift) {
-                                        first_time = chart.series[iv].data[0]['x'];
-                                        ix--;
+                                        try {
+                                            first_time = series.data[0]['x'];
+                                        }
+                                        catch(err) {
+                                            var first_time_str = "null";
+                                            if (first_time) {
+                                                first_time_str = local_ns.format_time(first_time);
+                                            }
+                                            console.log("error in accessing first chart time, ",
+                                                "var=",vname,", iv=", iv,
+                                                ", tx=",
+                                                local_ns.format_time(tx),
+                                                ", first_time=", first_time_str,
+                                                ", idata=",idata,", ix=", ix, ", len=",
+                                                series.data.length);
+                                        }
+                                        if (ix) ix--;
                                     }
                                 }
                                 else {
-                                    var ctx = chart.series[iv].data[ix]['x'];
+                                    var ctx = series.data[ix]['x'];
                                     if (ctx == tx) {    // same time, replace it
-                                        chart.series[iv].data[ix].update(dx,redraw);
+                                        series.data[ix].update(dx,redraw);
                                     }
                                     else {
                                         // shift=false, adding in middle
-                                        chart.series[iv].addPoint([tx,dx],redraw,false);
+                                        if (local_ns.debug) {
+                                            console.log("var=",vname,
+                                                " insert time, tx=",
+                                                local_ns.format_time(tx),
+                                                ", ctx=",
+                                                local_ns.format_time(ctx),
+                                                ", ix=", ix, ", len=",
+                                                series.data.length); 
+                                        }
+
+                                        series.addPoint([tx,dx],redraw,false);
                                         if (ctx > tx && ix == 0) {
-                                            first_time = chart.series[iv].data[0]['x'];
+                                            first_time = series.data[0]['x'];
                                         }
                                     }
                                 }
                             }
+                            // chart.redraw();
 
                             var npts = 0
-                            while ((l = chart.series[iv].data.length > 1) &&
-                                chart.series[iv].data[l-1]['x'] >
-                                    chart.series[iv].data[0]['x'] + local_ns.time_length) {
-                                chart.series[iv].removePoint(0,true);
+                            while ((l = series.data.length > 1) &&
+                                series.data[l-1]['x'] >
+                                    series.data[0]['x'] + local_ns.time_length) {
+                                series.removePoint(0,true);
                                 npts++;
                             }
-                            /*
-                            console.log("removed ",npts," points, time_length=",
-                                    local_ns.time_length);
-                            */
-                            delete indata[vname];
+                            if (npts) {
+                                console.log("removed ",npts," points, time_length=",
+                                        local_ns.time_length);
+                            }
                         }
                     });
 
                     $("div[id^='heatmap']").each(function(index) {
                         var chart = $( this ).highcharts();
-                        var vnames = $( this ).data("variables").sort();
-                        if (vnames.length == 0) {
-                            return
-                        }
-                        var t0, t1;
-                        for (var iv = 0; iv < vnames.length; iv++ ) {
-                            var vname = vnames[iv];
 
-                            if (chart.series[iv].data.length > 0) {
-                                first_time = chart.series[iv].data[0]['x'];
+                        var t0, t1;
+                        for (var iv = 0; iv < chart.series.length; iv++ ) {
+                            var series = chart.series[iv];
+                            var vname = series.name;
+
+                            if (series.data.length > 0) {
+                                first_time = series.data[0]['x'];
                             }
 
                             if (!(vname in indata)) {
                                 continue;
                             }
-                            var time = $.parseJSON(indata[vname]['time'])
+                            var itimes = $.parseJSON(indata[vname]['time'])
 
-                            if (time.length == 0) {
+                            if (itimes.length == 0) {
                                 continue;
                             }
 
-                            var time0 = indata[vname]['time0']
-                            var data = $.parseJSON(indata[vname]['data'])
+                            var itime0 = indata[vname]['time0']
+                            var vdata = $.parseJSON(indata[vname]['data'])
                             var dim2 = $.parseJSON(indata[vname]['dim2'])
 
                             if (local_ns.debug) {
                                 t0 =  new Date();
-                                console.log("heatmap ",t0,", vname=",vname,", adding ",time.length,
+                                console.log("heatmap ",t0,", vname=",vname,", adding ",itimes.length,
                                         " points, dim2.length=",dim2.length)
                             }
 
                             var ix = 0;
                             var tx;
-                            for (var idata = 0; idata < time.length; idata++) {
+                            for (var idata = 0; idata < itimes.length; idata++) {
                                 // redraw == true results in very slow performance.
-                                // var redraw = (idata == time.length - 1 ? true : false);
+                                // var redraw = (idata == itimes.length - 1 ? true : false);
                                 var redraw = false;
 
-                                tx = (time0 + time[idata]) * 1000;
+                                tx = (itime0 + itimes[idata]) * 1000;
 
-                                for ( ; ix < chart.series[iv].data.length; ix++) {
-                                    if (chart.series[iv].data[ix]['x'] >= tx) break;
+                                for ( ; ix < series.data.length; ix++) {
+                                    if (series.data[ix]['x'] >= tx) break;
                                 }
 
                                 // later time than all in chart, add with possible shift
-                                if (ix == chart.series[iv].data.length) {
-                                    var shift =
-                                        (tx > first_time + local_ns.time_length) ? true : false;
+                                if (ix == series.data.length) {
+                                    var shift = (first_time &&
+                                        (tx > first_time + local_ns.time_length)) ? true : false;
                                     for (var j = 0; j < dim2.length; j++) {
-                                        dx = data[idata][j];
+                                        dx = vdata[idata][j];
                                         // console.log("heatmap addPoint, idata=",idata,
-                                        //         ", iv=",iv,", j=",j," length=",chart.series[iv].data.length);
-                                        chart.series[iv].addPoint(
+                                        //         ", iv=",iv,", j=",j," length=",series.data.length);
+                                        series.addPoint(
                                             [tx,dim2[j],dx], redraw,shift);
                                     }
-                                    if (shift) {
-                                        first_time = chart.series[iv].data[0]['x'];
+                                    if (shift || !first_time) {
+                                        first_time = series.data[0]['x'];
                                         ix -= dim2.length;
                                     }
                                 }
                                 else {
-                                    var ctx = chart.series[iv].data[ix]['x'];
+                                    var ctx = series.data[ix]['x'];
                                     if (ctx == tx) {    // same time, replace it
                                         for (var j = 0; j < dim2.length; j++) {
-                                            dx = data[idata][j];
-                                            chart.series[iv].data[ix+j].update([tx,dim2[j],dx],redraw);
+                                            dx = vdata[idata][j];
+                                            series.data[ix+j].update([tx,dim2[j],dx],redraw);
                                         }
                                     }
                                     else {
                                         // shift=false, adding in middle
                                         for (var j = 0; j < dim2.length; j++) {
-                                            dx = data[idata][j];
+                                            dx = vdata[idata][j];
                                             // console.log("heatmap addPoint, idata=",idata,
-                                            //         ", iv=",iv,", j=",j," length=",chart.series[iv].data.length);
-                                            chart.series[iv].addPoint(
+                                            //         ", iv=",iv,", j=",j," length=",series.data.length);
+                                            series.addPoint(
                                                 [tx,dim2[j],dx], redraw,false);
                                         }
                                         if (ctx > tx && ix == 0) {
-                                            first_time = chart.series[iv].data[0]['x'];
+                                            first_time = series.data[0]['x'];
                                         }
                                     }
                                 }
                             }
                             if (local_ns.debug) {
                                 t1 =  new Date();
-                                console.log("added ", time.length, " points, elapsed time=",(t1 - t0)/1000," seconds");
+                                console.log("added ", itimes.length, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
                             }
                             var npts = 0;
-                            while ((l = chart.series[iv].data.length > 1) &&
-                                chart.series[iv].data[l-1]['x'] >
-                                    chart.series[iv].data[0]['x'] + local_ns.time_length) {
-                                chart.series[iv].removePoint(0,false);
+                            while ((l = series.data.length > 1) &&
+                                series.data[l-1]['x'] >
+                                    series.data[0]['x'] + local_ns.time_length) {
+                                series.removePoint(0,false);
                                 npts++;
                             }
                             if (local_ns.debug) {
@@ -296,7 +340,6 @@
                                 console.log("removed ", npts, " points, elapsed time=",(t1 - t0)/1000," seconds");
                                 t0 = t1;
                             }
-                            delete indata[vname];
                         }
                         chart.redraw();
                         if (local_ns.debug) {
@@ -429,32 +472,20 @@
             });
 
             // console.log("track_real_time=",local_ns.track_real_time);
-            // Everything below here depends on time and data
+            // Everything below here depends on plot_times and plot_data
             // being passed.
-            if (window.time === undefined) return
-
-
-            // local_ns.last_time is passed to the server
-            // by ajax 
-            /*
-            if (time.length > 0) {
-                local_ns.last_time = time0 + time[time.length - 1];
-            }
-            else {
-                local_ns.last_time = time0;
-            }
-            */
+            if (window.plot_times === undefined) return
 
             if (local_ns.track_real_time) {
                 // mean delta-t of data
                 local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
-                if (time.length > 1) {
+                if (plot_times.length > 1) {
                     // set ajax update period to 1/2 the data deltat
                     local_ns.ajaxTimeout =
                         Math.max(
                             local_ns.ajaxTimeout,
-                            (time[time.length-1] - time[0]) /
-                                (time.length - 1) * 1000 / 2
+                            Math.ceil((plot_times[plot_times.length-1] - plot_times[0]) /
+                                (plot_times.length - 1) * 1000 / 2)
                         );
                 }
                 if (local_ns.debug) {
@@ -462,7 +493,7 @@
                     local_ns.ajaxTimeout = 10 * 1000;
                 }
                 setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
-                // console.log("ajaxTimeout=",local_ns.ajaxTimeout);
+                console.log("ajaxTimeout=",local_ns.ajaxTimeout);
             }
 
             var first_time = null;
@@ -478,26 +509,16 @@
                     long_names = vnames;
                 }
 
-                var vmeta = {}
-                for (var iv = 0; iv < vnames.length; iv++) {
-                    // console.log("vnames[iv]=", vnames[iv])
-                    vmeta[vnames[iv]] =
-                        {long_name: long_names[iv], units: vunits[iv]};
-                }
-                delete vunits;
-                delete long_name;
-
-                vnames = vnames.sort()
-                // console.log("time-series, time.length=",time.length);
+                // console.log("time-series, plot_times.length=",plot_times.length);
                 // console.log("vnames=",vnames,", vunits=",vunits);
 
                 // A yAxis for each unique unit
                 var yAxis = [];
                 
                 // One plot for all variable with the same units.
-                // This has already been organized by python.
+                // This has already been organized by python, so
                 // unique_units will have length 1 here.
-                var unique_units = local_ns.unique(vunits).sort();
+                var unique_units = local_ns.unique(vunits);
 
                 // create a yAxis
                 for (var unit of unique_units) {
@@ -515,7 +536,8 @@
                 }
 
                 /*
-                 * array of objects, one for each input variable, with these keys:
+                 * array of objects, one for each input variable,
+                 * with these keys:
                  *  name: variable name and units
                  *  data: 2 column array, containing time, data values
                  *  yAxis: index of the yaxis to use
@@ -525,22 +547,23 @@
 
                 var ptitle;
                 if (vnames.length > 1) {
-                    ptitle = vnames[0] + "...";
+                    ptitle = vnames[0] + ", " + vnames[1] + "...";
                 }
                 else {
                     ptitle = vnames[0];
                 }
                 for (var iv = 0; iv < vnames.length; iv++ ) {
                     var vname = vnames[iv];
-                    var vunit = vmeta[vname]['units']
-                    var long_name = vmeta[vname]['long_name']
+                    var vunit = vunits[iv];
+                    var long_name = long_names[iv];
                     var vseries = {};
                     var vdata = [];
-                    for (var idata = 0; idata < time.length; idata++) {
-                        vdata.push([(time0 + time[idata])*1000, data[vname][idata]]);
+                    for (var idata = 0; idata < plot_times.length; idata++) {
+                        vdata.push([(plot_time0 + plot_times[idata])*1000,
+                                plot_data[vname][idata]]);
                     }
-                    if (time.length) {
-                        first_time = (time0 + time[0]) * 1000;
+                    if (plot_times.length) {
+                        first_time = (plot_time0 + plot_times[0]) * 1000;
                     }
 
                     vseries['data'] = vdata;
@@ -555,25 +578,21 @@
                         valueDecimals: 6,
                         xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
                     };
-                    /* a checkbox allows one to "select" the series, but
-                     * I'm not sure what that does. Clicking it doesn't
-                     * make the series disappear. That is done by clicking
-                     * on the name in the legend, which by default goes below
-                     * the xaxis.
-                     * Supposidly if you return anything other than false,
-                     * the default action is to toggle the selected state
-                     * of the series.
-                        events: {
-                            checkboxClick: function (event) {
-                                alert('The checkbox is now ' + event.checked);
-                                return false;
-                            }
-                        },
-                     */
                     series.push(vseries);
+                    if (local_ns.debug) {
+                        console.log("initial, vname=",vname,", series[",iv,"].length=",
+                                series[iv].data.length);
+                    }
                 } 
 
-                $( this ).highcharts('StockChart',{
+                /*
+                 * A StockChart seems to have bugs. The data array chart.series[i].data
+                 * does not seem to be dependably accessible from ajax code.
+                 * chart.series[i].data.length was often 0. 
+                 * So instead of highcharts('StockChart',{}) just do highcharts({}).
+                 * All the same functionality seems to be there
+                 */
+                $( this ).highcharts({
                     chart: {
                         type: 'line',
                         // zoomType: 'x',
@@ -641,9 +660,15 @@
                     rangeSelector: {
                         enabled: false,
                     },
+                    scrollbar: {
+                        enabled: false,
+                    },
                     navigator: {
                         height: 25,
                         margin: 5,
+                        enabled: true,
+                        // adaptToUpdatedData: true,
+
                     },
                     title: {
                         text: ptitle,
@@ -661,8 +686,8 @@
 
                 /*
                 console.log("heatmap, vnames.length=",vnames.length,
-                        ",time.length=",time.length,
-                        ",dim2.length=",dim2['data'].length);
+                        ",plot_times.length=",plot_times.length,
+                        ",plot_dim2.length=",plot_dim2['data'].length);
                 */
 
                 if (long_names.length == 0) {
@@ -673,59 +698,44 @@
                 // var units =  $( this ).data("units");
                 // var long_name =  $( this ).data("long_name");
                 // var dim2_name =  $( this ).data("dim2_name");
-                var dim2_name = dim2['name'];
-                var dim2_units = dim2['units'];
-
-                // This is mostly unnecessary.
-                // organize meta data by variable name,
-                // then plot variables, sorted by name
-                var vmeta = {}
-                for (var iv = 0; iv < vnames.length; iv++) {
-                    // console.log("vnames[iv]=", vnames[iv])
-                    vmeta[vnames[iv]] =
-                        {long_name: long_names[iv], units: vunits[iv]};
-                }
-                vnames = vnames.sort()
-                // for (var iv = 0; iv < vnames.length; iv++) {
-                    // console.log("vnames[iv]=", vnames[iv])
-                // }
+                var dim2_name = plot_dim2['name'];
+                var dim2_units = plot_dim2['units'];
 
                 // console.log("vnames=",vnames);
                 for (var iv = 0; iv < vnames.length; iv++) {
                     var vname = vnames[iv];
                     // console.log("vname=", vname);
-                    long_name = vmeta[vname]['long_name'];
-                    units = vmeta[vname]['units'];
+                    long_name = long_names[iv];
+                    units = vunits[iv];
 
                     minval = Number.POSITIVE_INFINITY;
                     maxval = Number.NEGATIVE_INFINITY;
 
+                    mintime = (plot_time0 + plot_times[0]) * 1000;
+                    maxtime = (plot_time0 + plot_times[plot_times.length-1]) * 1000;
 
-                    mintime = (time0 + time[0]) * 1000;
-                    maxtime = (time0 + time[time.length-1]) * 1000;
-
-                    mindim2 = dim2['data'][0];
-                    maxdim2 = dim2['data'][dim2['data'].length-1];
+                    mindim2 = plot_dim2['data'][0];
+                    maxdim2 = plot_dim2['data'][plot_dim2['data'].length-1];
 
                     var chart_data = [];
-                    for (var i = 0; i < time.length; i++) {
-                        var tx = (time0 + time[i]) * 1000;
-                        for (var j = 0; j < dim2['data'].length; j++) {
-                            dx = data[vname][i][j];
+                    for (var i = 0; i < plot_times.length; i++) {
+                        var tx = (plot_time0 + plot_times[i]) * 1000;
+                        for (var j = 0; j < plot_dim2['data'].length; j++) {
+                            dx = plot_data[vname][i][j];
                             if (dx !== null) {
                                 minval = Math.min(minval,dx);
                                 maxval = Math.max(maxval,dx);
                             }
-                            chart_data.push([tx, dim2['data'][j],dx]);
+                            chart_data.push([tx, plot_dim2['data'][j],dx]);
                         }
                     } 
-                    if (time.length) {
-                        first_time = (time0 + time[0]) * 1000;
+                    if (plot_times.length) {
+                        first_time = (plot_time0 + plot_times[0]) * 1000;
                     }
 
                     // var colsize = 3600 * 1000;
-                    var colsize = (maxtime - mintime) / (time.length - 1);
-                    var rowsize = (maxdim2 - mindim2) / (dim2.length - 1);
+                    var colsize = (maxtime - mintime) / (plot_times.length - 1);
+                    var rowsize = (maxdim2 - mindim2) / (plot_dim2.length - 1);
 
                     $( this ).highcharts({
                         chart: {

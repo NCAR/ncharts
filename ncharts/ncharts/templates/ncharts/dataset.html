@@ -81,11 +81,11 @@
 
 {% if data %}
     <script>
-        var time0 = {{ time0 }};
-        var time = jQuery.parseJSON('{{ time }}');
+        var plot_time0 = {{ time0 }};
+        var plot_times = jQuery.parseJSON('{{ time }}');
         // dim2 is values for 2nd dimension for heatmap plots
-        var data = jQuery.parseJSON('{{ data }}');
-        var dim2 = jQuery.parseJSON('{{ dim2 }}');
+        var plot_data = jQuery.parseJSON('{{ data }}');
+        var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
         // url to use with ajax to get real time data
 {% if form.track_real_time.value %}
         var ajaxurl = "{% url 'ncharts:data' selid %}";
