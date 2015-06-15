@@ -303,6 +303,7 @@
 
                                 // later time than all in chart, add with possible shift
                                 if (ix == series.data.length) {
+                                    // shift=true is also slow on a heatmap. Disable it.
                                     var shift = (false && first_time &&
                                         (tx > first_time + local_ns.time_length)) ? true : false;
                                     for (var j = 0; j < dim2.length; j++) {
