@@ -283,7 +283,7 @@ class Dir(object):
             _logger.error(exc)
             raise
 
-        dirmodtime = datetime.utcfromtimestamp(pstat.st_mtime)
+        dirmodtime = datetime.utcfromtimestamp(pstat.st_mtime_ns / 1.0e9)
 
         # get previous snapshot of this directory
         self.lock.acquire()
