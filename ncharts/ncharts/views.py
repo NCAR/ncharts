@@ -41,7 +41,7 @@ class StaticView(TemplateView):
     """
     def get(self, request, page, *args, **kwargs):
         self.template_name = page
-        print("page=", page)
+        _logger.debug("StaticView, page=%s", page)
         response = super().get(request, *args, **kwargs)
         try:
             return response.render()
@@ -67,8 +67,6 @@ def projects(request):
 
     projs = nc_models.Project.objects.all()
 
-    # print('projs len=%d' % len(projs))
-
     context = {'projects': projs}
     return render(request, 'ncharts/projects.html', context)
 
@@ -80,8 +78,6 @@ def platforms(request):
     # plats = root.platform_set.all()
 
     plats = nc_models.Platform.objects.all()
-
-    # print('plats len=%d'  % len(plats))
 
     context = {'platforms': plats}
     return render(request, 'ncharts/platforms.html', context)
@@ -98,8 +94,6 @@ def projects_platforms(request):
     projs = nc_models.Project.objects.all()
     plats = nc_models.Platform.objects.all()
 
-    # print('projs len=%d' % len(projs))
-
     context = {'projects': projs, 'platforms': plats}
     return render(request, 'ncharts/projectsPlatforms.html', context)
 
@@ -108,7 +102,6 @@ def project(request, project_name):
     """
     try:
         proj = nc_models.Project.objects.get(name=project_name)
-        # print('proj.name=' + str(proj))
         dsets = proj.dataset_set.all()
         plats = nc_models.Platform.objects.filter(
             projects__name__exact=project_name)
@@ -123,7 +116,6 @@ def platform(request, platform_name):
     try:
         plat = nc_models.Platform.objects.get(name=platform_name)
         projs = plat.projects.all()
-        # print('projs len=%d' % len(projs))
         context = {'platform': plat, 'projects': projs}
         return render(request, 'ncharts/platform.html', context)
     except (nc_models.Project.DoesNotExist, nc_models.Platform.DoesNotExist):
@@ -140,8 +132,6 @@ def platform_project(request, platform_name, project_name):
         dsets = nc_models.Dataset.objects.filter(
             project__name__exact=project_name).filter(
                 platforms__name__exact=platform_name)
-
-        # print('dsets len=%d' % len(dsets))
 
         context = {'project': proj, 'platform': plat, 'datasets': dsets}
         return render(request, 'ncharts/platformProject.html', context)
@@ -193,14 +183,16 @@ class NChartsJSONEncoder(json.JSONEncoder):
             else:
                 return float(format(val, '.5g'))
 
-        # print("type(obj)=", type(obj))
+        # _logger.debug("type(obj)=%s", type(obj))
         if isinstance(obj, np.ndarray):
             if len(obj.shape) > 1:
                 # this should reduce the rank by one
-                # print("Encoder, default, len(obj.shape)=", len(obj.shape))
+                # _logger.debug("Encoder, default, len(obj.shape)=%d",
+                #   len(obj.shape))
                 return [v for v in obj[:]]
             else:
-                # print("Encoder, default, len(obj.shape)=", len(obj.shape))
+                # _logger.debug("Encoder, default, len(obj.shape)=%d",
+                #   len(obj.shape))
                 return [roundcheck(v) for v in obj]
         else:
             return json.JSONEncoder.default(self, obj)
@@ -415,7 +407,8 @@ class DatasetView(View):
             pass
 
         if not usersel:
-            # print('DatasetView get, dset.variables=', dset.variables)
+            # _logger.debug('DatasetView get, dset.variables=%s',
+            #   dset.variables)
             # Initial user selection times need more thought:
             #   real-time project (end_time near now):
             #       start_time, end_time a day at end of dataset
@@ -466,10 +459,6 @@ class DatasetView(View):
                 usersel.start_time = stime
                 usersel.time_length = delta.total_seconds()
                 usersel.save()
-
-        # print('DatasetView get, dir(usersel)=', dir(usersel))
-        # print('DatasetView get, dir(usersel.variables)=',
-        # dir(usersel.variables))
 
         # variables selected previously by user
         if usersel.variables:
@@ -634,7 +623,6 @@ class DatasetView(View):
         dvars = sorted(dset.get_variables().keys())
         form.set_variable_choices(dvars)
 
-        # print("request.POST=", request.POST)
         if not form.is_valid():
             _logger.error('User form is not valid!: %s', repr(form.errors))
             return render(request, self.template_name,
@@ -768,7 +756,7 @@ class DatasetView(View):
         # loop over plot_types
         grpid = 0
         for ptype in plot_types:
-            # print("ptype=", ptype)
+            # _logger.debug("ptype=%s", ptype)
 
             # For a heatmap, one plot per variable.
             if ptype == 'heatmap':
