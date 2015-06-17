@@ -410,7 +410,7 @@ class NetCDFDataset(object):
                 self.base_time in ncfile.variables and \
                 len(ncfile.variables[self.base_time].dimensions) == 0:
             base_time = ncfile.variables[self.base_time].getValue()
-            # print("base_time=",base_time)
+            # _logger.debug("base_time=%d",base_time)
 
         if self.time_name in ncfile.variables:
             var = ncfile.variables[self.time_name]
@@ -471,12 +471,12 @@ class NetCDFDataset(object):
             try:
                 istart = next(idx for idx, tval in enumerate(tvals) \
                         if tval >= start_time.timestamp())
-                # print("start_time={}, file={},istart={}",
+                # _logger.debug("start_time=%s, file=%s,istart=%d",
                 #         start_time,ncpath,istart)
                 iend = next(idx for idx, tval in enumerate(reversed(tvals)) \
                         if tval < end_time.timestamp())
                 iend = len(tvals) - iend
-                # print("end_time={}, file={},iend={}",
+                # _logger.debug("end_time=%s, file=%s,iend=%d",
                 #         end_time,ncpath,iend)
             except StopIteration:
                 return slice(0)
@@ -612,8 +612,8 @@ class NetCDFDataset(object):
                 vdata = np.ndarray.astype(vdtype)
 
             if len(vshape) > 0 and tuple(vshape[1:]) != vdata.shape[1:]:
-                # print("vshape[1:]={0}, vdata.shape[1:]={1}".format(
-                #     vshape[1:], vdata.shape[1:]))
+                # _logger.debug("vshape[1:]=%d, vdata.shape[1:]=%d",
+                #     vshape[1:], vdata.shape[1:])
                 # changing shape. Add support for final dimension
                 # increasing. vshape should be the largest expected shape
                 shape = list(vdata.shape)
