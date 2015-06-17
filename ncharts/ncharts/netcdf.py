@@ -70,6 +70,8 @@ class NetCDFDataset(object):
     # pylint thinks this class is too big.
     # pylint: disable=too-many-instance-attributes
 
+    MAX_NUM_FILES_TO_PRESCAN = 50
+
     def __init__(self, path):
         """Constructs NetCDFDataset with a path to a filesetFileset.
 
@@ -129,7 +131,16 @@ class NetCDFDataset(object):
 
         filepaths = self.get_filepaths(start_time, end_time)
 
-        for ncpath in filepaths:
+        skip = 1
+        if len(filepaths) > NetCDFDataset.MAX_NUM_FILES_TO_PRESCAN:
+            skip = len(filepaths) / NetCDFDataset.MAX_NUM_FILES_TO_PRESCAN
+
+        # Read at most MAX_NUM_FILES_TO_PRESCAN, including latest file.
+        # Files are scanned in a backwards sequence
+        pindex = len(filepaths) - 1
+        while pindex >= 0:
+            ncpath = filepaths[int(pindex)]
+            pindex -= skip
 
             # The files might be in the process of being moved, deleted, etc,
             # so if we get an exception in this open, try a few more times.
