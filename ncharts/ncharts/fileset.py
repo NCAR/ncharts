@@ -323,14 +323,20 @@ class Dir(object):
         # directory.
         now = datetime.datetime.now(tz=pytz.utc)
 
-        if dirmodtime > prevmodtime or \
+        # It looks like rsync can cause directory modification
+        # times to go backwards.  At one moment the mod time
+        # is (say)  13:47:52, and the next time it is 12:00:00.
+        # So this check is simply for inequality, not for
+        # dirmodtime > prevmodtime.
+        if dirmodtime != prevmodtime or \
             (do_double_check and now > prevmodtime + Dir.LATENCY):
 
             _logger.debug(
                 "doing dir scan of %s, dirmodtime=%s, do_double_check=%s",
                 self.path, dirmodtime.isoformat(), do_double_check)
-            _logger.debug("%s, pstat.st_mtime=%f", 
-                    self.path, pstat.st_mtime)
+            _logger.debug(
+                "%s, pstat.st_mtime=%f",
+                self.path, pstat.st_mtime)
 
             cached_files = []
             cached_subdirs = []
