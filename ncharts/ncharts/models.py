@@ -186,7 +186,7 @@ class Dataset(models.Model):
         returns None, d is naive.
         '''
 
-        # print("Dataset get_start_time, start_time=",
+        # _logger.debug("Dataset get_start_time, start_time=%s",
         #    self.start_time.isoformat())
         if self.start_time.tzinfo == None or \
                 self.start_time.tzinfo.utcoffset(self.start_time) == None:
@@ -205,7 +205,8 @@ class Dataset(models.Model):
         d is naive.
         """
 
-        # print("Dataset get_end_time, end_time=", self.end_time.isoformat())
+        # _logger.debug("Dataset get_end_time, end_time=%s",
+        #       self.end_time.isoformat())
         if self.end_time.tzinfo == None or \
                 self.end_time.tzinfo.utcoffset(self.end_time) == None:
             self.end_time = pytz.utc.localize(self.end_time)
@@ -328,7 +329,6 @@ class UserSelection(models.Model):
         return 'UserSelection for dataset: %s' % (self.dataset.name)
 
     def clean(self):
-        print('UserSelection clean')
         if self.start_time < self.dataset.get_start_time():
             raise dj_exc.ValidationError(
                 "start_time is earlier than dataset.start_time")
