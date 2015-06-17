@@ -207,8 +207,8 @@ class DataSelectionForm(forms.Form):
         # TODO: add docstring.
 
         '''
-        print('DataSelectionForm clean')
-        print("cleaned_data=", cleaned_data)
+        _logger.debug('DataSelectionForm clean')
+        _logger.debug("cleaned_data=%s", cleaned_data)
         '''
 
         cleaned_data = super().clean()
@@ -225,9 +225,9 @@ class DataSelectionForm(forms.Form):
         returns None, d is naive.
         if start_time.tzinfo == None or
             start_time.tzinfo.utcoffset(start_time) == None:
-            print("form clean start_time is timezone naive")
+            _logger.debug("form clean start_time is timezone naive")
         else:
-            print("form clean start_time is timezone aware")
+            _logger.debug("form clean start_time is timezone aware")
         """
 
         # the time fields are in the browser's timezone. Use those exact fields,
