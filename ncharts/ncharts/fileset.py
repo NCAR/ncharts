@@ -12,7 +12,7 @@ file LICENSE in this package.
 
 import os, glob, stat, re, sys, threading, logging
 # from stat import *
-from datetime import datetime
+import datetime
 from pytz import utc
 import sre_constants
 
@@ -49,7 +49,6 @@ def pathsplit(path):
     tail = ''
     rem = ''
     while len(path) > 0 and not path == os.sep:
-        # print('path=',path)
         if len(rem) > 0:
             rem = os.path.join(tail, rem)
         else:
@@ -83,17 +82,18 @@ class File(object):
 
         self.path = path
         self.pathdesc = pathdesc
-        # print('path=', path, ', pathdesc=', pathdesc)
         try:
-            self.time = utc.localize(datetime.strptime(path, pathdesc))
+            self.time = utc.localize(datetime.datetime.strptime(path, pathdesc))
             return
         except ValueError as exc:
-            print(exc.args)
+            _logger.error("fileset.File __init__: %s", exc)
             raise
         except sre_constants.error as exc:
-            print(exc.args)
+            _logger.error("fileset.File __init__: %s", exc)
         except:
-            print('unexpected error:', sys.exc_info()[0])
+            _logger.error(
+                "fileset.File __init__ unexpected error: %s",
+                sys.exc_info()[0])
             raise
 
         # strptime chokes when there are two time descriptors for
@@ -148,15 +148,17 @@ class File(object):
             path = re.sub(pattern, '', path, count=1)
             pathdesc = pathdesc.replace('%d', '')
         try:
-            print('try again, path=', path, ', pathdesc=', pathdesc)
-            self.time = datetime.strptime(path, pathdesc)
+            # print('try again, path=', path, ', pathdesc=', pathdesc)
+            self.time = datetime.datetime.strptime(path, pathdesc)
         except ValueError as exc:
-            print(exc.args)
+            _logger.error("fileset.File __init__ %s:", exc)
             raise
         except sre_constants.error as exc:
-            print(exc.args)
+            _logger.error("fileset.File __init__ %s:", exc)
         except:
-            print('unexpected error:', sys.exc_info()[0])
+            _logger.error(
+                "fileset.File __init__ unexpected error %s:",
+                sys.exc_info()[0])
             raise
 
 class Dir(object):
@@ -203,6 +205,7 @@ class Dir(object):
             which match the head portion of pathrem.
         cached_files: List of File objects in this directory which match
             the head portion of pathrem.
+        double_check: Have the directory contents been double checked?
         lock: Mutex for modtime, cached_subdirs, cached_files
     """
 
@@ -224,9 +227,10 @@ class Dir(object):
         self.path = path
         self.pathdesc = pathdesc
         self.pathrem = pathrem
-        self.modtime = datetime.min
+        self.modtime = datetime.datetime.min
         self.cached_subdirs = []
         self.cached_files = []
+        self.double_check = False
         self.lock = threading.Lock()
 
     @staticmethod
@@ -247,7 +251,8 @@ class Dir(object):
         Dir.__cache_lock.release()
         return ddir
 
-    def scan(self, start_time=datetime.min, end_time=datetime.max):
+    def scan(self, start_time=datetime.datetime.min,
+             end_time=datetime.datetime.max):
         """Scan this Dir for files which match by name and time.
 
         The current directory is scanned for files which match pathrem.
@@ -283,20 +288,38 @@ class Dir(object):
             _logger.error(exc)
             raise
 
-        dirmodtime = datetime.utcfromtimestamp(pstat.st_mtime_ns / 1.0e9)
+        dirmodtime = datetime.datetime.utcfromtimestamp(
+            pstat.st_mtime_ns / 1.0e9)
 
         # get previous snapshot of this directory
         self.lock.acquire()
-        mymodtime = self.modtime
+        prevmodtime = self.modtime
         cached_files = self.cached_files.copy()
         cached_subdirs = self.cached_subdirs.copy()
+        double_check = self.double_check
         self.lock.release()
 
-        # modification time of directory is newer than last scan
-        if dirmodtime > mymodtime:
+        # Check if modification time of directory is newer than it
+        # was at the time of the last directory scan.
+        # After 10 seconds have elapsed since the directory modification
+        # time, do a second check of its contents.
+        # Without this double check there were a significant
+        # number of times that a new file was not seen in a
+        # directory. Must have been due to either:
+        #   1. bug
+        #   2. directory modification time was updated before
+        #       the os.stat succeeds on the new file
+        #   3. file added but directory mod time was not updated.
+        # Perhaps this is a symptom of an NFS file system.
+
+        if dirmodtime > prevmodtime or \
+            (datetime.datetime.now() > \
+                prevmodtime + datetime.timedelta(seconds=10) and \
+                not double_check):
+            double_check = dirmodtime == prevmodtime
             cached_files = []
             cached_subdirs = []
-            mymodtime = dirmodtime
+            prevmodtime = dirmodtime
 
             (nextpath, pathrem) = pathsplit(self.pathrem)
 
@@ -323,7 +346,8 @@ class Dir(object):
 
             # save snapshot
             self.lock.acquire()
-            self.modtime = mymodtime
+            self.modtime = prevmodtime
+            self.double_check = double_check
             self.cached_files = sorted(cached_files, key=lambda x: x.time)
             self.cached_subdirs = cached_subdirs
             self.lock.release()
@@ -333,6 +357,11 @@ class Dir(object):
             files.extend(pdir.scan(start_time, end_time))
 
         files.extend(cached_files)
+
+        if len(files):
+            _logger.debug(
+                "scan of %s: total # of files=%d",
+                self.path, len(files))
 
         # exclude files whose time is equal to or after end_time, then sort
         files = sorted(
@@ -345,7 +374,6 @@ class Dir(object):
             if files[i].time > start_time:
                 break
 
-        # print("i=",i)
         # we want to include the previous file
         files = files[max(i-1, 0):]
         # print("len(files)=", len(files))
@@ -412,8 +440,8 @@ class Fileset(object):
         return fset
 
     def scan(
-            self, start_time=utc.localize(datetime.min),
-            end_time=utc.localize(datetime.max)):
+            self, start_time=utc.localize(datetime.datetime.min),
+            end_time=utc.localize(datetime.datetime.max)):
         """Scan this Fileset for files matching a time period.
 
         Args:
