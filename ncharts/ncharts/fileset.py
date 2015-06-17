@@ -13,8 +13,9 @@ file LICENSE in this package.
 import os, glob, stat, re, sys, threading, logging
 # from stat import *
 import datetime
-from pytz import utc
+import pytz
 import sre_constants
+import time
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
@@ -83,7 +84,7 @@ class File(object):
         self.path = path
         self.pathdesc = pathdesc
         try:
-            self.time = utc.localize(datetime.datetime.strptime(path, pathdesc))
+            self.time = pytz.utc.localize(datetime.datetime.strptime(path, pathdesc))
             return
         except ValueError as exc:
             _logger.error("fileset.File __init__: %s", exc)
@@ -205,13 +206,25 @@ class Dir(object):
             which match the head portion of pathrem.
         cached_files: List of File objects in this directory which match
             the head portion of pathrem.
-        double_check: Have the directory contents been double checked?
+        do_double_check: Should we do a double check of the directory contents?
         lock: Mutex for modtime, cached_subdirs, cached_files
     """
 
     __cached_filesets = {}
     __cached_dirs = {}
     __cache_lock = threading.Lock()
+
+    # Filesystem cache latency. On an NFS filesystem, file and directory
+    # attributes (such as modification time) are cached on the client.
+    # NFS mount options acdirmin and acdirmax control the attribute
+    # caching on directories.  From "man 5 nfs":
+    # acdirmax: The maximum time (in seconds) that the NFS client caches
+    #   attributes of a directory before it requests fresh attribute
+    #   information from a server.  If this option is not specified,
+    #    the NFS client uses a 60-second maximum.
+    #
+    # We'll set this LATENCY to 65 seconds and see what happens...
+    LATENCY = datetime.timedelta(seconds=65)
 
     def __init__(self, path, pathdesc, pathrem):
         """Create a Dir.
@@ -227,10 +240,10 @@ class Dir(object):
         self.path = path
         self.pathdesc = pathdesc
         self.pathrem = pathrem
-        self.modtime = datetime.datetime.min
+        self.modtime = pytz.utc.localize(datetime.datetime.min)
         self.cached_subdirs = []
         self.cached_files = []
-        self.double_check = False
+        self.do_double_check = False
         self.lock = threading.Lock()
 
     @staticmethod
@@ -279,6 +292,8 @@ class Dir(object):
 
         files = []
 
+        t1 = time.time()
+
         try:
             pstat = os.stat(self.path)
         except FileNotFoundError as exc:
@@ -288,38 +303,39 @@ class Dir(object):
             _logger.error(exc)
             raise
 
-        dirmodtime = datetime.datetime.utcfromtimestamp(
-            pstat.st_mtime_ns / 1.0e9)
+        dirmodtime = datetime.datetime.fromtimestamp(
+            pstat.st_mtime, tz=pytz.utc)
 
         # get previous snapshot of this directory
         self.lock.acquire()
         prevmodtime = self.modtime
         cached_files = self.cached_files.copy()
         cached_subdirs = self.cached_subdirs.copy()
-        double_check = self.double_check
+        do_double_check = self.do_double_check
         self.lock.release()
 
         # Check if modification time of directory is newer than it
         # was at the time of the last directory scan.
-        # After 10 seconds have elapsed since the directory modification
-        # time, do a second check of its contents.
+        # If the modification time was less than LATENCY ago
+        # then do a double check the next time.
         # Without this double check there were a significant
         # number of times that a new file was not seen in a
-        # directory. Must have been due to either:
-        #   1. bug
-        #   2. directory modification time was updated before
-        #       the os.stat succeeds on the new file
-        #   3. file added but directory mod time was not updated.
-        # Perhaps this is a symptom of an NFS file system.
+        # directory.
+        now = datetime.datetime.now(tz=pytz.utc)
 
         if dirmodtime > prevmodtime or \
-            (datetime.datetime.now() > \
-                prevmodtime + datetime.timedelta(seconds=10) and \
-                not double_check):
-            double_check = dirmodtime == prevmodtime
+            (do_double_check and now > prevmodtime + Dir.LATENCY):
+
+            _logger.debug(
+                "doing dir scan of %s, dirmodtime=%s, do_double_check=%s",
+                self.path, dirmodtime.isoformat(), do_double_check)
+            _logger.debug("%s, pstat.st_mtime=%f", 
+                    self.path, pstat.st_mtime)
+
             cached_files = []
             cached_subdirs = []
             prevmodtime = dirmodtime
+            do_double_check = now < dirmodtime + Dir.LATENCY
 
             (nextpath, pathrem) = pathsplit(self.pathrem)
 
@@ -327,7 +343,8 @@ class Dir(object):
             globpath = globify_time_descriptors(nextpath)
 
             # search for directories
-            for subpath in glob.iglob(os.path.join(self.path, globpath)):
+            fullglobpath = os.path.join(self.path, globpath)
+            for subpath in glob.iglob(fullglobpath):
                 # print('subpath=', subpath)
                 try:
                     pstat = os.stat(subpath)
@@ -344,10 +361,16 @@ class Dir(object):
                     pfile = File(subpath, os.path.join(self.pathdesc, nextpath))
                     cached_files.append(pfile)
 
+            if len(cached_files):
+                t2 = time.time()
+                _logger.debug(
+                    "scan of %s took %f seconds, total # of files=%d",
+                    fullglobpath, t2-t1, len(cached_files))
+
             # save snapshot
             self.lock.acquire()
             self.modtime = prevmodtime
-            self.double_check = double_check
+            self.do_double_check = do_double_check
             self.cached_files = sorted(cached_files, key=lambda x: x.time)
             self.cached_subdirs = cached_subdirs
             self.lock.release()
@@ -357,11 +380,6 @@ class Dir(object):
             files.extend(pdir.scan(start_time, end_time))
 
         files.extend(cached_files)
-
-        if len(files):
-            _logger.debug(
-                "scan of %s: total # of files=%d",
-                self.path, len(files))
 
         # exclude files whose time is equal to or after end_time, then sort
         files = sorted(
@@ -440,8 +458,8 @@ class Fileset(object):
         return fset
 
     def scan(
-            self, start_time=utc.localize(datetime.datetime.min),
-            end_time=utc.localize(datetime.datetime.max)):
+            self, start_time=pytz.utc.localize(datetime.datetime.min),
+            end_time=pytz.utc.localize(datetime.datetime.max)):
         """Scan this Fileset for files matching a time period.
 
         Args:
