@@ -4,7 +4,7 @@ prod=true
 [ $# -gt 0 -a "$1" == -d ] && prod=false
 
 if $prod; then
-    [ $VIRTUAL_ENV ] || source /var/django/virtualenvs/django/bin/activate
+    [ $VIRTUAL_ENV ] || source /var/django/virtualenv/django/bin/activate
     sudo rm -f /var/lib/django/db.sqlite3
     sudo chmod -R g+w /var/lib/django
     sudo chmod -R g+w /var/log/django
