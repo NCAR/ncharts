@@ -16,34 +16,11 @@
 },
 {
     "fields": {
-        "directory": "/h/eol/iss/project/pecan/data/fp3/isfs_nc", 
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp3/isfs_nc", 
         "filenames": "isfs_%Y%m%d.%H%M%S.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 16
-},
-{
-    "fields": {
-        "variables": [], 
-        "platforms": [
-            "ISS"
-        ], 
-        "start_time": "2015-05-15T00:00:00+00:00", 
-        "end_time": "2015-07-31T00:00:00+00:00", 
-        "location": "Ellis, Kansas", 
-        "name": "ISS1_FP3_Ellis_449_mom", 
-        "project": "PECAN"
-    }, 
-    "model": "ncharts.dataset", 
-    "pk": 18
-},
-{
-    "fields": {
-        "directory": "/h/eol/iss/project/pecan/data/fp3/prof449/std/moments", 
-        "filenames": "prof449.%Y%m%d.mom.nc"
-    }, 
-    "model": "ncharts.filedataset", 
-    "pk": 18
 },
 {
     "fields": {
@@ -62,11 +39,34 @@
 },
 {
     "fields": {
-        "directory": "/h/eol/iss/project/pecan/data/fp3/prof449/std/winds_05", 
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp3/prof449/std/winds_05", 
         "filenames": "prof449.%Y%m%d.winds.05.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 19
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-05-15T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Ellis, Kansas", 
+        "name": "ISS1_FP3_Ellis_449_winds_30", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 20
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp3/prof449/std/winds_30", 
+        "filenames": "prof449.%Y%m%d.winds.30.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 20
 },
 {
     "fields": {
@@ -85,7 +85,7 @@
 },
 {
     "fields": {
-        "directory": "/h/eol/iss/project/pecan/data/fp4/isfs_nc", 
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp4/isfs_nc", 
         "filenames": "isfs_%Y%m%d.%H%M%S.nc"
     }, 
     "model": "ncharts.filedataset", 
@@ -108,7 +108,7 @@
 },
 {
     "fields": {
-        "directory": "/h/eol/iss/project/pecan/data/fp5/isfs_nc", 
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp5/isfs_nc", 
         "filenames": "isfs_%Y%m%d.%H%M%S.nc"
     }, 
     "model": "ncharts.filedataset", 
