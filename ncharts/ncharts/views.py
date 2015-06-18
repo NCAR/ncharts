@@ -496,6 +496,7 @@ class DatasetView(View):
             # Either this server was restarted, or you need to
             # enable cookies in your browser. Then please try again.")
 
+        client_state = None
         try:
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
