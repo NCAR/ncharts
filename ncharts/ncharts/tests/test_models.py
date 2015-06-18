@@ -114,21 +114,30 @@ class ModelTestCase(test.TestCase):
 
         self.assertEqual(len(dsets), 2)
 
-        """
-        project_name = 'Weather'
-        project = nc_models.Project.objects.get(name=project_name)
-        dsets = project.dataset_set.all()
-
-        dataset_name = 'flab-5min'
-        dataset = project.dataset_set.get(name=dataset_name)
-        form = nc_forms.DatasetSelectionForm(dataset=dataset)
-
-        usersel = nc_models.UserSelection.objects.create(
+        client_state = nc_models.ClientState.objects.create(
             dataset = dset,
+            timezone = "US/Mountain",
             start_time = datetime(2013, 9, 27, 0, 0, 0, tzinfo=utc),
-            end_time = datetime.now(utc),
+            time_length = 86400,
+            track_real_time = True
             )
-        """
+
+        # print("dir(client_state)={}".format(dir(client_state)))
+
+        # data_times methods:  all(), add(), filter(), get(), get_or_create(),
+        # get_queryset()
+        # print("dir(client_state.data_times)={}".format(dir(client_state.data_times)))
+        # print("dir(client_state.data_times.all())={}".format(dir(client_state.data_times.all())))
+
+        vart = nc_models.VariableTimes.objects.create(name="T",
+                last_ok=0,last=1)
+        client_state.data_times.add(vart)
+
+        self.assertEqual(len(client_state.data_times.all()),1)
+
+        vart = client_state.data_times.get(name="T")
+        self.assertEqual(vart.last_ok,0)
+        self.assertEqual(vart.last,1)
 
     def test_netcdf_dataset(self):
 
@@ -183,12 +192,12 @@ class ModelTestCase(test.TestCase):
                 tsd['data'][var].shape[1:] == ())
 
         # check some data values for a given time
-        xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=utc)
+        xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=utc).timestamp()
 
         self.assertTrue(xtime in tsd['time'])
         ixtime = tsd['time'].index(xtime)
 
-        ixtime_expected = int((xtime-start_time).total_seconds() / (5*60))
+        ixtime_expected = int((xtime-start_time.timestamp()) / (5*60))
         self.assertEqual(ixtime, ixtime_expected)
 
         # print("tsd['data']['w_1m'][ixtime]=",tsd['data']['w_1m'][ixtime])

@@ -101,7 +101,7 @@ class Dataset(models.Model):
         an error to have fields in the abstract base class with the
         same name as those in the child (and Django will raise an exception).
 
-    However, a Dataset is a ForeignKey of a UserSelection, and
+    However, a Dataset is a ForeignKey of a ClientState, and
     it appears an abstract model cannot be a ForeignKey. So we
     use the Multi-table inheritance in django.
 
@@ -299,13 +299,26 @@ def validate_positive(value):
     if value <= 0:
         raise dj_exc.ValidationError('%s is not greater than zero' % value)
 
-class UserSelection(models.Model):
-    """Fields returned from the data selection form.
+class VariableTimes(models.Model):
+    """Times of data sent to a client.
+
+    """
+
+    # blank=False means it is required
+    name = models.CharField(max_length=64, blank=False)
+
+    last_ok = models.IntegerField(blank=False)
+
+    last = models.IntegerField(blank=False)
+
+
+class ClientState(models.Model):
+    """Current state of an nchart client.
 
     The automatic primary key 'id' of an instance of this model
     is stored in the user's session by project and dataset name,
-    and so when a user's returns to view this dataset, their
-    previous selections are provided.
+    and so when a user returns to view this dataset, their
+    previous state is provided.
     """
 
     variables = models.TextField()  # list of variables, stringified by json
@@ -314,7 +327,7 @@ class UserSelection(models.Model):
     # types of Datasets. Since it is used here as a ForeignKey,
     # it cannot be abstract.
     # related_name='+' tells django not to create a backwards relation
-    # from Dataset to UserSelection, which we don't need.
+    # from Dataset to ClientState, which we don't need.
     dataset = models.ForeignKey(Dataset, related_name='+')
 
     timezone = TimeZoneField(blank=False)
@@ -325,8 +338,15 @@ class UserSelection(models.Model):
         blank=False, validators=[validate_positive],
         default=datetime.timedelta(days=1).total_seconds())
 
+    track_real_time = models.BooleanField(default=False)
+
+    data_times = models.ManyToManyField(
+        VariableTimes,
+        blank=True,
+        related_name='+')
+
     def __str__(self):
-        return 'UserSelection for dataset: %s' % (self.dataset.name)
+        return 'ClientState for dataset: %s' % (self.dataset.name)
 
     def clean(self):
         if self.start_time < self.dataset.get_start_time():
@@ -341,4 +361,24 @@ class UserSelection(models.Model):
 
         if self.time_length <= 0:
             raise dj_exc.ValidationError("time_length is not positive")
+
+    def save_data_times(self, vname, time_last_ok, time_last):
+        """ """
+        try:
+            vart = self.data_times.get(name=vname)
+            vart.last_ok = time_last_ok
+            vart.last = time_last
+            vart.save()
+        except VariableTimes.DoesNotExist:
+            vart = VariableTimes.objects.create(
+                name=vname, last_ok=time_last_ok, last=time_last)
+            self.data_times.add(vart)
+
+    def get_data_times(self, vname):
+        """ """
+        try:
+            vart = self.data_times.get(name=vname)
+            return [vart.last_ok, vart.last]
+        except VariableTimes.DoesNotExist:
+            return [None, None]
 

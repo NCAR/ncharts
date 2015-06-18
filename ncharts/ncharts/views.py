@@ -12,7 +12,7 @@ file LICENSE in this package.
 
 # TODO:
 #   cronjob to iterate over user sessions, age off expired ones,
-#   remove any UserSelection instances that are not associated
+#   remove any ClientState instances that are not associated
 #   with a session.
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -28,7 +28,7 @@ from ncharts import models as nc_models
 from ncharts import forms as nc_forms
 from ncharts import exceptions as nc_exceptions
 
-import json, math, logging, threading
+import json, math, logging
 import numpy as np
 import datetime
 
@@ -197,8 +197,8 @@ class NChartsJSONEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, obj)
 
-def selection_id_name(project_name, dataset_name):
-    """Create a name for saving the user's data selection in their session.
+def client_id_name(project_name, dataset_name):
+    """Create a name for saving the client state in their session.
 
     Args:
         project_name
@@ -208,8 +208,8 @@ def selection_id_name(project_name, dataset_name):
 
     A dataset name is unique within a project.
     In order to allow the user to easily browse multiple
-    datasets, and save their previous selections, their
-    selection is saved in the session under the name
+    datasets, and save their previous states, their
+    client state is saved in the session under the name
     'pdid_' + project_name + '_' + dataset_name.
 
     django reserves session values starting with underscore,
@@ -219,9 +219,8 @@ def selection_id_name(project_name, dataset_name):
 
     return 'pdid_' + project_name + '_' + dataset_name
 
-def get_selection_id_from_session(session, project_name, dataset_name):
-    """Return the user's selection of dataset parameters,
-    given a session, project and dataset.
+def get_client_id_from_session(session, project_name, dataset_name):
+    """Return a client state id, given a session, project and dataset.
 
     Args:
         session
@@ -230,20 +229,19 @@ def get_selection_id_from_session(session, project_name, dataset_name):
     Raises:
         Http404
     Returns:
-        The nc_models.UserSelection for the project and dataset
+        The nc_models.ClientState for the project and dataset
         associated with the session.
 
     Note that for this to work, caching must be turned off for this view
     in django, otherwise the get() method may not be called, and the
-    previous selection will not be displayed.
+    previous client state will not be displayed.
     """
 
-    sel_id_name = selection_id_name(project_name, dataset_name)
+    sel_id_name = client_id_name(project_name, dataset_name)
     return session.get(sel_id_name)
 
-def get_selection_from_session(session, project_name, dataset_name):
-    """Return the user's selection of dataset parameters,
-    given a session, project and dataset.
+def get_client_from_session(session, project_name, dataset_name):
+    """Return a client state, given a session, project and dataset.
 
     Args:
         session
@@ -252,42 +250,42 @@ def get_selection_from_session(session, project_name, dataset_name):
     Raises:
         Http404
     Returns:
-        The nc_models.UserSelection for the project and dataset
+        The nc_models.ClientState for the project and dataset
         associated with the session.
 
     Note that for this to work, caching must be turned off for this view
     in django, otherwise the get() method may not be called, and the
-    previous selection will not be displayed.
+    previous client state will not be displayed.
     """
 
-    request_id = get_selection_id_from_session(session, project_name, dataset_name)
-    usersel = None
-    if request_id:
-        usersel = get_object_or_404(nc_models.UserSelection.objects,
-                                    id=request_id)
+    client_id = get_client_id_from_session(session, project_name, dataset_name)
+    client_state = None
+    if client_id:
+        client_state = get_object_or_404(
+            nc_models.ClientState.objects, id=client_id)
     else:
         session.set_test_cookie()
-    return usersel
+    return client_state
 
-def save_selection_to_session(
-        session, project_name, dataset_name, usersel):
-    """Save the user' selection of dataset parameters to the session.
+def save_client_to_session(
+        session, project_name, dataset_name, client_state):
+    """Save the client state to the session.
 
     Args:
         session
         project_name
         dataset_name
-        usersel: nc_models.UserSelection
+        client_state: nc_models.ClientState
     """
-    sel_id_name = selection_id_name(project_name, dataset_name)
-    session[sel_id_name] = usersel.id
+    sel_id_name = client_id_name(project_name, dataset_name)
+    session[sel_id_name] = client_state.id
 
-def get_dataset(usersel):
-    """Return the dataset from a UserSelection, casting to either
+def get_dataset(client_state):
+    """Return the dataset from a ClientState, casting to either
     a FileDataset or DBDataset.
 
     """
-    dset = usersel.dataset
+    dset = client_state.dataset
 
     try:
         dset = dset.filedataset
@@ -304,63 +302,6 @@ class DatasetView(View):
     """
 
     template_name = 'ncharts/dataset.html'
-
-    __sent_data_times = {}
-    __sent_data_times_lock = threading.Lock()
-
-    @classmethod
-    def set_sent_data_times(cls, requestid, vname, time_last_ok, time_last):
-        """Class method, for a request id, and a variable, set the time of the
-        last non-nan data sent, and the time of the last value sent.
-
-        Args:
-            cls:
-            requestid: id from UserSelection
-            vname: name of variable
-            time_last_ok: time of last data value sent for the variable
-                that was non a NAN
-            time_last: time of last data value sent for the variable
-
-        """
-        cls.__sent_data_times_lock.acquire()
-
-        if not requestid in cls.__sent_data_times:
-            cls.__sent_data_times[requestid] = {}
-        cls.__sent_data_times[requestid][vname] = [time_last_ok, time_last]
-        cls.__sent_data_times_lock.release()
-
-    @classmethod
-    def get_sent_data_times(cls, requestid, vname):
-        """Class method, for a request id, and a variable, get the time of the
-        last non-nan data sent, and the time of the last value sent.
-
-        Args:
-            cls:
-            requestid: id from UserSelection
-            vname: name of variable
-
-        Returns:
-            List of length 2:
-                [0]: time of last data value sent for the variable
-                    that was non a NAN
-                [1]: time of last data value sent for the variable
-        """
-        cls.__sent_data_times_lock.acquire()
-
-        if not requestid in cls.__sent_data_times:
-            return [None, None]
-        if not vname in cls.__sent_data_times[requestid]:
-            return [None, None]
-
-        if len(cls.__sent_data_times[requestid][vname]) != 2:
-            return [None, None]
-
-        time_last_ok = cls.__sent_data_times[requestid][vname][0]
-        time_last = cls.__sent_data_times[requestid][vname][1]
-
-        cls.__sent_data_times_lock.release()
-
-        return [time_last_ok, time_last]
 
     def get(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a get request where the user has specified a
@@ -399,21 +340,16 @@ class DatasetView(View):
                 dataset_name, project_name)
             timezone = nc_models.TimeZone.objects.get(tz='UTC')
 
-        usersel = None
+        client_state = None
         try:
-            usersel = get_selection_from_session(
+            client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404:
             pass
 
-        if not usersel:
+        if not client_state:
             # _logger.debug('DatasetView get, dset.variables=%s',
             #   dset.variables)
-            # Initial user selection times need more thought:
-            #   real-time project (end_time near now):
-            #       start_time, end_time a day at end of dataset
-            #   not real-time project
-            #       start_time, end_time a day at beginning of dataset
 
             tnow = datetime.datetime.now(timezone.tz)
             delta = datetime.timedelta(days=1)
@@ -422,22 +358,22 @@ class DatasetView(View):
             else:
                 stime = dset.get_start_time()
 
-            usersel = nc_models.UserSelection.objects.create(
+            client_state = nc_models.ClientState.objects.create(
                 dataset=dset,
                 timezone=timezone.tz,
                 start_time=stime,
                 time_length=delta.total_seconds())
 
-            save_selection_to_session(
-                request.session, project_name, dataset_name, usersel)
+            save_client_to_session(
+                request.session, project_name, dataset_name, client_state)
             _logger.info(
-                "get, new session, selection id=%d, project=%s,"
-                " dataset=%s", usersel.id, project_name, dataset_name)
+                "get, new session, client id=%d, project=%s,"
+                " dataset=%s", client_state.id, project_name, dataset_name)
 
         else:
-            if usersel.dataset.pk == dset.pk:
-                # could check that usersel.dataset.name == dataset_name and
-                # usersel.dataset.project.name == project_name
+            if client_state.dataset.pk == dset.pk:
+                # could check that client_state.dataset.name == dataset_name and
+                # client_state.dataset.project.name == project_name
                 # but I believe that is unnecessary, since the pk members
                 # are unique.
                 pass
@@ -445,9 +381,9 @@ class DatasetView(View):
                 # Dataset stored under in user session
                 # doesn't match that for project and dataset name.
                 # Probably a server restart
-                usersel.dataset = dset
-                usersel.timezone = timezone.tz
-                usersel.variables = []
+                client_state.dataset = dset
+                client_state.timezone = timezone.tz
+                client_state.variables = []
 
                 tnow = datetime.datetime.now(timezone.tz)
                 delta = datetime.timedelta(days=1)
@@ -456,18 +392,18 @@ class DatasetView(View):
                 else:
                     stime = dset.get_start_time()
 
-                usersel.start_time = stime
-                usersel.time_length = delta.total_seconds()
-                usersel.save()
+                client_state.start_time = stime
+                client_state.time_length = delta.total_seconds()
+                client_state.save()
 
         # variables selected previously by user
-        if usersel.variables:
-            svars = json.loads(usersel.variables)
+        if client_state.variables:
+            svars = json.loads(client_state.variables)
             if debug:
                 _logger.debug(
                     "get, old session, same dataset, " \
                     "project=%s, dataset=%s, variables=%s",
-                    project_name, dataset_name, usersel.variables)
+                    project_name, dataset_name, client_state.variables)
         else:
             if debug:
                 _logger.debug(
@@ -476,7 +412,7 @@ class DatasetView(View):
                     project_name, dataset_name)
             svars = []
 
-        tlen = usersel.time_length
+        tlen = client_state.time_length
 
         if tlen >= datetime.timedelta(days=1).total_seconds():
             tunits = 'day'
@@ -501,27 +437,29 @@ class DatasetView(View):
         # when sending times to datetimepicker, make them naive,
         # with values set as approproate for the dataset timezone
         start_time = datetime.datetime.fromtimestamp(
-            usersel.start_time.timestamp(), tz=timezone.tz).replace(tzinfo=None)
+            client_state.start_time.timestamp(),
+            tz=timezone.tz).replace(tzinfo=None)
 
         if debug:
             _logger.debug(
                 "DatasetView get, old session, same dataset, "
                 "project=%s, dataset=%s, start_time=%s, vars=%s",
                 project_name, dataset_name,
-                start_time, usersel.variables)
+                start_time, client_state.variables)
 
         form = nc_forms.DataSelectionForm(
             initial={
                 'variables': svars,
-                'timezone': timezone.tz,
+                'timezone': client_state.timezone,
                 'start_time': start_time,
                 'time_length_units': tunits,
-                'time_length': tlen
+                'time_length': tlen,
+                'track_real_time': client_state.track_real_time
             },
             dataset=dset)
 
-        # if dset.end_time < datetime.datetime.now(timezone.tz):
-        #     form.fields['track_real_time'].widget.attrs['disabled'] = True
+        if dset.end_time < datetime.datetime.now(timezone.tz):
+            form.fields['track_real_time'].widget.attrs['disabled'] = True
 
         try:
             dvars = sorted(dset.get_variables().keys())
@@ -559,14 +497,14 @@ class DatasetView(View):
             # enable cookies in your browser. Then please try again.")
 
         try:
-            usersel = get_selection_from_session(
+            client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404:
             pass
 
-        if not usersel:
+        if not client_state:
             # There is probably a scenario where a POST can come in
-            # without selection id. Redirect them back to the get.
+            # without client id. Redirect them back to the get.
             _logger.error(
                 "post but no session value for project %s, "
                 "dataset %s, redirecting to get",
@@ -576,7 +514,7 @@ class DatasetView(View):
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
 
-        dset = get_dataset(usersel)
+        dset = get_dataset(client_state)
 
         # dataset name and project name from POST should agree with
         # those in the cached dataset.
@@ -628,17 +566,18 @@ class DatasetView(View):
             return render(request, self.template_name,
                           {'form': form, 'dataset': dset})
 
-        # Save the user selection from the form
+        # Save the client state from the form
         svars = form.cleaned_data['variables']
 
         stime = form.cleaned_data['start_time']
         delt = form.get_cleaned_time_length()
         etime = stime + delt
-        usersel.variables = json.dumps(svars)
-        usersel.start_time = stime
-        usersel.timezone = form.cleaned_data['timezone']
-        usersel.time_length = delt.total_seconds()
-        usersel.save()
+        client_state.variables = json.dumps(svars)
+        client_state.start_time = stime
+        client_state.timezone = form.cleaned_data['timezone']
+        client_state.time_length = delt.total_seconds()
+        client_state.track_real_time = form.cleaned_data['track_real_time']
+        client_state.save()
 
         # filedset = None
         # try:
@@ -715,11 +654,12 @@ class DatasetView(View):
                 time_last_ok = ncdata['time'][lastok]
             except IndexError:
                 # all data is nan
-                time_last_ok = (stime - datetime.timedelta(seconds=0.001)).timestamp()
+                time_last_ok = \
+                    (stime - datetime.timedelta(seconds=0.001)).timestamp()
 
             time_last = ncdata['time'][-1]
-            DatasetView.set_sent_data_times(
-                usersel.id, vname, time_last_ok, time_last)
+
+            client_state.save_data_times(vname, time_last_ok, time_last)
 
         # As an easy compression, subtract first time from all times,
         # reducing the number of characters sent.
@@ -804,19 +744,19 @@ class DatasetView(View):
                 'form': form,
                 'dataset': dset,
                 'plot_groups': plot_groups,
-                'selid': usersel.id,
+                'selid': client_state.id,
                 'time0': time0,
                 'time': mark_safe(time),
                 'data': mark_safe(data),
                 'dim2': mark_safe(dim2),
-                'time_length': usersel.time_length
+                'time_length': client_state.time_length
                 })
 
 class DataView(View):
     """Respond to ajax request for data.
     """
 
-    def get(self, request, *args, selection_id, **kwargs):
+    def get(self, request, *args, client_id, **kwargs):
         """Respond to a ajax get request.
 
         """
@@ -828,40 +768,40 @@ class DataView(View):
             # this won't happen when the django server is restarted,
             # but will happen if the memcached daemon is restarted.
             _logger.error(
-                "session cookie check failed. Either this server "
-                "was restarted, or the user needs to enable cookies")
+                "session test cookie check failed, host=%s",
+                request.get_host())
 
             # redirect back to square one
-            return redirect('ncharts:projectsPlatforms')
+            # return redirect('ncharts:projectsPlatforms')
 
-            # return HttpResponse("Your cookie is not recognized.
-            # Either this server was restarted, or you need to
-            # enable cookies in your browser. Then please try again.")
+            return HttpResponse("Your cookie is not recognized.  Either "\
+                "this server was restarted, or you need to enable cookies "\
+                "in your browser. Then please try again.")
 
-        # selection id is passed in the get
-        usersel = get_object_or_404(nc_models.UserSelection.objects,
-                                    id=selection_id)
-        dset = get_dataset(usersel)
+        # client id is passed in the get
+        client_state = get_object_or_404(
+            nc_models.ClientState.objects, id=client_id)
+        dset = get_dataset(client_state)
 
         dataset_name = dset.name
         project_name = dset.project.name
 
-        request_id = get_selection_id_from_session(
+        client_id = get_client_id_from_session(
             request.session, project_name, dataset_name)
 
-        if request_id:
-            if not request_id == usersel.id:
+        if client_id:
+            if not client_id == client_state.id:
                 _logger.warning(
-                    "%s, %s: DataView get, selection_id=%s"
-                    " does not match selection id from sesson=%d",
-                    project_name, dataset_name, selection_id, request_id)
+                    "%s, %s: DataView get, client_id=%s"
+                    " does not match client id from sesson=%d",
+                    project_name, dataset_name, client_id, client_id)
                 return HttpResponseForbidden(
                     "Unknown browser session, start over")
         else:
             _logger.warning(
-                "%s, %s: DataView get, selection_id=%s"
+                "%s, %s: DataView get, client_id=%s"
                 " not found in session",
-                project_name, dataset_name, selection_id)
+                project_name, dataset_name, client_id)
             return HttpResponseForbidden("Unknown browser session, start over")
 
         if isinstance(dset, nc_models.FileDataset):
@@ -870,17 +810,17 @@ class DataView(View):
             dbcon = dset.get_connection()
 
         # selected variables
-        svars = json.loads(usersel.variables)
+        svars = json.loads(client_state.variables)
 
         if len(svars) == 0:
             _logger.warn(
                 "%s, %s: variables not found for id=%d",
-                project_name, dataset_name, usersel.id)
+                project_name, dataset_name, client_state.id)
             return redirect(
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
 
-        timezone = usersel.timezone
+        timezone = client_state.timezone
 
         all_vars_data = {}
 
@@ -888,12 +828,12 @@ class DataView(View):
 
             # timetag of last non-nan sample for this variable sent to client
             # timetag of last sample for this variable sent to client
-            [time_last_ok, time_last] = \
-                    DatasetView.get_sent_data_times(usersel.id, vname)
+            [time_last_ok, time_last] = client_state.get_data_times(vname)
             if not time_last_ok:
                 _logger.warn(
-                    "%s, %s: data times not found for id=%d, variable=%s",
-                    project_name, dataset_name, usersel.id, vname)
+                    "%s, %s: data times not found for client id=%d, " \
+                    "variable=%s",
+                    project_name, dataset_name, client_state.id, vname)
                 return redirect(
                     'ncharts:dataset', project_name=project_name,
                     dataset_name=dataset_name)
@@ -973,8 +913,7 @@ class DataView(View):
                     'dim2': []}
                 # {vname: np.array([], dtype=np.dtype("float32"))},
 
-            DatasetView.set_sent_data_times(
-                usersel.id, vname, time_last_ok, time_last)
+            client_state.save_data_times(vname, time_last_ok, time_last)
 
             # As an easy compression, subtract first time from all times,
             # reducing the number of characters sent.

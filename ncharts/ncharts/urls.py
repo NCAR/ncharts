@@ -50,6 +50,6 @@ urlpatterns = [
     url(r'^platforms/(?P<platform_name>[^/]+)/(?P<project_name>[^/]+)/?$',
         views.platform_project, name='platformProject'),
 
-    url(r'^data/(?P<selection_id>[0-9]+)$',
+    url(r'^data/(?P<client_id>[0-9]+)$',
         never_cache(views.DataView.as_view()), name='data'),
 ]
