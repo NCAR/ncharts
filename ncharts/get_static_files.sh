@@ -63,3 +63,5 @@ else
     rsync -av heatmap.js $dest/js/modules || exit 1
 fi
 
+echo "On a production server, you should run the static.sh script, which basically does python3 manage.py collectstatic
+"
