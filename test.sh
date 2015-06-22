@@ -1,5 +1,6 @@
 #!/bin/sh
 
-[ $VIRTUAL_ENV ] || source $HOME/virtualenvs/django/bin/activate
+DJVIRT=${DJVIRT:$HOME/virtualenvs/django}
+[ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
 python3 manage.py test ncharts/tests

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# cd dir containing this script - needed when running from user systemd
+# cd to dir containing this script - needed when running from user systemd
 dir=$(dirname $0)
 cd $dir
 
@@ -8,7 +8,8 @@ cd $dir
 
 # sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.4
 
-[ $VIRTUAL_ENV ] || source $HOME/virtualenvs/django/bin/activate
+DJVIRT=${DJVIRT:$HOME/virtualenvs/django}
+[ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
 if false; then
 
