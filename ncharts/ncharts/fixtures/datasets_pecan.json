@@ -113,5 +113,28 @@
     }, 
     "model": "ncharts.filedataset", 
     "pk": 24
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "S-PolKa"
+        ], 
+        "start_time": "2015-04-27T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "McCracken, Kansas", 
+        "name": "S-Pol Surface", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 25
+},
+{
+    "fields": {
+        "directory": "/scr/hail1/rsfdata/pecan/nidas/netcdf", 
+        "filenames": "surface_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 25
 }
 ]

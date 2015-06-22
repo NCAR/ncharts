@@ -3,7 +3,7 @@
     "fields": {
         "variables": [], 
         "platforms": [
-            "SPOL-surface"
+            "S-PolKa"
         ], 
         "start_time": "2014-12-29T00:00:00+00:00",
         "end_time": "2015-12-31T00:00:00+00:00",

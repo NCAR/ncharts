@@ -49,10 +49,10 @@
 {
     "fields": {
         "projects": [
-            "FRONT"
+            "FRONT","PECAN"
         ]
     }, 
     "model": "ncharts.platform", 
-    "pk": "SPOL-surface"
+    "pk": "S-PolKa"
 }
 ]
