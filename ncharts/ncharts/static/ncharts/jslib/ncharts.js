@@ -165,9 +165,9 @@
                                         if (series.data[ix]['x'] >= tx) break;
                                     }
                                     catch(err) {
-                                        console.log("error in looping over chart times, ",
+                                        console.log("error ",err," in looping over chart times, ",
                                             "var=",vname,
-                                            ", data time, tx=",
+                                            ", data time=",
                                             local_ns.format_time(tx),
                                             ", ix=", ix, ", len=",
                                             series.data.length);
@@ -191,7 +191,7 @@
                                             if (first_time) {
                                                 first_time_str = local_ns.format_time(first_time);
                                             }
-                                            console.log("error in accessing first chart time, ",
+                                            console.log("error ",err," in accessing first chart time, ",
                                                 "var=",vname,", iv=", iv,
                                                 ", tx=",
                                                 local_ns.format_time(tx),
@@ -385,7 +385,7 @@
         }
 
         $(function() {
-            // console.log("DOM is ready!");
+            console.log("DOM is ready!");
 
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
@@ -870,10 +870,53 @@
                     });
                 }
             });
+            $("div[id^='profile_plot']").each(function(index) {
+
+                console.log("profile_plot");
+                // profile_datax and profile_datay are defined in the html
+
+                /*
+                 * array of objects, one for each input variable,
+                 * with these keys:
+                 *  name: variable name and units
+                 *  data: 2 column array, containing time, data values
+                 *  yAxis: index of the yaxis to use
+                 *  tooltip: how to display points.
+                 */
+                var profile = [];
+
+                for (var idata = 0; idata < profile_datax.length; idata++) {
+                    profile.push([profile_datax[idata],profile_datay[idata]]);
+                }
+                $( this ).highcharts({
+                    chart: {
+                        type: 'line',
+                    },
+                    xAxis: {
+                        title: {
+                            text: "temperature (degC)"
+                        },
+                    },
+                    yAxis: {
+                        title: {
+                            text: "altitude (m)"
+                        },
+                    },
+                    series: [
+                        {
+                            'name': 'profile',
+                            'data': profile,
+                        },
+                    ],
+                    title: {
+                        text: "my test plot",
+                    }
+                });
+            });
             if (first_time) {
                 local_ns.update_start_time(first_time);
             }
-        });
+        });     // end of DOM-is-ready function
     })
 );
 
