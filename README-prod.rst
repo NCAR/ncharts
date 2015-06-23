@@ -93,6 +93,13 @@ The following is for RedHat systems, such as CentOS or Fedora.
     
     ./migrate_db.sh
 
+ Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history for ncharts::
+
+    rm /var/lib/django/db.sqlite3
+    rm -rf ncharts/migrations
+
+ Then run the migration script again.
+
 7. Load the models from the .json files in ncharts/fixtures::
 
     ./load_db.sh
