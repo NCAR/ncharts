@@ -30,9 +30,13 @@ class TimeZone(models.Model):
     Uses TimeZoneField from django-timezone-field app.
     """
 
-    # pylint thinks this name is too short
+    # If you add "default=pytz.utc" to TimeZoneField, then
+    # makemigrations fails, reporting it can't serialize "<UTC>".
+    # Haven't found a solution, so leave it off. Probably not an issue.
+
+    # pylint thinks this class member name is too short
     # pylint: disable=invalid-name
-    tz = TimeZoneField(default=pytz.utc, primary_key=True)
+    tz = TimeZoneField(primary_key=True)
 
 class Project(models.Model):
     """A field project, with a unique name.
@@ -57,6 +61,7 @@ class Project(models.Model):
     location = models.CharField(max_length=256, blank=True)
 
     long_name = models.CharField(
+        blank=True,
         max_length=256,
         help_text='More detailed description of the project')
 
@@ -80,6 +85,7 @@ class Platform(models.Model):
     name = models.CharField(max_length=64, primary_key=True)
 
     long_name = models.CharField(
+        blank=True,
         max_length=256,
         help_text='More detailed description of the platform')
 
@@ -149,6 +155,7 @@ class Dataset(models.Model):
         help_text='The name of a dataset should be unique within a project')
 
     long_name = models.CharField(
+        blank=True,
         max_length=256,
         help_text='More detailed description of a dataset')
 
