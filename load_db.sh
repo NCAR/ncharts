@@ -4,12 +4,12 @@ prod=true
 [ $# -gt 0 -a "$1" == -d ] && prod=false
 
 if $prod; then
-    DJROOT=${DJROOT:/var/django}
-    DJVIRT=${DJVIRT:$DJROOT/virtualenv/django}
+    DJROOT=${DJROOT:-/var/django}
+    DJVIRT=${DJVIRT:-$DJROOT/virtualenv/django}
     sudo chmod -R g+w /var/lib/django
     sudo chmod -R g+w /var/log/django
 else
-    DJVIRT=${DJVIRT:$HOME/virtualenvs/django}
+    DJVIRT=${DJVIRT:-$HOME/virtualenvs/django}
 fi
 
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate

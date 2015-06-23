@@ -8,7 +8,7 @@ cd $dir
 
 # sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.4
 
-DJVIRT=${DJVIRT:$HOME/virtualenvs/django}
+DJVIRT=${DJVIRT:-$HOME/virtualenvs/django}
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
 if false; then
