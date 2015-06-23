@@ -11,13 +11,12 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <p>Datasets</p>
+                <p>Select a Dataset from {{ project.name }}</p>
             </div>
-            <div class="panel-primary">
+            <div class="panel-body">
             {% if datasets %}
                 {% for dataset in datasets %}
-                    <a class="btn btn-default" href="{% url 'ncharts:dataset' project.name dataset.name %}">{{ project.name }} {{ dataset.name }}</a>
-
+                    <a class="col-md-2" href="{% url 'ncharts:dataset' project.name dataset.name %}" data-toggle="tooltip" title="{{ dataset.long_name }}">{{ dataset.name }}</a>
                 {% endfor %}
             {% else %}
             <p>No datasets for platform {{ platform.name }}, project {{ project.name }}.</p>

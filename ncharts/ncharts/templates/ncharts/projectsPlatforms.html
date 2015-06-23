@@ -11,10 +11,12 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-            <p>Projects</p>
+                <p>Projects</p>
+            </div>
+            <div class="panel-body">
             {% if projects %}
                 {% for project in projects %}
-                    <a class="btn btn-default" href={% url 'ncharts:project' project.name %}>{{ project.name }}</a>
+                    <a class="col-md-2" href="{% url 'ncharts:project' project.name %}" data-toggle="tooltip" title="{{ project.long_name }}">{{ project.name }}</a>
                 {% endfor %}
             {% else %}
                 <p>No projects are available.</p>
@@ -28,10 +30,12 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-            <p>Platforms</p>
+                <p>Platforms</p>
+            </div>
+            <div class="panel-body">
             {% if platforms %}
                 {% for platform in platforms %}
-                    <a class="btn btn-default" href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a>
+                    <a class="col-md-2" href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a>
                 {% endfor %}
             {% else %}
                 <p>No platforms are available.</p>

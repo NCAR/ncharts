@@ -6,12 +6,21 @@
 
 {% block content %}
 
-{% if platforms %}
-    {% for platform in platforms %}
-        <a class="btn btn-default" href={% url 'ncharts:platform' platform.name %}>{{ platform.name }}</a>
-    {% endfor %}
-{% else %}
-    <p>No platforms are available.</p>
-{% endif %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">Available Platforms</div>
+            <div class="panel-body">
+                {% if platforms %}
+                    {% for platform in platforms %}
+                        <a class="col-md-2" href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a>
+                    {% endfor %}
+                {% else %}
+                    <p>No platforms are available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

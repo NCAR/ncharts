@@ -10,10 +10,12 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-            <p>Projects of {{ platform.name }}</p>
+                <p>Projects of {{ platform.name }}</p>
+            </div>
+            <div class="panel-body">
             {% if projects %}
                 {% for project in projects %}
-                    <a class="btn btn-default" href="{% url 'ncharts:platformProject' platform.name project.name %}">{{ project.name }}</a>
+                    <a class="col-md-2" href="{% url 'ncharts:platformProject' platform.name project.name %}" data-toggle="tooltip" title="{{ project.long_name }}">{{ project.name }}</a>
 
                 {% endfor %}
             {% else %}
