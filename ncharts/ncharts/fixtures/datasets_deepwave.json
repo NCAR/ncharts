@@ -8,6 +8,7 @@
         "start_time": "2014-05-30T00:00:00+00:00", 
         "end_time": "2014-07-30T00:00:00+00:00", 
         "name": "30min_winds", 
+        "long_name": "449 Profiler, 30 minute winds", 
         "project": "DEEPWAVE"
     }, 
     "model": "ncharts.dataset",
@@ -30,6 +31,7 @@
         "start_time": "2014-07-01T04:00:00+00:00", 
         "end_time": "2014-07-01T14:00:00+00:00", 
         "name": "GV-1sec", 
+        "long_name": "GV, 1 sec data", 
         "project": "DEEPWAVE"
     }, 
     "model": "ncharts.dataset",

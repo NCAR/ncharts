@@ -8,6 +8,7 @@
         "start_time": "2015-02-18T00:00:00+00:00", 
         "end_time": "2015-06-30T00:00:00+00:00", 
         "name": "qc_geo_notiltcor", 
+        "long_name": "CABL, winds in geographic coordinates, 3D winds not tilt-corrected", 
         "project": "CABL"
     }, 
     "model": "ncharts.dataset", 

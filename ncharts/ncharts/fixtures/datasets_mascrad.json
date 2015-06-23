@@ -8,6 +8,7 @@
         "start_time": "2014-11-05T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "wxt_std", 
+        "long_name": "Surface data from WXT", 
         "project": "MASCRAD"
     }, 
     "model": "ncharts.dataset", 
@@ -30,6 +31,7 @@
         "start_time": "2014-11-11T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "surface_two", 
+        "long_name": "Surface \"two\" data from WXT", 
         "project": "MASCRAD"
     }, 
     "model": "ncharts.dataset", 

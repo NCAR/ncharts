@@ -25,7 +25,10 @@ from timezone_field import TimeZoneField
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 class TimeZone(models.Model):
-    """ """
+    """A timezone.
+
+    Uses TimeZoneField from django-timezone-field app.
+    """
 
     # pylint thinks this name is too short
     # pylint: disable=invalid-name
@@ -53,6 +56,10 @@ class Project(models.Model):
 
     location = models.CharField(max_length=256, blank=True)
 
+    long_name = models.CharField(
+        max_length=256,
+        help_text='More detailed description of the project')
+
     timezones = models.ManyToManyField(
         TimeZone,
         blank=True,
@@ -71,6 +78,10 @@ class Platform(models.Model):
         Platform.objects.all()
     """
     name = models.CharField(max_length=64, primary_key=True)
+
+    long_name = models.CharField(
+        max_length=256,
+        help_text='More detailed description of the platform')
 
     # This adds a platform_set attribute to Project.
     projects = models.ManyToManyField(Project)
@@ -134,8 +145,12 @@ class Dataset(models.Model):
     #     abstract = False
 
     name = models.CharField(
-        max_length=256,
+        max_length=128,
         help_text='The name of a dataset should be unique within a project')
+
+    long_name = models.CharField(
+        max_length=256,
+        help_text='More detailed description of a dataset')
 
     # This adds a dataset_set attribute to Project
     project = models.ForeignKey(
@@ -363,7 +378,8 @@ class ClientState(models.Model):
             raise dj_exc.ValidationError("time_length is not positive")
 
     def save_data_times(self, vname, time_last_ok, time_last):
-        """ """
+        """Save the times associated with the last chunk of data sent to this client.
+        """
         try:
             vart = self.data_times.get(name=vname)
             vart.last_ok = time_last_ok
@@ -375,7 +391,8 @@ class ClientState(models.Model):
             self.data_times.add(vart)
 
     def get_data_times(self, vname):
-        """ """
+        """Fetch the times associated with the last chunk of data sent to this client.
+        """
         try:
             vart = self.data_times.get(name=vname)
             return [vart.last_ok, vart.last]

@@ -8,6 +8,7 @@
         "start_time": "2013-09-27T07:00:00+00:00", 
         "end_time": "2013-11-03T00:00:00+00:00", 
         "name": "5 min, geo, tiltcor", 
+        "long_name": "5 minute, winds in geographic coords, tilt-corrected", 
         "project": "METCRAXII"
     }, 
     "model": "ncharts.dataset", 
@@ -30,6 +31,7 @@
         "start_time": "2013-09-27T07:00:00+00:00", 
         "end_time": "2013-11-02T07:00:00+00:00", 
         "name": "high-rate, geo tilt_cor", 
+        "long_name": "high-rate, winds in geographic coordinates, tilt-corrected", 
         "project": "METCRAXII"
     }, 
     "model": "ncharts.dataset", 

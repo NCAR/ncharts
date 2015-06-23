@@ -22,6 +22,7 @@
         "start_time": "2009-01-01T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "flab-5min", 
+        "long_name": "NCAR Foothills Lab Weather Station", 
         "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
@@ -58,6 +59,7 @@
         "start_time": "2012-06-01T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "nwsc-5min", 
+        "long_name": "NWSC Weather Station", 
         "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
@@ -94,6 +96,7 @@
         "start_time": "2009-01-01T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "mlab-5min", 
+        "long_name": "NCAR Mesa Lab Weather Station", 
         "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
@@ -130,6 +133,7 @@
         "start_time": "2009-01-26T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "nsf-5min", 
+        "long_name": "NSF Weather Station", 
         "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
@@ -166,6 +170,7 @@
         "start_time": "2013-12-10T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "raf-5min", 
+        "long_name": "NCAR RAF Weather Station", 
         "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
@@ -202,6 +207,7 @@
         "start_time": "2014-02-13T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "fireside-5min", 
+        "long_name": "Foothills Elementary Weather Station", 
         "project": "Weather"
     }, 
     "model": "ncharts.dataset", 
