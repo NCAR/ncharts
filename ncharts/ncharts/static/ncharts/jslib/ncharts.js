@@ -883,39 +883,61 @@
                  *  yAxis: index of the yaxis to use
                  *  tooltip: how to display points.
                  */
-                var profile = [];
+                var NY = [];
+		var CO = [];    
 
-                for (var idata = 0; idata < profile_datax.length; idata++) {
-                    profile.push([profile_datax[idata],profile_datay[idata]]);
+                for (var idata = 0; idata < profile_altitude.length; idata++) {
+                    NY.push([profile_NY_temp[idata],profile_altitude[idata]]);
                 }
+		
+		for (var idata = 0; idata < profile_altitude.length; idata++) {
+		    CO.push([profile_CO_temp[idata],profile_altitude[idata]]);
+		}
+
                 $( this ).highcharts({
                     chart: {
-                        type: 'line',
+                        type:'line',
                     },
                     xAxis: {
                         title: {
-                            text: "temperature (degC)"
+                            text: "Temperature (degC)",
+			    style: {"color": "black", "fontSize": "20px"},
                         },
+			minPadding: 0.05,
+			maxPadding: 0.05,
                     },
                     yAxis: {
                         title: {
-                            text: "altitude (m)"
+                            text: "Altitude (m)",
+			    style: {"color": "black", "fontSize": "20px"},
                         },
+			
                     },
                     series: [
                         {
-                            'name': 'profile',
-                            'data': profile,
+                            'name': 'New York',
+                            'data': NY,
+			    allowPointSelect: true,
+			    enableMouseTracking: true,
                         },
+			{
+			    'name': 'Colorado',
+			    'data': CO,
+			    allowPointSelect: true,
+			    enableMouseTracking: true,
+			    color: 'red',
+			}
                     ],
                     title: {
-                        text: "my test plot",
+			margin: 0,
+                        text: "Testing Plot",
+			style: {"color": "black", "fontSize": "25px"},
                     }
                 });
             });
             if (first_time) {
                 local_ns.update_start_time(first_time);
-            }
+            } 
         });     // end of DOM-is-ready function
     })
 );
