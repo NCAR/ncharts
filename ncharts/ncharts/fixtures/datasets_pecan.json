@@ -29,6 +29,31 @@
         "platforms": [
             "ISS"
         ], 
+        "start_time": "2015-05-16T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Ellis Kansas", 
+        "name": "ISS1Soundings", 
+        "long_name": "ISS1 FP3, Ellis, Soundings", 
+        "project": "PECAN",
+        "dset_type": "sounding"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 17
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp3/class", 
+        "filenames": "fp3_sounding.ELLIS_%Y%m%d%H%M.cls.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 17
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
         "start_time": "2015-05-15T00:00:00+00:00", 
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
