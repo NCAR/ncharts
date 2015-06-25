@@ -54,6 +54,11 @@
             $("input#id_start_time").val(dstr);
         }
 
+        local_ns.get_start_time = function() {
+            var dstr = $("input#id_start_time").val();;
+            return moment.tz(dstr,'YYYY-MM-DD HH:mm',local_ns.pickerTimezone);
+        }
+
         // set the value of local_ns.time_length in units of milliseconds
         local_ns.update_time_length = function(time_length,time_length_units) {
             /*
@@ -135,8 +140,6 @@
 
                             var itimes = $.parseJSON(indata[vname]['time'])
 
-                            // console.log("variable=",vname,",
-                            //     plot_times.length=",plot_times.length);
                             if (itimes.length == 0) {
                                 continue;
                             }
@@ -502,13 +505,13 @@
             if (local_ns.track_real_time) {
                 // mean delta-t of data
                 local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
-                if (plot_times.length > 1) {
+                if ('' in plot_times && plot_times[''].length > 1) {
                     // set ajax update period to 1/2 the data deltat
                     local_ns.ajaxTimeout =
                         Math.max(
                             local_ns.ajaxTimeout,
-                            Math.ceil((plot_times[plot_times.length-1] - plot_times[0]) /
-                                (plot_times.length - 1) * 1000 / 2)
+                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
+                                (plot_times[''].length - 1) * 1000 / 2)
                         );
                 }
                 if (local_ns.debug_level > 2) {
@@ -530,6 +533,8 @@
 
                 // console.log("time-series");
 
+                // series name
+                var sname =  $( this ).data("series");
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
                 var long_names =  $( this ).data("long_names");
@@ -537,7 +542,7 @@
                     long_names = vnames;
                 }
 
-                // console.log("time-series, plot_times.length=",plot_times.length);
+                // console.log("time-series, plot_times[''].length=",plot_times[''].length);
                 // console.log("vnames=",vnames,", vunits=",vunits);
 
                 // A yAxis for each unique unit
@@ -586,12 +591,12 @@
                     var long_name = long_names[iv];
                     var vseries = {};
                     var vdata = [];
-                    for (var idata = 0; idata < plot_times.length; idata++) {
-                        vdata.push([(plot_time0 + plot_times[idata])*1000,
-                                plot_data[vname][idata]]);
+                    for (var idata = 0; idata < plot_times[sname].length; idata++) {
+                        vdata.push([(plot_time0[sname] + plot_times[sname][idata])*1000,
+                                plot_data[sname][vname][idata]]);
                     }
-                    if (plot_times.length) {
-                        first_time = (plot_time0 + plot_times[0]) * 1000;
+                    if (plot_times[sname].length) {
+                        first_time = (plot_time0[sname] + plot_times[sname][0]) * 1000;
                     }
 
                     vseries['data'] = vdata;
@@ -709,14 +714,15 @@
 
                 // one plot per variable, vnames will have length of 1
 
+                var sname =  $( this ).data("series");
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
                 var long_names = $( this ).data("long_names");
 
                 /*
                 console.log("heatmap, vnames.length=",vnames.length,
-                        ",plot_times.length=",plot_times.length,
-                        ",plot_dim2.length=",plot_dim2['data'].length);
+                        ",plot_times[",sname,"].length=",plot_times[sname].length,
+                        ",plot_dim2[",sname,"].length=",plot_dim2[sname]['data'].length);
                 */
 
                 if (long_names.length == 0) {
@@ -727,8 +733,8 @@
                 // var units =  $( this ).data("units");
                 // var long_name =  $( this ).data("long_name");
                 // var dim2_name =  $( this ).data("dim2_name");
-                var dim2_name = plot_dim2['name'];
-                var dim2_units = plot_dim2['units'];
+                var dim2_name = plot_dim2[sname]['name'];
+                var dim2_units = plot_dim2[sname]['units'];
 
                 // console.log("vnames=",vnames);
                 for (var iv = 0; iv < vnames.length; iv++) {
@@ -740,31 +746,31 @@
                     minval = Number.POSITIVE_INFINITY;
                     maxval = Number.NEGATIVE_INFINITY;
 
-                    mintime = (plot_time0 + plot_times[0]) * 1000;
-                    maxtime = (plot_time0 + plot_times[plot_times.length-1]) * 1000;
+                    mintime = (plot_time0[sname] + plot_times[sname][0]) * 1000;
+                    maxtime = (plot_time0[sname] + plot_times[sname][plot_times[sname].length-1]) * 1000;
 
-                    mindim2 = plot_dim2['data'][0];
-                    maxdim2 = plot_dim2['data'][plot_dim2['data'].length-1];
+                    mindim2 = plot_dim2[sname]['data'][0];
+                    maxdim2 = plot_dim2[sname]['data'][plot_dim2[sname]['data'].length-1];
 
                     var chart_data = [];
-                    for (var i = 0; i < plot_times.length; i++) {
-                        var tx = (plot_time0 + plot_times[i]) * 1000;
-                        for (var j = 0; j < plot_dim2['data'].length; j++) {
-                            dx = plot_data[vname][i][j];
+                    for (var i = 0; i < plot_times[sname].length; i++) {
+                        var tx = (plot_time0[sname] + plot_times[sname][i]) * 1000;
+                        for (var j = 0; j < plot_dim2[sname]['data'].length; j++) {
+                            dx = plot_data[sname][vname][i][j];
                             if (dx !== null) {
                                 minval = Math.min(minval,dx);
                                 maxval = Math.max(maxval,dx);
                             }
-                            chart_data.push([tx, plot_dim2['data'][j],dx]);
+                            chart_data.push([tx, plot_dim2[sname]['data'][j],dx]);
                         }
                     } 
-                    if (plot_times.length) {
-                        first_time = (plot_time0 + plot_times[0]) * 1000;
+                    if (plot_times[sname].length) {
+                        first_time = (plot_time0[sname] + plot_times[sname][0]) * 1000;
                     }
 
                     // var colsize = 3600 * 1000;
-                    var colsize = (maxtime - mintime) / (plot_times.length - 1);
-                    var rowsize = (maxdim2 - mindim2) / (plot_dim2.length - 1);
+                    var colsize = (maxtime - mintime) / (plot_times[sname].length - 1);
+                    var rowsize = (maxdim2 - mindim2) / (plot_dim2[sname].length - 1);
 
                     $( this ).highcharts({
                         chart: {

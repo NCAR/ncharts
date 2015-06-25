@@ -143,9 +143,9 @@ class DataSelectionForm(forms.Form):
     """
 
     variables = forms.MultipleChoiceField(
+        label='Variables:',
         required=True, widget=forms.CheckboxSelectMultiple(
-            attrs={'data-mini': 'true'}),
-        label='Variables:')
+            attrs={'data-mini': 'true'}))
 
     timezone = forms.TypedChoiceField(
         required=True,
@@ -156,10 +156,13 @@ class DataSelectionForm(forms.Form):
     #       popup calendar box is to lower left or right of textbox & icon
     start_time = forms.DateTimeField(
         widget=widgets.DateTimeWidget(
-            bootstrap_version=3, options={
-                'format': 'yyyy-mm-dd hh:ii', 'clearBtn': 0, 'todayBtn': 1,
-                # 'format': 'YYYY-MM-DD HH:mm', 'clearBtn': 0, 'todayBtn': 1,
-                'pickerPosition': 'bottom-right'}))
+            bootstrap_version=3,
+            options={
+                'format': 'yyyy-mm-dd hh:ii',
+                'clearBtn': 0,
+                'todayBtn': 1,
+                'pickerPosition': 'bottom-right'
+            }))
 
     # this should only be enabled if the end time of the project
     # is in the future.
@@ -174,8 +177,13 @@ class DataSelectionForm(forms.Form):
         choices=[(c, c,) for c in TIME_UNITS_CHOICES],
         initial=TIME_UNITS_CHOICES[0], label='')
 
+    soundings = forms.MultipleChoiceField(
+        label='Soundings',
+        required=False, widget=forms.CheckboxSelectMultiple(
+            attrs={'data-mini': 'true'}))
+
     def __init__(self, *args, dataset=None, **kwargs):
-        """Set choices for variables and time zone from dataset.
+        """Set choices for time zone from dataset.
 
         Raises:
         """
@@ -198,13 +206,13 @@ class DataSelectionForm(forms.Form):
         Args:
             variables: list of variable names.
         """
+        # choices: (value, label)
         self.fields['variables'].choices = [(v, v) for v in variables]
 
-    def clean(self):
-        """
 
+    def clean(self):
+        """Check the user's selections for correctness.
         """
-        # TODO: add docstring.
 
         '''
         _logger.debug('DataSelectionForm clean')
