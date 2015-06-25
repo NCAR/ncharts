@@ -118,6 +118,7 @@
 {% if form.track_real_time.value %}
         var ajaxurl = "{% url 'ncharts:data' selid %}";
 {% endif %}
+        var soundings = jQuery.parseJSON('{{ soundings }}');
     </script>
 
     {% for group,val in plot_groups.items %}

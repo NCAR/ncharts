@@ -477,7 +477,7 @@ class DatasetView(View):
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
-                soundings = dset.get_series_names(
+                soundings = dset.get_series_tuples(
                     series_name_fmt=SOUNDING_NAME_FMT)
 
                 # soundings between the start and end time
@@ -496,7 +496,11 @@ class DatasetView(View):
 
         return render(
             request, self.template_name,
-            {'form': form, 'dataset': dset, 'soundings': soundings})
+            {
+                'form': form,
+                'dataset': dset,
+                'soundings': mark_safe(json.dumps(soundings))
+            })
 
     def post(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a post request where the user has sent back a form.
@@ -597,9 +601,13 @@ class DatasetView(View):
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
-                soundings = dset.get_series_names(
+                soundings = dset.get_series_tuples(
                     series_name_fmt=SOUNDING_NAME_FMT)
-                s_choices = [(s, s) for s in soundings]
+
+                s_choices = dset.get_series_names(
+                    series_name_fmt=SOUNDING_NAME_FMT)
+
+                s_choices = [(s, s) for s in s_choices]
                 form.fields['soundings'].choices = s_choices
 
         except OSError as exc:
@@ -609,7 +617,11 @@ class DatasetView(View):
             _logger.error('User form is not valid!: %s', repr(form.errors))
             return render(
                 request, self.template_name,
-                {'form': form, 'dataset': dset, 'soundings': soundings})
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         # Save the client state from the form
         svars = form.cleaned_data['variables']
@@ -650,7 +662,11 @@ class DatasetView(View):
             form.no_data(repr(exc))
             return render(
                 request, self.template_name,
-                {'form': form, 'dataset': dset, 'soundings': soundings})
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()
@@ -664,7 +680,11 @@ class DatasetView(View):
                 form.no_data(repr(exc))
                 return render(
                     request, self.template_name,
-                    {'form': form, 'dataset': dset, 'soundings': soundings})
+                    {
+                        'form': form,
+                        'dataset': dset,
+                        'soundings': mark_safe(json.dumps(soundings))
+                    })
 
         elif isinstance(dset, nc_models.DBDataset):
             dbcon = dset.get_connection()
@@ -680,7 +700,11 @@ class DatasetView(View):
             form.no_data(repr(exc))
             return render(
                 request, self.template_name,
-                {'form': form, 'dataset': dset, 'soundings': soundings})
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         series_name_fmt = None
         if dset.dset_type == "sounding":
@@ -691,7 +715,11 @@ class DatasetView(View):
                 form.no_data(repr(exc))
                 return render(
                     request, self.template_name,
-                    {'form': form, 'dataset': dset, 'soundings': soundings})
+                    {
+                        'form': form,
+                        'dataset': dset,
+                        'soundings': mark_safe(json.dumps(soundings))
+                    })
             series_name_fmt = SOUNDING_NAME_FMT
         else:
             sel_soundings = None
@@ -721,21 +749,33 @@ class DatasetView(View):
             form.no_data(repr(exc))
             return render(
                 request, self.template_name,
-                {'form': form, 'dataset': dset, 'soundings': soundings})
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         except nc_exceptions.TooMuchDataException as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
             form.too_much_data(repr(exc))
             return render(
                 request, self.template_name,
-                {'form': form, 'dataset': dset, 'soundings': soundings})
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         except nc_exceptions.NoDataException as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
             form.no_data(repr(exc))
             return render(
                 request, self.template_name,
-                {'form': form, 'dataset': dset, 'soundings': soundings})
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         time0 = {}
         for series_name in ncdata['time']:
@@ -792,7 +832,7 @@ class DatasetView(View):
                 var['plot_type'] = ptype
                 plot_types.add(ptype)
         else:
-            plot_types.add("sounding")
+            plot_types.add("sounding-profile")
 
 
         # Create plot groups dictionary, for each
@@ -820,7 +860,7 @@ class DatasetView(View):
                             'plot_type': mark_safe(ptype),
                         }
                         grpid += 1
-            elif ptype == 'sounding':
+            elif ptype == 'sounding-profile':
                 # one profile plot per series name
                 for series_name in ncdata['time']:
                     vnames = [v for v in variables]
@@ -873,7 +913,7 @@ class DatasetView(View):
                 'data': mark_safe(data),
                 'dim2': mark_safe(dim2),
                 'time_length': client_state.time_length,
-                'soundings': soundings,
+                'soundings': mark_safe(json.dumps(soundings)),
                 })
 
 class DataView(View):

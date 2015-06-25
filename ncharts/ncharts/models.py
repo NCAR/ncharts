@@ -287,6 +287,24 @@ class FileDataset(Dataset):
         return ncdset.get_variables(
             self.start_time, self.end_time)
 
+    def get_series_tuples(
+            self,
+            series_name_fmt="",
+            start_time=pytz.utc.localize(datetime.datetime.min),
+            end_time=pytz.utc.localize(datetime.datetime.max)):
+        """Get the names of the series between the start and end times.
+        """
+        if not self.dset_type == "sounding":
+            return []
+
+        files = self.get_fileset().scan(start_time, end_time)
+
+        # series names, formatted from the time of the file.
+        # The scan function returns the file previous to start_time.
+        # Remove that.
+        return [(f.time.strftime(series_name_fmt),f.time.timestamp()) for f in files \
+                if f.time >= start_time]
+
     def get_series_names(
             self,
             series_name_fmt="",

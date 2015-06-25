@@ -876,6 +876,15 @@
                     });
                 }
             });
+            $("div[id^='sounding-profile']").each(function(index) {
+                var sname =  $( this ).data("series");
+                console.log("sounding, sname=",sname,
+                    ", soundings.length=",soundings.length);
+
+                for (var i = 0; i < soundings.length; i++) {
+                    console.log("soundings[",i,"].length=",soundings[i].length)
+                }
+            });
             if (first_time) {
                 local_ns.update_start_time(first_time);
             }
