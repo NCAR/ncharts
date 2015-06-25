@@ -24,16 +24,12 @@ migs_exist=false
 [ -d ncharts/migrations ] && migs_exist=true
 
 if $db_exists; then
-    $migs_exist && python3 manage.py migrate ncharts || exit 1
-
-    # Not really sure whether this is necessary.
-    # Note that migrations for other apps are written to the
-    # virtual environment directory. Not sure when this occurs.
-    # find /home/maclean/virtualenvs/django -name migrations  -print
-    python3 manage.py makemigrations
 
     # Have to specify the ncharts app name in order to make its migrations
     python3 manage.py makemigrations ncharts
+
+    python3 manage.py migrate ncharts
+
 else
     rm -rf ncharts/migrations
     # creates initial database
