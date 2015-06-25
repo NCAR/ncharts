@@ -14,7 +14,7 @@ import os, pytz, logging
 
 from django.db import models
 
-from ncharts import netcdf
+from ncharts import netcdf, fileset
 
 from django.core import exceptions as dj_exc
 
@@ -181,6 +181,11 @@ class Dataset(models.Model):
         max_length=256, blank=True,
         help_text="Location for dataset if different than for project")
 
+    dset_type = models.CharField(
+        blank=True,
+        max_length=16,
+        help_text='Type of dataset: time-series, sounding')
+
     # '+' tells django not to create a backwards relation from
     # Variable to Dataset
     variables = models.ManyToManyField(
@@ -253,6 +258,13 @@ class FileDataset(Dataset):
         help_text='Format of file names, often containing timedate '
                   'descriptors such as %Y')
 
+    def get_fileset(self):
+        """Return a fileset.Fileset corresponding to this
+        FileDataset.
+        """
+        return fileset.Fileset(
+            os.path.join(self.directory, self.filenames))
+
     def get_netcdf_dataset(self):
         """Return the netcdf.NetCDFDataset corresponding to this
         FileDataset.
@@ -261,7 +273,7 @@ class FileDataset(Dataset):
             os.path.join(self.directory, self.filenames))
 
     def get_variables(self):
-        """Return the time series variables in this FileDataset.
+        """Return the time series variable names of this dataset.
         """
         if len(self.variables.values()) > 0:
             res = {}
@@ -275,6 +287,41 @@ class FileDataset(Dataset):
         return ncdset.get_variables(
             self.start_time, self.end_time)
 
+    def get_series_tuples(
+            self,
+            series_name_fmt="",
+            start_time=pytz.utc.localize(datetime.datetime.min),
+            end_time=pytz.utc.localize(datetime.datetime.max)):
+        """Get the names of the series between the start and end times.
+        """
+        if not self.dset_type == "sounding":
+            return []
+
+        files = self.get_fileset().scan(start_time, end_time)
+
+        # series names, formatted from the time of the file.
+        # The scan function returns the file previous to start_time.
+        # Remove that.
+        return [(f.time.strftime(series_name_fmt),f.time.timestamp()) for f in files \
+                if f.time >= start_time]
+
+    def get_series_names(
+            self,
+            series_name_fmt="",
+            start_time=pytz.utc.localize(datetime.datetime.min),
+            end_time=pytz.utc.localize(datetime.datetime.max)):
+        """Get the names of the series between the start and end times.
+        """
+        if not self.dset_type == "sounding":
+            return []
+
+        files = self.get_fileset().scan(start_time, end_time)
+
+        # series names, formatted from the time of the file.
+        # The scan function returns the file previous to start_time.
+        # Remove that.
+        return [f.time.strftime(series_name_fmt) for f in files \
+                if f.time >= start_time]
 
 class DBDataset(Dataset):
     """A Dataset whose contents are in a database.
@@ -366,6 +413,9 @@ class ClientState(models.Model):
         VariableTimes,
         blank=True,
         related_name='+')
+
+    # list of sounding series, stringified by json
+    soundings = models.TextField()
 
     def __str__(self):
         return 'ClientState for dataset: %s' % (self.dataset.name)

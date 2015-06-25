@@ -89,6 +89,20 @@ class NetCDFDataset(object):
     def __str__(self):
         return "NetCDFDataset, path=" + str(self.fileset)
 
+    def get_files(self, start_time, end_time):
+        """Return the file path names matching the time period.
+        Args:
+            start_time: datetime.datetime of start of fileset scan.
+            end_time: end of fileset scan.
+
+        Returns:
+            List of file path names matching the time period.
+
+        Raises:
+            FileNotFoundError, PermissionError
+        """
+        return self.fileset.scan(start_time, end_time)
+
     def get_filepaths(self, start_time, end_time):
         """Return the file path names matching the time period.
         Args:
@@ -662,10 +676,12 @@ class NetCDFDataset(object):
     def read_time_series(
             self,
             variables=(),
-            start_time=datetime.min,
-            end_time=datetime.max,
+            start_time=pytz.utc.localize(datetime.min),
+            end_time=pytz.utc.localize(datetime.max),
             selectdim=None,
-            size_limit=1000 * 1000 * 1000):
+            size_limit=1000 * 1000 * 1000,
+            series=None,
+            series_name_fmt=None):
         """ Read a list of time-series variables from this fileset.
 
         Args:
@@ -681,14 +697,22 @@ class NetCDFDataset(object):
                 which have that dimension.
             size_limit: Limit on the total size in bytes to read, used to
                 screen huge requests.
+            series: A list of series to be read by name.
+            series_fmt: a datetime.strftime format to create a
+                series name for the data found in each file, based
+                on the time associated with the file.
+                If series_name_fmt is None, all data is put in a dictionary
+                element named ''.
 
         Returns:
-            A dict containing: {
-                'time' : list of UTC timestamps,
-                'data': dict, by variable name of numpy.ndarray containing
-                    the data for each variable,
-                'dim2': values for second dimension of the data, such as height,
-            }.
+            A dict containing:
+                'time' : dict, by series name, of lists of
+                    UTC timestamps,
+                'data': dict, by series name, of dicts by variable name,
+                    of numpy.ndarray containing the data for each variable,
+                'dim2': dict, by series name, of values for second
+                    dimension of the data, such as height,
+            }
 
         Raises:
             FileNotFoundError, PermissionError
@@ -705,15 +729,33 @@ class NetCDFDataset(object):
 
         vshapes = self.resolve_variable_shapes(variables, selectdim)
 
-        datadict = {}
-        times = []
-        dim2 = {}
+        res_times = {}
+        res_data = {}
+        res_dim2 = {}
+
         total_size = 0
 
-        filepaths = self.get_filepaths(start_time, end_time)
+        files = self.get_files(start_time, end_time)
+        if debug:
+            _logger.debug(
+                "len(files)=%d, series_name_fmt=%s",
+                len(files), series_name_fmt)
 
-        for ncpath in filepaths:
-            # _logger.debug("ncpath=%s",ncpath)
+        if series_name_fmt:
+            file_tuples = [(f.time.strftime(series_name_fmt), f.path) \
+                for f in files]
+        else:
+            file_tuples = [("", f.path) for f in files]
+
+        for (series_name, ncpath) in file_tuples:
+
+            if series and not series_name in series:
+                continue
+
+            if debug:
+                _logger.debug("series=%s",str(series))
+                _logger.debug("series_name=%s ,ncpath=%s",
+                    series_name, ncpath)
 
             # the files might be in the process of being moved, deleted, etc
             fileok = False
@@ -732,11 +774,20 @@ class NetCDFDataset(object):
             if not fileok:
                 continue
 
+            if series_name in res_times:
+                otimes = res_times[series_name]
+                odata = res_data[series_name]
+                odim2 = res_dim2[series_name]
+            else:
+                otimes = []
+                odata = {}
+                odim2 = {}
+
             try:
-                size1 = sys.getsizeof(times)
+                size1 = sys.getsizeof(otimes)
 
                 time_slice = self.read_times(
-                    ncfile, ncpath, start_time, end_time, times,
+                    ncfile, ncpath, start_time, end_time, otimes,
                     size_limit - total_size)
 
                 # time_slice.start is None if nothing to read
@@ -744,7 +795,7 @@ class NetCDFDataset(object):
                     time_slice.stop <= time_slice.start:
                     continue
 
-                total_size += sys.getsizeof(times) - size1
+                total_size += sys.getsizeof(otimes) - size1
 
                 for vname in variables:
 
@@ -766,29 +817,38 @@ class NetCDFDataset(object):
 
                     vdata = self.read_time_series_data(
                         ncfile, ncpath, vname, time_slice, vshape,
-                        selectdim, dim2)
+                        selectdim, odim2)
 
-                    if not vname in datadict:
+                    if not vname in odata:
                         size1 = 0
-                        datadict[vname] = vdata
+                        odata[vname] = vdata
                     else:
                         if debug:
                             _logger.debug(
-                                "datadict[%s].shape=%s, vdata.shape=%s",
-                                vname, datadict[vname].shape, vdata.shape)
+                                "odata[%s].shape=%s, vdata.shape=%s",
+                                vname, odata[vname].shape, vdata.shape)
 
-                        size1 = sys.getsizeof(datadict[vname])
+                        size1 = sys.getsizeof(odata[vname])
 
                         time_index = self.variables[vname]["time_index"]
-                        datadict[vname] = np.append(
-                            datadict[vname], vdata, axis=time_index)
+                        odata[vname] = np.append(
+                            odata[vname], vdata, axis=time_index)
 
-                    total_size += sys.getsizeof(datadict[vname]) - size1
+                    total_size += sys.getsizeof(odata[vname]) - size1
 
             finally:
                 ncfile.close()
 
-        if len(times) == 0:
+            if not series_name in res_times:
+                if debug:
+                    _logger.debug("len(otimes)=%d",len(otimes))
+                res_times[series_name] = otimes
+                res_data[series_name] = odata
+                res_dim2[series_name] = odim2
+
+        ntimes = sum([len(x) for x in res_times.values()])
+
+        if ntimes == 0:
             exc = exceptions.NoDataException(
                 "{}: no data found between {} and {}".
                 format(
@@ -798,12 +858,13 @@ class NetCDFDataset(object):
             raise exc
 
         if debug:
-            for vname in datadict.keys():
-                _logger.debug(
-                    "datadict[%s].shape=%s",
-                    vname, repr(datadict[vname].shape))
+            for series_name in res_data.keys():
+                for vname in res_data[series_name].keys():
+                    _logger.debug(
+                        "res_data[%s][%s].shape=%s",
+                        series_name, vname, repr(res_data[series_name][vname].shape))
             _logger.debug(
                 "total_size=%d", total_size)
 
-        return {"time" : times, "data": datadict, "dim2": dim2}
+        return {"time" : res_times, "data": res_data, "dim2": res_dim2}
 

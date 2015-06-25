@@ -36,6 +36,9 @@ import collections
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
+# Abbreviated name of a sounding, e.g. "Jun23_0413Z"
+SOUNDING_NAME_FMT = "%b%d_%H%MZ"
+
 class StaticView(TemplateView):
     """View class for rendering a simple template page.
     """
@@ -383,7 +386,8 @@ class DatasetView(View):
                 # Probably a server restart
                 client_state.dataset = dset
                 client_state.timezone = timezone.tz
-                client_state.variables = []
+                client_state.variables = ""
+                client_state.soundings = ""
 
                 tnow = datetime.datetime.now(timezone.tz)
                 delta = datetime.timedelta(days=1)
@@ -447,6 +451,10 @@ class DatasetView(View):
                 project_name, dataset_name,
                 start_time, client_state.variables)
 
+        sel_soundings = []
+        if client_state.soundings:
+            sel_soundings = json.loads(client_state.soundings)
+
         form = nc_forms.DataSelectionForm(
             initial={
                 'variables': svars,
@@ -454,21 +462,45 @@ class DatasetView(View):
                 'start_time': start_time,
                 'time_length_units': tunits,
                 'time_length': tlen,
-                'track_real_time': client_state.track_real_time
+                'track_real_time': client_state.track_real_time,
+                'soundings': sel_soundings,
             },
             dataset=dset)
 
         if dset.end_time < datetime.datetime.now(timezone.tz):
             form.fields['track_real_time'].widget.attrs['disabled'] = True
 
+        soundings = []
         try:
             dvars = sorted(dset.get_variables().keys())
             form.set_variable_choices(dvars)
+
+            if dset.dset_type == "sounding":
+                # all soundings in the dataset
+                soundings = dset.get_series_tuples(
+                    series_name_fmt=SOUNDING_NAME_FMT)
+
+                # soundings between the start and end time
+                s_choices = dset.get_series_names(
+                    series_name_fmt=SOUNDING_NAME_FMT,
+                    start_time=client_state.start_time,
+                    end_time=client_state.start_time + \
+                        datetime.timedelta(seconds=client_state.time_length))
+
+                s_choices = [(s, s) for s in s_choices]
+                _logger.debug("s_choices=%s",s_choices)
+                form.fields['soundings'].choices = s_choices
+
         except OSError as exc:
             form.no_data(repr(exc))
 
-        return render(request, self.template_name,
-                      {'form': form, 'dataset': dset})
+        return render(
+            request, self.template_name,
+            {
+                'form': form,
+                'dataset': dset,
+                'soundings': mark_safe(json.dumps(soundings))
+            })
 
     def post(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a post request where the user has sent back a form.
@@ -526,8 +558,9 @@ class DatasetView(View):
                 dset.project.name, dset.name,
                 project_name, dataset_name)
 
-            return self.get(request, *args, project_name=project_name,
-                            dataset_name=dataset_name, **kwargs)
+            return redirect(
+                'ncharts:dataset', project_name=project_name,
+                dataset_name=dataset_name)
 
         # vars = [ v.name for v in dset.variables.all() ]
 
@@ -559,16 +592,40 @@ class DatasetView(View):
         else:
             form = nc_forms.DataSelectionForm(request.POST, dataset=dset)
 
-        dvars = sorted(dset.get_variables().keys())
-        form.set_variable_choices(dvars)
+        # Have to set the choices for variables and soundings
+        # before the form is validated.
+        soundings = []
+        try:
+            dvars = sorted(dset.get_variables().keys())
+            form.set_variable_choices(dvars)
+
+            if dset.dset_type == "sounding":
+                # all soundings in the dataset
+                soundings = dset.get_series_tuples(
+                    series_name_fmt=SOUNDING_NAME_FMT)
+
+                s_choices = dset.get_series_names(
+                    series_name_fmt=SOUNDING_NAME_FMT)
+
+                s_choices = [(s, s) for s in s_choices]
+                form.fields['soundings'].choices = s_choices
+
+        except OSError as exc:
+            form.no_data(repr(exc))
 
         if not form.is_valid():
             _logger.error('User form is not valid!: %s', repr(form.errors))
-            return render(request, self.template_name,
-                          {'form': form, 'dataset': dset})
+            return render(
+                request, self.template_name,
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         # Save the client state from the form
         svars = form.cleaned_data['variables']
+        sel_soundings = form.cleaned_data['soundings']
 
         stime = form.cleaned_data['start_time']
         delt = form.get_cleaned_time_length()
@@ -578,6 +635,7 @@ class DatasetView(View):
         client_state.timezone = form.cleaned_data['timezone']
         client_state.time_length = delt.total_seconds()
         client_state.track_real_time = form.cleaned_data['track_real_time']
+        client_state.soundings = json.dumps(sel_soundings)
         client_state.save()
 
         # filedset = None
@@ -585,6 +643,30 @@ class DatasetView(View):
         #     filedset = dset.filedataset
         # except nc_models.FileDataset.DoesNotExist as exc:
         #     raise Http404
+
+        try:
+            dvars = sorted(dset.get_variables().keys())
+            form.set_variable_choices(dvars)
+
+            if dset.dset_type == "sounding":
+                # soundings between the start and end time
+                s_choices = dset.get_series_names(
+                    series_name_fmt=SOUNDING_NAME_FMT,
+                    start_time=stime,
+                    end_time=etime)
+
+                s_choices = [(s, s) for s in s_choices]
+                form.fields['soundings'].choices = s_choices
+        except OSError as exc:
+            _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+            form.no_data(repr(exc))
+            return render(
+                request, self.template_name,
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()
@@ -596,8 +678,13 @@ class DatasetView(View):
             except OSError as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 form.no_data(repr(exc))
-                return render(request, self.template_name,
-                              {'form': form, 'dataset': dset})
+                return render(
+                    request, self.template_name,
+                    {
+                        'form': form,
+                        'dataset': dset,
+                        'soundings': mark_safe(json.dumps(soundings))
+                    })
 
         elif isinstance(dset, nc_models.DBDataset):
             dbcon = dset.get_connection()
@@ -611,8 +698,31 @@ class DatasetView(View):
                 "variables {} not found in dataset".format(svars))
             _logger.warn(repr(exc))
             form.no_data(repr(exc))
-            return render(request, self.template_name,
-                          {'form': form, 'dataset': dset})
+            return render(
+                request, self.template_name,
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
+
+        series_name_fmt = None
+        if dset.dset_type == "sounding":
+            if len(sel_soundings) == 0:
+                exc = nc_exceptions.NoDataException(
+                    "select one or more soundings")
+                _logger.warn(repr(exc))
+                form.no_data(repr(exc))
+                return render(
+                    request, self.template_name,
+                    {
+                        'form': form,
+                        'dataset': dset,
+                        'soundings': mark_safe(json.dumps(soundings))
+                    })
+            series_name_fmt = SOUNDING_NAME_FMT
+        else:
+            sel_soundings = None
 
         # If variables exists in the dataset, get their
         # attributes there, otherwise from the actual dataset.
@@ -627,7 +737,9 @@ class DatasetView(View):
         try:
             if isinstance(dset, nc_models.FileDataset):
                 ncdata = ncdset.read_time_series(
-                    savail, start_time=stime, end_time=etime)
+                    savail, start_time=stime, end_time=etime,
+                    series=sel_soundings,
+                    series_name_fmt=series_name_fmt)
             else:
                 ncdata = dbcon.read_time_series(
                     savail, start_time=stime, end_time=etime)
@@ -635,39 +747,73 @@ class DatasetView(View):
         except OSError as exc:
             _logger.error("%s, %s: %s", project_name, dataset_name, exc)
             form.no_data(repr(exc))
-            return render(request, self.template_name,
-                          {'form': form, 'dataset': dset})
+            return render(
+                request, self.template_name,
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
+
         except nc_exceptions.TooMuchDataException as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
             form.too_much_data(repr(exc))
-            return render(request, self.template_name,
-                          {'form': form, 'dataset': dset})
+            return render(
+                request, self.template_name,
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
+
         except nc_exceptions.NoDataException as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
             form.no_data(repr(exc))
-            return render(request, self.template_name,
-                          {'form': form, 'dataset': dset})
+            return render(
+                request, self.template_name,
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
-        for vname in savail:
-            try:
-                # works for any shape, as long as time is the first dimension
-                lastok = np.where(~np.isnan(ncdata['data'][vname]))[0][-1]
-                time_last_ok = ncdata['time'][lastok]
-            except IndexError:
-                # all data is nan
-                time_last_ok = \
-                    (stime - datetime.timedelta(seconds=0.001)).timestamp()
+        time0 = {}
+        for series_name in ncdata['time']:
 
-            time_last = ncdata['time'][-1]
+            if series_name == "":
+                for vname in savail:
+                    try:
+                        # works for any shape, as long as time is the
+                        # first dimension
+                        lastok = np.where(~np.isnan(
+                            ncdata['data'][series_name][vname]))[0][-1]
+                        time_last_ok = ncdata['time'][series_name][lastok]
+                    except IndexError:
+                        # all data is nan
+                        time_last_ok = (stime - \
+                            datetime.timedelta(seconds=0.001)).timestamp()
 
-            client_state.save_data_times(vname, time_last_ok, time_last)
+                    time_last = ncdata['time'][series_name][-1]
 
-        # As an easy compression, subtract first time from all times,
-        # reducing the number of characters sent.
-        time0 = 0
-        if len(ncdata['time']) > 0:
-            time0 = ncdata['time'][0]
-        time = json.dumps([x - time0 for x in ncdata['time']])
+                    client_state.save_data_times(
+                        vname, time_last_ok, time_last)
+
+            # As an easy compression, subtract first time from all times,
+            # reducing the number of characters sent.
+            time0[series_name] = 0
+            if len(ncdata['time'][series_name]) > 0:
+                time0[series_name] = ncdata['time'][series_name][0]
+
+            # subtract off time0
+            ncdata['time'][series_name] = [x - time0[series_name] for \
+                    x in ncdata['time'][series_name]]
+
+        time0 = json.dumps(time0)
+        time = json.dumps({k: ncdata['time'][k] for k in ncdata['time']})
+        data = json.dumps(
+            {k: ncdata['data'][k] for k in ncdata['data']}, cls=NChartsJSONEncoder)
+        dim2 = json.dumps(
+            {k: ncdata['dim2'][k] for k in ncdata['dim2']}, cls=NChartsJSONEncoder)
 
         def type_by_shape(shape):
             """Crude function to return a plot type, given a dimension.
@@ -680,14 +826,14 @@ class DatasetView(View):
                 return 'none'
 
         plot_types = set()
-        for vname, var in variables.items():
-            ptype = type_by_shape(ncdata['data'][vname].shape)
-            var['plot_type'] = ptype
-            plot_types.add(ptype)
+        if len(ncdata['time']) == 1 and '' in ncdata['time']:
+            for vname, var in variables.items():
+                ptype = type_by_shape(ncdata['data'][''][vname].shape)
+                var['plot_type'] = ptype
+                plot_types.add(ptype)
+        else:
+            plot_types.add("sounding-profile")
 
-        data = json.dumps(ncdata['data'], cls=NChartsJSONEncoder)
-
-        dim2 = json.dumps(ncdata['dim2'], cls=NChartsJSONEncoder)
 
         # Create plot groups dictionary, for each
         # group, the variables in the group, their units, long_names, plot_type
@@ -705,6 +851,7 @@ class DatasetView(View):
                     var = variables[vname]
                     if var['plot_type'] == ptype:
                         plot_groups['g{}'.format(grpid)] = {
+                            'series': "",
                             'variables': mark_safe(json.dumps([vname])),
                             'units':
                                 mark_safe(json.dumps([var['units']])),
@@ -713,6 +860,20 @@ class DatasetView(View):
                             'plot_type': mark_safe(ptype),
                         }
                         grpid += 1
+            elif ptype == 'sounding-profile':
+                # one profile plot per series name
+                for series_name in ncdata['time']:
+                    vnames = [v for v in variables]
+                    units = [var['units'] for var in variables.values()]
+                    long_names = [var['long_name'] for var in variables.values()]
+                    plot_groups['g{}'.format(grpid)] = {
+                        'series': series_name,
+                        'variables': mark_safe(json.dumps(vnames)),
+                        'units': mark_safe(json.dumps(units)),
+                        'long_names': mark_safe(json.dumps(long_names)),
+                        'plot_type': mark_safe(ptype),
+                    }
+                    grpid += 1
             else:
                 # unique units, in alphabetical order by the name of the
                 # first variable which uses it. It is better to
@@ -731,6 +892,7 @@ class DatasetView(View):
                         if var['plot_type'] == ptype and var['units'] == unit])
                     # uvars is list of variables with units unit
                     plot_groups['g{}'.format(grpid)] = {
+                        'series': "",
                         'variables': mark_safe(json.dumps(uvars)),
                         'units': mark_safe(json.dumps(
                             [variables[v]['units'] for v in uvars])),
@@ -746,11 +908,12 @@ class DatasetView(View):
                 'dataset': dset,
                 'plot_groups': plot_groups,
                 'selid': client_state.id,
-                'time0': time0,
+                'time0': mark_safe(time0),
                 'time': mark_safe(time),
                 'data': mark_safe(data),
                 'dim2': mark_safe(dim2),
-                'time_length': client_state.time_length
+                'time_length': client_state.time_length,
+                'soundings': mark_safe(json.dumps(soundings)),
                 })
 
 class DataView(View):
@@ -856,8 +1019,8 @@ class DataView(View):
                         [vname], start_time=stime, end_time=etime)
                 try:
                     lastok = np.where(
-                        ~np.isnan(ncdata['data'][vname]))[0][-1]
-                    time_last_ok = ncdata['time'][lastok]
+                        ~np.isnan(ncdata['data'][''][vname]))[0][-1]
+                    time_last_ok = ncdata['time'][''][lastok]
                     if debug:
                         _logger.debug(
                             "Dataview Get, %s, %s: variable=%s, last_time_ok=%s"
@@ -876,12 +1039,12 @@ class DataView(View):
                             stime.isoformat(), etime.isoformat())
 
                     # index of first time > time_last
-                    idx = next((i for i, t in enumerate(ncdata['time']) \
+                    idx = next((i for i, t in enumerate(ncdata['time']['']) \
                         if t > time_last), -1)
                     if idx >= 0:
-                        ncdata['time'] = ncdata['time'][idx:]
-                        ncdata['data'][vname] = ncdata['data'][vname][idx:]
-                        time_last = ncdata['time'][-1]
+                        ncdata['time'][''] = ncdata['time'][''][idx:]
+                        ncdata['data'][''][vname] = ncdata['data'][''][vname][idx:]
+                        time_last = ncdata['time'][''][-1]
                     else:
                         if debug:
                             _logger.debug(
@@ -891,8 +1054,8 @@ class DataView(View):
                                 stime.isoformat(), etime.isoformat(),
                                 datetime.datetime.fromtimestamp(
                                     time_last, tz=timezone).isoformat())
-                        ncdata['time'] = []
-                        ncdata['data'][vname] = []
+                        ncdata['time'][''] = []
+                        ncdata['data'][''][vname] = []
             except OSError as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 raise Http404(str(exc))
@@ -909,9 +1072,18 @@ class DataView(View):
                             time_last, tz=timezone).isoformat())
                 # make up some data
                 ncdata = {
-                    'time': [],
-                    'data': {vname: []},
-                    'dim2': []}
+                    'time': {
+                        '': []
+                    },
+                    'data': {
+                        '': {
+                            vname: [],
+                        },
+                    },
+                    'dim2': {
+                        '': []
+                    }
+                }
                 # {vname: np.array([], dtype=np.dtype("float32"))},
 
             client_state.save_data_times(vname, time_last_ok, time_last)
@@ -920,16 +1092,16 @@ class DataView(View):
             # reducing the number of characters sent.
             time0 = 0
             dim2 = []
-            if len(ncdata['time']) > 0:
-                time0 = ncdata['time'][0]
-                if 'data' in ncdata['dim2']:
+            if len(ncdata['time']['']) > 0:
+                time0 = ncdata['time'][''][0]
+                if 'data' in ncdata['dim2']['']:
                     dim2 = json.dumps(
-                        ncdata['dim2']['data'],
+                        ncdata['dim2']['']['data'],
                         cls=NChartsJSONEncoder)
 
-            time = json.dumps([x - time0 for x in ncdata['time']])
+            time = json.dumps([x - time0 for x in ncdata['time']['']])
 
-            data = json.dumps(ncdata['data'][vname], cls=NChartsJSONEncoder)
+            data = json.dumps(ncdata['data'][''][vname], cls=NChartsJSONEncoder)
 
             all_vars_data[vname] = {
                 'time0': time0,

@@ -18,8 +18,57 @@
     <form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
         {% csrf_token %}
 
-        <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Time</h3>
+                    </div>
+                    <div class="panel panel-body">
+                        <strong>{{ form.start_time.errors }} {{ form.time_length.errors }} {{ form.time_length_units.errors }}</strong>
+                        <div class="col-md-3">
+                            <span class="label label-default">Start:</span>
+                            {{ form.start_time }}
+                        </div>
+                        <div class="col-md-3">
+                            <span class="label label-default">Track Real Time:</span>
+                            {{ form.track_real_time }}
+                        </div>
+                        <div class="col-md-3">
+                            <span class="label label-default">Time Zone:</span>
+                            {{ form.timezone }}
+                        </div>
+                        <div class="col-md-3">
+                            <span class="label label-default">Length:</span>
+                            {{ form.time_length }} {{ form.time_length_units }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% if dataset.dset_type == 'sounding' %}
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Soundings</h3>
+                    </div>
+                    <div class="panel panel-body">
+                        <div class="input-group">
+                            {% if form.soundings|length < 4 %}
+                            <label for="id_soundings_all">
+                                <input data-mini="true" id="id_soundings_all" type="checkbox" value="set all"/>set all</label>
+                            {% endif %}
+                            <label for="id_soundings_clear">
+                                <input data-mini="true" id="id_soundings_clear" type="checkbox" value="clear all"/>clear all</label>
+                        </div>
+                        <div id="sounding-checkbox">
+                        {% for sndg in form.soundings %}
+                            {{ sndg }}
+                        {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+            <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title">Variables</h3>
@@ -41,27 +90,6 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Time</h3>
-                    </div>
-                    <div class="panel panel-body">
-                        <strong>{{ form.start_time.errors }} {{ form.time_length.errors }} {{ form.time_length_units.errors }}</strong>
-                        <span class="label label-default">Start:</span>
-                        {{ form.start_time }}
-                        <span class="label label-default">Track Real Time:</span>
-                        {{ form.track_real_time }}
-                        <span class="label label-default">Time Zone:</span>
-                        {{ form.timezone }}
-                        <span class="label label-default">Length:</span>
-                        {{ form.time_length }} {{ form.time_length_units }}
-                    </div>
-                </div>
-            </div>
-            {{ form.selection_id }}
-        </div>
-                
         <div class="row">
             <div class="col-md-6">
                 <div class="btn-group">
@@ -81,15 +109,16 @@
 
 {% if data %}
     <script>
-        var plot_time0 = {{ time0 }};
+        var plot_time0 = jQuery.parseJSON('{{ time0 }}');
         var plot_times = jQuery.parseJSON('{{ time }}');
-        // dim2 is values for 2nd dimension for heatmap plots
         var plot_data = jQuery.parseJSON('{{ data }}');
+        // dim2 are values for 2nd dimension for heatmap plots
         var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
         // url to use with ajax to get real time data
 {% if form.track_real_time.value %}
         var ajaxurl = "{% url 'ncharts:data' selid %}";
 {% endif %}
+        var soundings = jQuery.parseJSON('{{ soundings }}');
     </script>
 
     {% for group,val in plot_groups.items %}
@@ -97,6 +126,7 @@
         </div>
         <script>
             var div = $("#{{ val.plot_type }}_{{ group }}")[0];
+            jQuery.data(div,"series",'{{ val.series }}');
             jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
             jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
             jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
