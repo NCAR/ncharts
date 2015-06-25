@@ -150,7 +150,7 @@ class File(object):
             pathdesc = pathdesc.replace('%d', '')
         try:
             # print('try again, path=', path, ', pathdesc=', pathdesc)
-            self.time = datetime.datetime.strptime(path, pathdesc)
+            self.time = pytz.utc.localize(datetime.datetime.strptime(path, pathdesc))
         except ValueError as exc:
             _logger.error("fileset.File __init__ %s:", exc)
             raise
@@ -264,8 +264,10 @@ class Dir(object):
         Dir.__cache_lock.release()
         return ddir
 
-    def scan(self, start_time=datetime.datetime.min,
-             end_time=datetime.datetime.max):
+    def scan(
+            self,
+            start_time=pytz.utc.localize(datetime.datetime.min),
+            end_time=pytz.utc.localize(datetime.datetime.max)):
         """Scan this Dir for files which match by name and time.
 
         The current directory is scanned for files which match pathrem.
@@ -464,7 +466,8 @@ class Fileset(object):
         return fset
 
     def scan(
-            self, start_time=pytz.utc.localize(datetime.datetime.min),
+            self,
+            start_time=pytz.utc.localize(datetime.datetime.min),
             end_time=pytz.utc.localize(datetime.datetime.max)):
         """Scan this Fileset for files matching a time period.
 
