@@ -879,12 +879,81 @@
 
             $("div[id^='sounding-profile']").each(function(index) {
                 var sname =  $( this ).data("series");
-                console.log("sounding, sname=",sname,
-                    ", soundings.length=",soundings.length);
-
-                for (var i = 0; i < soundings.length; i++) {
-                    console.log("soundings[",i,"].length=",soundings[i].length)
+		var vnames =  $( this ).data("variables");
+		var vunits =  $( this ).data("units");
+                var long_names =  $( this ).data("long_names");
+                if (long_names.length == 0) {
+                    long_names = vnames;
                 }
+
+		var series = [];
+		
+		for (var iv = 0; iv < vnames.length; iv++ ) {
+		    var vname = vnames[iv];
+                    var vseries = {};
+                    var vdata = [];
+		    for (var idata = 0; idata < plot_data[sname]['alt'].length; idata++) {
+			if (vname != 'alt') {
+			    vdata.push([plot_data[sname][vname][idata],plot_data[sname]['alt'][idata]]);
+			}
+		    }
+
+		    vseries['data'] = vdata;
+                    vseries['name'] = vname;
+
+                    series.push(vseries);
+		    if (local_ns.debug_level > 1) {
+                        console.log("initial, vname=",vname,", series[",iv,"].length=",
+                                series[iv].data.length);
+                    }
+		}
+		
+		console.log(series);
+
+		$(this).highcharts({
+		    chart: {
+			type: 'line',
+			spacingLeft: 20,
+                        spacingRight: 20,
+		    },
+		    xAxis: {
+			startOnTick: false,
+                        endOnTick: false,
+                        ordinal: false,
+                        title: {
+                            text: "rh",
+			    style: {"color": "black", "fontSize": "20px"},
+                        },
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Altitude (m)",
+			    style: {"color": "black", "fontSize": "20px"},
+                        },		
+                    },
+		    legend: {
+                        enabled: true,
+                        margin: 0,
+                    },
+                    rangeSelector: {
+                        enabled: false,
+                    },
+                    scrollbar: {
+                        enabled: false,
+                    },
+                    series: series,
+                    title: {
+			margin: 0,
+                        text: "Temp Plot",
+			style: {"color": "black", "fontSize": "25px"},
+                    },
+		    navigator: {
+                        height: 25,
+                        margin: 5,
+                        enabled: true,
+                        // adaptToUpdatedData: true,
+                    }
+		});
             });
             if (first_time) {
                 local_ns.update_start_time(first_time);
