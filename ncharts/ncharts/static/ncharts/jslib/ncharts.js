@@ -8,7 +8,7 @@
         // Put local variables and functions into this namespace
         local_ns = {}
 
-        local_ns.debug_level = 0;
+        local_ns.debug_level = 1;
 
         local_ns.find_x_ge = function(arr,val) {
             var index = null;
@@ -887,22 +887,57 @@
                 }
 
 		var series = [];
-		
+		var axis = [];
+		var ptitle = "";
+
+                if (vnames.length > 1) {
+		    for (var i = 0; i < vnames.length; i++) {
+			if (i == vnames.length - 1) {
+			    ptitle += vnames[i];
+			} 
+			else {
+			    ptitle += (vnames[i] + ", "); 
+			}
+		    }
+                }
+                else {
+                    ptitle = vnames[0];
+                }
+
+		ptitle = sname + ": "  + ptitle;
+
 		for (var iv = 0; iv < vnames.length; iv++ ) {
 		    var vname = vnames[iv];
+		    var vunit = vunits[iv];
                     var vseries = {};
+		    var vaxis = {};
                     var vdata = [];
 		    for (var idata = 0; idata < plot_data[sname]['alt'].length; idata++) {
 			if (vname != 'alt') {
-			    vdata.push([plot_data[sname][vname][idata],plot_data[sname]['alt'][idata]]);
+			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
 			}
 		    }
 
+		    vaxis['title'] = {text: vname + " (" + vunit + ")",
+				    style: {"color": "black", "fontSize": "20px"}}; 
+		    vaxis['lineWidth'] = 1;
+		    vaxis['minorGridLineDashStyle'] = 'longdash';
+		    vaxis['minorTickInterval'] = 'auto';
+		    vaxis['minorTickWidth'] = 0;
+
+		    if (iv % 2 == 0) {
+			vaxis['opposite'] = false;
+		    }
+		    else {
+			vaxis['opposite'] = true;
+		    }
 		    vseries['data'] = vdata;
                     vseries['name'] = vname;
+		    vseries['yAxis'] = iv;
 
                     series.push(vseries);
-		    if (local_ns.debug_level > 1) {
+		    axis.push(vaxis);
+		    if (local_ns.debug_level > 0) {
                         console.log("initial, vname=",vname,", series[",iv,"].length=",
                                 series[iv].data.length);
                     }
@@ -912,25 +947,20 @@
 
 		$(this).highcharts({
 		    chart: {
+			showAxes: true,
+			height: 1000,
+			inverted: true,
 			type: 'line',
-			spacingLeft: 20,
-                        spacingRight: 20,
 		    },
 		    xAxis: {
-			startOnTick: false,
-                        endOnTick: false,
-                        ordinal: false,
-                        title: {
-                            text: "rh",
-			    style: {"color": "black", "fontSize": "20px"},
-                        },
-                    },
-                    yAxis: {
+			reversed: false,
+			endOnTick: true,
                         title: {
                             text: "Altitude (m)",
 			    style: {"color": "black", "fontSize": "20px"},
-                        },		
+                        },
                     },
+		    yAxis: axis,
 		    legend: {
                         enabled: true,
                         margin: 0,
@@ -943,16 +973,10 @@
                     },
                     series: series,
                     title: {
-			margin: 0,
-                        text: "Temp Plot",
-			style: {"color": "black", "fontSize": "25px"},
+			margin: 10,
+                        text: ptitle,
+			style: {"color": "black", "fontSize": "25px", "fontWeight": "bold", "text-decoration": "underline"},
                     },
-		    navigator: {
-                        height: 25,
-                        margin: 5,
-                        enabled: true,
-                        // adaptToUpdatedData: true,
-                    }
 		});
             });
             if (first_time) {
