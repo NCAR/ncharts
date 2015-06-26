@@ -390,7 +390,7 @@ class ClientState(models.Model):
     previous state is provided.
     """
 
-    variables = models.TextField()  # list of variables, stringified by json
+    variables = models.TextField(blank=True)  # list of variables, stringified by json
 
     # The selected Dataset. Dataset is a base class for several
     # types of Datasets. Since it is used here as a ForeignKey,
@@ -415,7 +415,7 @@ class ClientState(models.Model):
         related_name='+')
 
     # list of sounding series, stringified by json
-    soundings = models.TextField()
+    soundings = models.TextField(blank=True)
 
     def __str__(self):
         return 'ClientState for dataset: %s' % (self.dataset.name)
