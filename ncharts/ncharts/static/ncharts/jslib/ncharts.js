@@ -395,6 +395,9 @@
             var tz = tzelem.val();
             local_ns.pickerTimezone = tz;
             local_ns.setPlotTimezone(tz);
+
+            local_ns.long_name_dict = {};
+
             // console.log("select#id_timezone tz=",tz)
 
             $("select#id_timezone").change(function() {
@@ -582,8 +585,6 @@
                 else {
                     ptitle = vnames[0];
                 }
-                local_ns.long_name_dict = {};
-
                 for (var iv = 0; iv < vnames.length; iv++ ) {
                     var vname = vnames[iv];
                     var vunit = vunits[iv];
