@@ -8,7 +8,7 @@
         // Put local variables and functions into this namespace
         local_ns = {}
 
-        local_ns.debug_level = 0;
+        local_ns.debug_level = 1;
 
         local_ns.find_x_ge = function(arr,val) {
             var index = null;
@@ -894,12 +894,105 @@
 
             $("div[id^='sounding-profile']").each(function(index) {
                 var sname =  $( this ).data("series");
-                console.log("sounding, sname=",sname,
-                    ", soundings.length=",soundings.length);
-
-                for (var i = 0; i < soundings.length; i++) {
-                    console.log("soundings[",i,"].length=",soundings[i].length)
+		var vnames =  $( this ).data("variables");
+		var vunits =  $( this ).data("units");
+                var long_names =  $( this ).data("long_names");
+                if (long_names.length == 0) {
+                    long_names = vnames;
                 }
+
+		var series = [];
+		var axis = [];
+		var ptitle = "";
+
+                if (vnames.length > 1) {
+		    for (var i = 0; i < vnames.length; i++) {
+			if (i == vnames.length - 1) {
+			    ptitle += vnames[i];
+			} 
+			else {
+			    ptitle += (vnames[i] + ", "); 
+			}
+		    }
+                }
+                else {
+                    ptitle = vnames[0];
+                }
+
+		ptitle = sname + ": "  + ptitle;
+
+		for (var iv = 0; iv < vnames.length; iv++ ) {
+		    var vname = vnames[iv];
+		    var vunit = vunits[iv];
+                    var vseries = {};
+		    var vaxis = {};
+                    var vdata = [];
+		    for (var idata = 0; idata < plot_data[sname]['alt'].length; idata++) {
+			if (vname != 'alt') {
+			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
+			}
+		    }
+
+		    vaxis['title'] = {text: vname + " (" + vunit + ")",
+				    style: {"color": "black", "fontSize": "20px"}}; 
+		    vaxis['lineWidth'] = 1;
+		    vaxis['minorGridLineDashStyle'] = 'longdash';
+		    vaxis['minorTickInterval'] = 'auto';
+		    vaxis['minorTickWidth'] = 0;
+
+		    if (iv % 2 == 0) {
+			vaxis['opposite'] = false;
+		    }
+		    else {
+			vaxis['opposite'] = true;
+		    }
+		    vseries['data'] = vdata;
+                    vseries['name'] = vname;
+		    vseries['yAxis'] = iv;
+
+                    series.push(vseries);
+		    axis.push(vaxis);
+		    if (local_ns.debug_level > 0) {
+                        console.log("initial, vname=",vname,", series[",iv,"].length=",
+                                series[iv].data.length);
+                    }
+		}
+		
+		console.log(series);
+
+		$(this).highcharts({
+		    chart: {
+			showAxes: true,
+			height: 1000,
+			inverted: true,
+			type: 'line',
+		    },
+		    xAxis: {
+			reversed: false,
+			endOnTick: true,
+                        title: {
+                            text: "Altitude (m)",
+			    style: {"color": "black", "fontSize": "20px"},
+                        },
+                    },
+		    yAxis: axis,
+		    legend: {
+                        enabled: true,
+                        margin: 0,
+                    },
+                    rangeSelector: {
+                        enabled: false,
+                    },
+                    scrollbar: {
+                        enabled: false,
+                    },
+                    series: series,
+                    title: {
+			margin: 10,
+                        text: ptitle,
+			style: {"color": "black", "fontSize": "25px", "fontWeight": "bold", "text-decoration": "underline"},
+                    },
+		});
             });
             if (first_time) {
                 local_ns.update_start_time(first_time);
