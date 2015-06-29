@@ -456,10 +456,25 @@
                     $(this).prop('checked',false);
                 }
             });
+
             $("#id_variables_all").change(function() {
                 // console.log("id_variables_all change, val=",$(this).prop("checked"));
                 if ($(this).prop("checked")) {
                     $('#variable-checkbox :not(:checked)').prop('checked',true);
+                    $(this).prop('checked',false);
+                }
+            });
+
+	    $("#id_soundings_clear").change(function() {
+                if ($(this).prop("checked")) {
+                    $('#sounding-checkbox :checked').prop('checked',false);
+                    $(this).prop('checked',false);
+                }
+            });
+
+            $("#id_soundings_all").change(function() {
+                if ($(this).prop("checked")) {
+                    $('#sounding-checkbox :not(:checked)').prop('checked',true);
                     $(this).prop('checked',false);
                 }
             });
@@ -957,8 +972,6 @@
                                 series[iv].data.length);
                     }
 		}
-		
-		console.log(series);
 
 		$(this).highcharts({
 		    chart: {
