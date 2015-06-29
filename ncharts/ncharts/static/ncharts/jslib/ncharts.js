@@ -168,9 +168,9 @@
                                         if (series.data[ix]['x'] >= tx) break;
                                     }
                                     catch(err) {
-                                        console.log("error in looping over chart times, ",
+                                        console.log("error ",err," in looping over chart times, ",
                                             "var=",vname,
-                                            ", data time, tx=",
+                                            ", data time=",
                                             local_ns.format_time(tx),
                                             ", ix=", ix, ", len=",
                                             series.data.length);
@@ -194,7 +194,7 @@
                                             if (first_time) {
                                                 first_time_str = local_ns.format_time(first_time);
                                             }
-                                            console.log("error in accessing first chart time, ",
+                                            console.log("error ",err," in accessing first chart time, ",
                                                 "var=",vname,", iv=", iv,
                                                 ", tx=",
                                                 local_ns.format_time(tx),
@@ -388,13 +388,16 @@
         }
 
         $(function() {
-            // console.log("DOM is ready!");
+            console.log("DOM is ready!");
 
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
             var tz = tzelem.val();
             local_ns.pickerTimezone = tz;
             local_ns.setPlotTimezone(tz);
+
+            local_ns.long_name_dict = {};
+
             // console.log("select#id_timezone tz=",tz)
 
             $("select#id_timezone").change(function() {
@@ -538,9 +541,6 @@
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
                 var long_names =  $( this ).data("long_names");
-                if (long_names.length == 0) {
-                    long_names = vnames;
-                }
 
                 // console.log("time-series, plot_times[''].length=",plot_times[''].length);
                 // console.log("vnames=",vnames,", vunits=",vunits);
@@ -588,7 +588,12 @@
                 for (var iv = 0; iv < vnames.length; iv++ ) {
                     var vname = vnames[iv];
                     var vunit = vunits[iv];
-                    var long_name = long_names[iv];
+                    if (long_names.length > iv) {
+                        local_ns.long_name_dict[vname] = long_names[iv];
+                    }
+                    else {
+                        local_ns.long_name_dict[vname] = '';
+                    }
                     var vseries = {};
                     var vdata = [];
                     for (var idata = 0; idata < plot_times[sname].length; idata++) {
@@ -601,6 +606,11 @@
 
                     vseries['data'] = vdata;
                     vseries['name'] = vname;
+                    /*
+                    vseries['tooltip'] = {
+                        valuePrefix: long_names[iv] + ':',
+                    },
+                    */
 
                     // which axis does this one belong to? Will always be 0
                     vseries['yAxis'] = unique_units.indexOf(vunit);
@@ -690,12 +700,28 @@
                         enabled: false,
                     },
                     tooltip: {
-                        // valueSuffix: long_name,
-                        headerFormat: '<span style="font-size: 10px">{point.key}</span><br/>',
-                        pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + long_name + ',{series.name}: <b>{point.y}</b><br/>',
-                        valueDecimals: 6,
+                        shared: true,       // show all points in the tooltip
+                        /* define a formatter function to prefix the long_name
+                         * to the variable name in the tooltip. Adding a
+                         * tooltip.valuePrefix to the series almost works,
+                         * but it is placed before the value, in bold.
+                         * Tried using point.series.symbol, but it is a string,
+                         * such as "circle"
+                         */
+                        formatter: function() {
+                            s = '<span style="font-size: 10px"><b>' + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S.%L %Z',this.x) + '</b></span><br/>';
+                            $.each(this.points, function(i, point) {
+                                s += '<span style="color:' + point.series.color + '">\u25CF</span>' + local_ns.long_name_dict[point.series.name] + ',' + point.series.name + ': <b>' + point.y + '</b><br/>';
+                            });
+                            return s;
+                        },
+                        // If no formatter, use these settings.
+                        /*
+                        headerFormat: '<span style="font-size: 10px"><b>{point.key}</b></span><br/>',
+                        pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + ',{series.name}: <b>{point.y}</b><br/>',
                         xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
-                        shared: true,
+                        valueDecimals: 6,
+                        */
                     },
                     navigator: {
                         height: 25,
@@ -718,21 +744,6 @@
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
                 var long_names = $( this ).data("long_names");
-
-                /*
-                console.log("heatmap, vnames.length=",vnames.length,
-                        ",plot_times[",sname,"].length=",plot_times[sname].length,
-                        ",plot_dim2[",sname,"].length=",plot_dim2[sname]['data'].length);
-                */
-
-                if (long_names.length == 0) {
-                    long_names = vnames;
-                }
-
-                // var vname =  $( this ).data("variable");
-                // var units =  $( this ).data("units");
-                // var long_name =  $( this ).data("long_name");
-                // var dim2_name =  $( this ).data("dim2_name");
                 var dim2_name = plot_dim2[sname]['name'];
                 var dim2_units = plot_dim2[sname]['units'];
 
@@ -740,7 +751,11 @@
                 for (var iv = 0; iv < vnames.length; iv++) {
                     var vname = vnames[iv];
                     // console.log("vname=", vname);
-                    long_name = long_names[iv];
+                    if (long_names.length > iv) {
+                        long_name = long_names[iv];
+                    } else {
+                        long_name = vname;
+                    }
                     units = vunits[iv];
 
                     minval = Number.POSITIVE_INFINITY;
@@ -876,19 +891,113 @@
                     });
                 }
             });
+
             $("div[id^='sounding-profile']").each(function(index) {
                 var sname =  $( this ).data("series");
-                console.log("sounding, sname=",sname,
-                    ", soundings.length=",soundings.length);
-
-                for (var i = 0; i < soundings.length; i++) {
-                    console.log("soundings[",i,"].length=",soundings[i].length)
+		var vnames =  $( this ).data("variables");
+		var vunits =  $( this ).data("units");
+                var long_names =  $( this ).data("long_names");
+                if (long_names.length == 0) {
+                    long_names = vnames;
                 }
+
+		var series = [];
+		var axis = [];
+		var ptitle = "";
+
+                if (vnames.length > 1) {
+		    for (var i = 0; i < vnames.length; i++) {
+			if (i == vnames.length - 1) {
+			    ptitle += vnames[i];
+			} 
+			else {
+			    ptitle += (vnames[i] + ", "); 
+			}
+		    }
+                }
+                else {
+                    ptitle = vnames[0];
+                }
+
+		ptitle = sname + ": "  + ptitle;
+
+		for (var iv = 0; iv < vnames.length; iv++ ) {
+		    var vname = vnames[iv];
+		    var vunit = vunits[iv];
+                    var vseries = {};
+		    var vaxis = {};
+                    var vdata = [];
+		    for (var idata = 0; idata < plot_data[sname]['alt'].length; idata++) {
+			if (vname != 'alt') {
+			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
+			}
+		    }
+
+		    vaxis['title'] = {text: vname + " (" + vunit + ")",
+				    style: {"color": "black", "fontSize": "20px"}}; 
+		    vaxis['lineWidth'] = 1;
+		    vaxis['minorGridLineDashStyle'] = 'longdash';
+		    vaxis['minorTickInterval'] = 'auto';
+		    vaxis['minorTickWidth'] = 0;
+
+		    if (iv % 2 == 0) {
+			vaxis['opposite'] = false;
+		    }
+		    else {
+			vaxis['opposite'] = true;
+		    }
+		    vseries['data'] = vdata;
+                    vseries['name'] = vname;
+		    vseries['yAxis'] = iv;
+
+                    series.push(vseries);
+		    axis.push(vaxis);
+		    if (local_ns.debug_level > 0) {
+                        console.log("initial, vname=",vname,", series[",iv,"].length=",
+                                series[iv].data.length);
+                    }
+		}
+		
+		console.log(series);
+
+		$(this).highcharts({
+		    chart: {
+			showAxes: true,
+			height: 1000,
+			inverted: true,
+			type: 'line',
+		    },
+		    xAxis: {
+			reversed: false,
+			endOnTick: true,
+                        title: {
+                            text: "Altitude (m)",
+			    style: {"color": "black", "fontSize": "20px"},
+                        },
+                    },
+		    yAxis: axis,
+		    legend: {
+                        enabled: true,
+                        margin: 0,
+                    },
+                    rangeSelector: {
+                        enabled: false,
+                    },
+                    scrollbar: {
+                        enabled: false,
+                    },
+                    series: series,
+                    title: {
+			margin: 10,
+                        text: ptitle,
+			style: {"color": "black", "fontSize": "25px", "fontWeight": "bold", "text-decoration": "underline"},
+                    },
+		});
             });
             if (first_time) {
                 local_ns.update_start_time(first_time);
-            }
-        });
+            } 
+        });     // end of DOM-is-ready function
     })
 );
 
