@@ -8,7 +8,7 @@
         // Put local variables and functions into this namespace
         local_ns = {}
 
-        local_ns.debug_level = 1;
+        local_ns.debug_level = 0;
 
         local_ns.find_x_ge = function(arr,val) {
             var index = null;
