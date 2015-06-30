@@ -936,13 +936,16 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-		for (var iv = 0; iv < vnames.length; iv++ ) {
+		data_length = plot_data[sname]['alt'].length;
+		console.log(Math.round(data_length/50));
+
+		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
 		    var vunit = vunits[iv];
                     var vseries = {};
 		    var vaxis = {};
                     var vdata = [];
-		    for (var idata = 0; idata < plot_data[sname]['alt'].length; idata++) {
+		    for (var idata = 0; idata < data_length; idata+=(Math.round(data_length/100))) {
 			if (vname != 'alt') {
 			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
 			}
@@ -976,7 +979,7 @@
 		$(this).highcharts({
 		    chart: {
 			showAxes: true,
-			height: 1000,
+		//	height: 1000,
 			inverted: true,
 			type: 'line',
 		    },

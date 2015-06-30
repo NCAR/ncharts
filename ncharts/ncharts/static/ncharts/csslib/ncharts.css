@@ -1,3 +1,7 @@
+body {
+    height: 100%;
+}
+
 .boxed {
     border: 1px solid green ;
 }
@@ -12,6 +16,27 @@ input#id_start_time {
 div#id_start_time {
 	width: 14em;
 }
+
+.chart-wrapper {
+ position: relative;
+    padding-bottom: 40%;
+}
+
+.chart-inner {
+position: absolute;
+    width: 100%; height: 100%;
+}
+
+.container {
+	width: 80%;
+	height: 120%;
+	margin: 0 auto;
+}
+
+.navbar-bottom {
+    bottom: 0px;
+}
+
 /*
 .date {
 	width: 200px;
