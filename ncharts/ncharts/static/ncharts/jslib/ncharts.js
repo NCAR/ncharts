@@ -456,10 +456,25 @@
                     $(this).prop('checked',false);
                 }
             });
+
             $("#id_variables_all").change(function() {
                 // console.log("id_variables_all change, val=",$(this).prop("checked"));
                 if ($(this).prop("checked")) {
                     $('#variable-checkbox :not(:checked)').prop('checked',true);
+                    $(this).prop('checked',false);
+                }
+            });
+
+	    $("#id_soundings_clear").change(function() {
+                if ($(this).prop("checked")) {
+                    $('#sounding-checkbox :checked').prop('checked',false);
+                    $(this).prop('checked',false);
+                }
+            });
+
+            $("#id_soundings_all").change(function() {
+                if ($(this).prop("checked")) {
+                    $('#sounding-checkbox :not(:checked)').prop('checked',true);
                     $(this).prop('checked',false);
                 }
             });
@@ -921,13 +936,22 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-		for (var iv = 0; iv < vnames.length; iv++ ) {
+		var data_length = plot_data[sname]['alt'].length;
+		var skip;
+		if (data_length < 100) {
+		    skip = 1;
+		}
+		else {
+		    skip = Math.round(data_length/100);
+		}
+
+		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
 		    var vunit = vunits[iv];
                     var vseries = {};
 		    var vaxis = {};
                     var vdata = [];
-		    for (var idata = 0; idata < plot_data[sname]['alt'].length; idata++) {
+		    for (var idata = 0; idata < data_length; idata+=skip) {
 			if (vname != 'alt') {
 			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
 			}
@@ -957,13 +981,11 @@
                                 series[iv].data.length);
                     }
 		}
-		
-		console.log(series);
 
 		$(this).highcharts({
 		    chart: {
 			showAxes: true,
-			height: 1000,
+		//	height: 1000,
 			inverted: true,
 			type: 'line',
 		    },
