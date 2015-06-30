@@ -936,8 +936,14 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-		data_length = plot_data[sname]['alt'].length;
-		console.log(Math.round(data_length/50));
+		var data_length = plot_data[sname]['alt'].length;
+		var skip;
+		if (data_length < 100) {
+		    skip = 1;
+		}
+		else {
+		    skip = Math.round(data_length/100);
+		}
 
 		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
@@ -945,7 +951,7 @@
                     var vseries = {};
 		    var vaxis = {};
                     var vdata = [];
-		    for (var idata = 0; idata < data_length; idata+=(Math.round(data_length/100))) {
+		    for (var idata = 0; idata < data_length; idata+=skip) {
 			if (vname != 'alt') {
 			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
 			}
