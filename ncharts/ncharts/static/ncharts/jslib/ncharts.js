@@ -974,7 +974,11 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-		var data_length = plot_data[sname]['alt'].length;
+                var altname = 'alt';
+                // the altitude array
+                var altitudes = plot_data[sname][altname];
+
+		var data_length = altitudes.length;
 		var skip;
 		if (data_length < 100) {
 		    skip = 1;
@@ -983,16 +987,42 @@
 		    skip = Math.round(data_length/100);
 		}
 
+
+                var alt_increasing = true;  // are altitudes increasing?
+                if (data_length > 1) {
+                    // check first and last
+                    alt_increasing = altitudes[data_length-1] > altitudes[0];
+                }
+
+                var alt_check_func;
+                var last_val_init;
+                if (alt_increasing) {
+                    last_val_init = -Number.MAX_VALUE;
+                    alt_ok = function(x,xlast) {
+                        return x > xlast;
+                    }
+                } else {
+                    last_val_init = Number.MAX_VALUE;
+                    alt_ok = function(x,xlast) {
+                        return x < xlast;
+                    }
+                }
+
 		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
+                    if (vname == altname) continue;
 		    var vunit = vunits[iv];
                     var vseries = {};
 		    var vaxis = {};
                     var vdata = [];
+                    var last_val = last_val_init;
 		    for (var idata = 0; idata < data_length; idata+=skip) {
-			if (vname != 'alt') {
-			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
+                        var x = altitudes[idata];
+                        if (alt_ok(x,last_val) {
+                            var y = plot_data[sname][vname][idata];
+			    vdata.push(x,y)
 			}
+                        last_val = x;
 		    }
 
 		    vaxis['title'] = {text: vname + " (" + vunit + ")",
