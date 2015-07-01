@@ -689,7 +689,7 @@ class DatasetView(View):
 
         elif isinstance(dset, nc_models.DBDataset):
             try:
-                dbcon = dset.get_database_connection()
+                dbcon = dset.get_connection()
                 dsvars = dbcon.get_variables()
             except Exception as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
