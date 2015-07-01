@@ -50,7 +50,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
     python3 -m pip install --upgrade pytz
     python3 -m pip install --upgrade netCDF4
     python3 -m pip install --upgrade pylint_django
-
+    python3 -m pip install --upgrade psycopg2
 
     python3 -m pip install django-datetime-widget
     python3 -m pip install django-timezone-field
@@ -87,11 +87,13 @@ The following is for RedHat systems, such as CentOS or Fedora.
     sudo chgrp apache /var/lib/django
     sudo chmod g+sw /var/lib/django
 
-6. Initialize the database. 
+6. Initialize the database
 
- This runs migrate command, which should also handle the situation of one of the models changes, or is added or deleted::
+ This runs the django migrations commands, which should also handle the situation of one of the models changes, or is added or deleted::
     
     ./migrate_db.sh
+
+ If the db.sqlite3 database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, but to be paranoid, I'd suggest not using your UCAS or EOL server password.
 
  Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history for ncharts::
 
@@ -104,23 +106,28 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
     ./load_db.sh
 
-8. Fetch the static files::
+8. Fetch the static files
+
+ To fetch the static files of the supporting software used by ncharts, such as jquery, bootstrap and highcharts do::
 
     cd $DJROOT/django-ncharts
     ./get_static_files.sh
 
- This script will download from the internet the static files needed by the jquery, highcharts, bootstrap, and the moment javascript packages.  The filies will be written to $DJROOT/django-ncharts/ncharts/static/ncharts.
+ The filies will be written to $DJROOT/django-ncharts/ncharts/static/ncharts.
 
- On a production server, the root files go in BASE_DIR/static,
- which is the same as $DJROOT/static. See datavis/settings.py::
+ Then on a production server, execute the static.sh shell script::
+ 
+    ./static.sh
+
+ This shell script executes the django *collectstatic* command to find the static files in the ncharts directory, as well as static files in python site-packages, and copies them to BASE_DIR/static.
+
+ On a production server, the root files go in BASE_DIR/static, which is the same as $DJROOT/static. See datavis/settings.py::
 
     STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
- The static.sh shell scripts runs the django collectstatic command to find the static files in the ncharts directory, as well as static files in python site-packages.
+ On a production server, static.sh must be run every time django-ncharts/ncharts/static/ncharts/jslib/ncharts.js is changed on the server.
 
- It must be run every time django-ncharts/ncharts/static/ncharts/jslib/ncharts.js is changed on the server::
-
-    ./static.sh
+ To see what static files are needed for ncharts, see the <script> tags in django-ncharts/ncharts/templates/ncharts/base.html.
 
 9. Memcached:
 

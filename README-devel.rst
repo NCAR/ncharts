@@ -18,7 +18,8 @@ The following is for RedHat systems, such as CentOS or Fedora.
  To install the required RPMs::
 
     sudo yum install python3 python3-pip python3-memcached \
-        memcached python3-mod_wsgi python3-devel netcdf-devel hdf5-devel
+        memcached python3-mod_wsgi python3-devel netcdf-devel hdf5-devel \
+        postgresql-devel
 
     sudo python3 -m pip install virtualenv
 
@@ -75,6 +76,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
     python3 -m pip install --upgrade pytz
     python3 -m pip install --upgrade netCDF4
     python3 -m pip install --upgrade pylint_django
+    python3 -m pip install --upgrade psycopg2
 
  Python3 version of django-datetime-widge and timezone support::
 
@@ -106,7 +108,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
     
     ./migrate_db.sh -d
 
- The -d option indicates this is a development server.
+ The -d option indicates this is a development server.  If the db.sqlite3 database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. The security of the password is not critical for a development server if it is not exposed to the internet. I'd suggest not using your UCAS or EOL server password.
 
  Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history::
 
@@ -121,12 +123,16 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
  The -d option indicates this is a development server.
 
-8. Fetch the static files::
+8. Fetch the static files
+
+ To fetch the static files of the supporting software such as jquery, bootstrap and highcharts do::
 
     cd $DJROOT/django-ncharts
     ./get_static_files.sh
 
- This script will download from the internet the static files needed by the jquery, highcharts, bootstrap, and the moment javascript packages.  The filies will be written to $DJROOT/django-ncharts/ncharts/static/ncharts.
+ The filies will be written to $DJROOT/django-ncharts/ncharts/static/ncharts.
+
+ To see what static files are needed for ncharts, see the <script> tags in django-ncharts/ncharts/templates/ncharts/base.html.
 
  On development server, these static filies will be automatically found and served by the django.contrib.staticfiles django application.
 
