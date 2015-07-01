@@ -252,16 +252,14 @@ class Dir(object):
         avoid repeated scans.
         """
 
-        Dir.__cache_lock.acquire()
+        with Dir.__cache_lock:
+            hashval = hash(path) + hash(pathrem)
+            if hashval in Dir.__cached_dirs:
+                ddir = Dir.__cached_dirs[hashval]
+            else:
+                ddir = Dir(path, pathdesc, pathrem)
+                Dir.__cached_dirs[hashval] = ddir
 
-        hashval = hash(path) + hash(pathrem)
-        if hashval in Dir.__cached_dirs:
-            ddir = Dir.__cached_dirs[hashval]
-        else:
-            ddir = Dir(path, pathdesc, pathrem)
-            Dir.__cached_dirs[hash(path) + hash(pathrem)] = ddir
-
-        Dir.__cache_lock.release()
         return ddir
 
     def scan(

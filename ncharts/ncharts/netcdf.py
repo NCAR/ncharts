@@ -710,8 +710,8 @@ class NetCDFDataset(object):
                     UTC timestamps,
                 'data': dict, by series name, of dicts by variable name,
                     of numpy.ndarray containing the data for each variable,
-                'dim2': dict, by series name, of values for second
-                    dimension of the data, such as height,
+                'dim2': dict, by series name, of a dict by variable name,
+                    of values for second dimension of the data, such as height,
             }
 
         Raises:
@@ -815,9 +815,13 @@ class NetCDFDataset(object):
                             "too much data requested, will exceed {} mbytes".
                             format(size_limit/(1000 * 1000)))
 
+                    dim2 = {}
                     vdata = self.read_time_series_data(
                         ncfile, ncpath, vname, time_slice, vshape,
-                        selectdim, odim2)
+                        selectdim, dim2)
+
+                    if not vname in odim2:
+                        odim2[vname] = dim2
 
                     if not vname in odata:
                         size1 = 0

@@ -356,10 +356,11 @@ class DatasetView(View):
 
             tnow = datetime.datetime.now(timezone.tz)
             delta = datetime.timedelta(days=1)
-            if dset.get_end_time() > tnow:
-                stime = tnow - delta
-            else:
+
+            if dset.get_end_time() < tnow or isinstance(dset, nc_models.DBDataset):
                 stime = dset.get_start_time()
+            else:
+                stime = tnow - delta
 
             client_state = nc_models.ClientState.objects.create(
                 dataset=dset,
@@ -687,8 +688,19 @@ class DatasetView(View):
                     })
 
         elif isinstance(dset, nc_models.DBDataset):
-            dbcon = dset.get_connection()
-            dsvars = dbcon.get_variables(start_time=stime, end_time=etime)
+            try:
+                dbcon = dset.get_database_connection()
+                dsvars = dbcon.get_variables()
+            except Exception as exc:
+                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
+                form.no_data(repr(exc))
+                return render(
+                    request, self.template_name,
+                    {
+                        'form': form,
+                        'dataset': dset,
+                        'soundings': mark_safe(json.dumps(soundings))
+                    })
 
         # selected and available variables, using set intersection
         savail = list(set(svars) & set(dsvars.keys()))
@@ -1081,7 +1093,7 @@ class DataView(View):
                         },
                     },
                     'dim2': {
-                        '': []
+                        '': {},
                     }
                 }
                 # {vname: np.array([], dtype=np.dtype("float32"))},
@@ -1091,13 +1103,14 @@ class DataView(View):
             # As an easy compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0 = 0
-            dim2 = []
             if len(ncdata['time']['']) > 0:
                 time0 = ncdata['time'][''][0]
-                if 'data' in ncdata['dim2']['']:
-                    dim2 = json.dumps(
-                        ncdata['dim2']['']['data'],
-                        cls=NChartsJSONEncoder)
+
+            dim2 = []
+            if vname in ncdata['dim2'][''] and 'data' in ncdata['dim2'][''][vname]:
+                dim2 = json.dumps(
+                    ncdata['dim2'][''][vname]['data'],
+                    cls=NChartsJSONEncoder)
 
             time = json.dumps([x - time0 for x in ncdata['time']['']])
 

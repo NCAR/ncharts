@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "GV"
+        ], 
+        "start_time": "2015-06-28T00:00:00+00:00", 
+        "end_time": "2015-08-31T14:00:00+00:00", 
+        "name": "GV-LRT", 
+        "long_name": "NCAR Gulfstream V, low-rate realtime data", 
+        "location": "Eastern Pacific",
+        "project": "CSET"
+    }, 
+    "model": "ncharts.dataset",
+    "pk": 30
+},
+{
+    "fields": {
+        "dbname": "real-time-GV",
+        "user": "ads",
+        "host": "eol-rt-data.fl-ext.ucar.edu",
+        "table": "raf_lrt"
+    }, 
+    "model": "ncharts.dbdataset",
+    "pk": 30
+}
+]

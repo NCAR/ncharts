@@ -743,8 +743,6 @@
                 var vnames =  $( this ).data("variables");
                 var vunits =  $( this ).data("units");
                 var long_names = $( this ).data("long_names");
-                var dim2_name = plot_dim2[sname]['name'];
-                var dim2_units = plot_dim2[sname]['units'];
 
                 // console.log("vnames=",vnames);
                 for (var iv = 0; iv < vnames.length; iv++) {
@@ -755,27 +753,29 @@
                     } else {
                         long_name = vname;
                     }
-                    units = vunits[iv];
+                    var units = vunits[iv];
 
-                    minval = Number.POSITIVE_INFINITY;
-                    maxval = Number.NEGATIVE_INFINITY;
+                    var minval = Number.POSITIVE_INFINITY;
+                    var maxval = Number.NEGATIVE_INFINITY;
 
-                    mintime = (plot_time0[sname] + plot_times[sname][0]) * 1000;
-                    maxtime = (plot_time0[sname] + plot_times[sname][plot_times[sname].length-1]) * 1000;
+                    var mintime = (plot_time0[sname] + plot_times[sname][0]) * 1000;
+                    var maxtime = (plot_time0[sname] + plot_times[sname][plot_times[sname].length-1]) * 1000;
+                    var dim2_name = plot_dim2[sname][vname]['name'];
+                    var dim2_units = plot_dim2[sname][vname]['units'];
 
-                    mindim2 = plot_dim2[sname]['data'][0];
-                    maxdim2 = plot_dim2[sname]['data'][plot_dim2[sname]['data'].length-1];
+                    var mindim2 = plot_dim2[sname][vname]['data'][0];
+                    var maxdim2 = plot_dim2[sname][vname]['data'][plot_dim2[sname][vname]['data'].length-1];
 
                     var chart_data = [];
                     for (var i = 0; i < plot_times[sname].length; i++) {
                         var tx = (plot_time0[sname] + plot_times[sname][i]) * 1000;
-                        for (var j = 0; j < plot_dim2[sname]['data'].length; j++) {
+                        for (var j = 0; j < plot_dim2[sname][vname]['data'].length; j++) {
                             dx = plot_data[sname][vname][i][j];
                             if (dx !== null) {
                                 minval = Math.min(minval,dx);
                                 maxval = Math.max(maxval,dx);
                             }
-                            chart_data.push([tx, plot_dim2[sname]['data'][j],dx]);
+                            chart_data.push([tx, plot_dim2[sname][vname]['data'][j],dx]);
                         }
                     } 
                     if (plot_times[sname].length) {
