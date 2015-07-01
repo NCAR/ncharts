@@ -61,5 +61,13 @@
     },
     "model": "ncharts.project", 
     "pk": "PECAN"
+},
+{
+    "fields": {
+        "location": "Eastern Pacific",
+        "timezones": ["UTC"]
+    },
+    "model": "ncharts.project", 
+    "pk": "CSET"
 }
 ]

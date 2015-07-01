@@ -34,7 +34,7 @@
 {
     "fields": {
         "projects": [
-            "DEEPWAVE"
+            "DEEPWAVE", "CSET"
         ],
         "long_name": "Gulfstream V Research Aircraft"
     }, 

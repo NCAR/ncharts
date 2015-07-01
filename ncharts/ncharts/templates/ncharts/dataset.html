@@ -6,9 +6,12 @@
 
 {% block title %}{{ dataset }}{% endblock %}
 
-{% block headline %}Dataset: {{ dataset }}, Project: <a href="{% url 'ncharts:project' dataset.project.name %}">{{ dataset.project.name }}</a>{% endblock %}
+{% block headline %}Dataset: <a href="{% url 'ncharts:dataset' dataset.project.name dataset.name %}">{{ dataset.long_name }}</a>{% endblock %}
+
 
 {% block content %}
+<p>Project: <a href="{% url 'ncharts:project' dataset.project.name %}">{{ dataset.project.name }}</a></p>
+<p>Location: {{ dataset.location }}</p>
 
 <div class="row">
 {{ form.non_field_errors }}

@@ -9,7 +9,7 @@
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
         "name": "ISS1Surface", 
-        "long_name": "ISS1 FP3, Ellis, Surface", 
+        "long_name": "ISS1 FP3, Surface", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
@@ -33,7 +33,7 @@
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
         "name": "ISS1Soundings", 
-        "long_name": "ISS1 FP3, Ellis, Soundings", 
+        "long_name": "ISS1 FP3, Soundings", 
         "project": "PECAN",
         "dset_type": "sounding"
     }, 
@@ -58,7 +58,7 @@
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
         "name": "ISS1Winds5m", 
-        "long_name": "ISS1 FP3, Ellis, 449 Profiler, 5 minute winds", 
+        "long_name": "ISS1 FP3, 449 Profiler, 5 minute winds", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
@@ -82,7 +82,7 @@
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
         "name": "ISS1Winds30m", 
-        "long_name": "ISS1 FP3, Ellis, 449 Profiler, 30 minute winds", 
+        "long_name": "ISS1 FP3, 449 Profiler, 30 minute winds", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
@@ -106,7 +106,7 @@
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Minden Nebraska", 
         "name": "ISS2Surface", 
-        "long_name": "ISS2 FP4, Minden, Surface", 
+        "long_name": "ISS2 FP4, Surface", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
@@ -130,7 +130,7 @@
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Brewster Kansas", 
         "name": "ISS3Surface", 
-        "long_name": "ISS3 FP5, Brewster, Surface", 
+        "long_name": "ISS3 FP5, Surface", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 

@@ -14,7 +14,7 @@ import os, pytz, logging
 
 from django.db import models
 
-from ncharts import netcdf, fileset
+from ncharts import netcdf, fileset, raf_database
 
 from django.core import exceptions as dj_exc
 
@@ -348,20 +348,32 @@ class DBDataset(Dataset):
         default=5432,
         help_text='Database port number, defaults to 5432')
 
+    table = models.CharField(
+        max_length=128,
+        help_text='Database table name')
 
-    # def get_connection(self):
-    #     """Return a connection corresponding to this Database.
-    #     """
-    #     return DatabaseConnection(self.dbname, self.host,
-    #                               self.port, self.user, self.password)
+
+    def get_database_connection(self):
+        """Return a database connection for this DBDataset.
+
+        Raises: Exception
+        """
+        return raf_database.RAFDatabase(
+            database=self.dbname,
+            host=self.host,
+            port=self.port,
+            user=self.user,
+            password=self.password)
 
     def get_variables(self):
         """Return the time series variables in this DBDataset.
         """
+        return self.get_database_connection().get_variables()
 
-        # return self.get_connection().get_variables(
-        #     self.start_time, self.end_time)
-        return []
+    def get_start_time(self):
+        """
+        """
+        return self.get_database_connection().get_start_time()
 
 def validate_positive(value):
     """Validator."""

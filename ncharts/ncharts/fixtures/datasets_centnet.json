@@ -5,8 +5,8 @@
         "platforms": [
             "ISFS"
         ], 
-        "start_time": "2014-06-05T00:00:00+00:00", 
-        "end_time": "2014-12-31T00:00:00+00:00", 
+        "start_time": "2015-06-23T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "trh-test",
         "long_name": "TRH Test"
     }, 
