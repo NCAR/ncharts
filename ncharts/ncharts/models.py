@@ -353,7 +353,7 @@ class DBDataset(Dataset):
         help_text='Database table name')
 
 
-    def get_database_connection(self):
+    def get_connection(self):
         """Return a database connection for this DBDataset.
 
         Raises: Exception
@@ -368,12 +368,12 @@ class DBDataset(Dataset):
     def get_variables(self):
         """Return the time series variables in this DBDataset.
         """
-        return self.get_database_connection().get_variables()
+        return self.get_connection().get_variables()
 
     def get_start_time(self):
         """
         """
-        return self.get_database_connection().get_start_time()
+        return self.get_connection().get_start_time()
 
 def validate_positive(value):
     """Validator."""
