@@ -48,10 +48,37 @@
             // format it, and set it on the picker
             return mom.format(format);
         }
-        local_ns.update_start_time = function(val) {
-            var dstr = local_ns.format_time(val,'YYYY-MM-DD HH:mm');
+
+        local_ns.update_start_time = function(start_time) {
+            var dstr = local_ns.format_time(start_time,'YYYY-MM-DD HH:mm');
             // console.log("updating start_time, dstr=",dstr);
             $("input#id_start_time").val(dstr);
+	    local_ns.update_sounding_boxes(start_time);
+        }
+
+        local_ns.update_sounding_boxes = function(start_time) {
+	    console.log("update_ sounding_boxes, soundings.length=",soundings.length);
+	    if (soundings.length > 0) {
+		$("#sounding-checkbox").empty();
+
+	    	for (var is = 0; is < soundings.length; is++) {
+		    var sname = soundings[is][0];
+		    var stime = soundings[is][1] * 1000;	// milliseconds
+		    
+		    if (stime >= start_time && stime < start_time + local_ns.time_length) {
+			console.log(sname);
+			$("<input data-mini='true' name='soundings' type='checkbox' />")
+			   .attr("id", "id_soundings_" + is)
+			   .attr("value", sname)
+			   .appendTo("#sounding-checkbox");
+			var $label = $("<label>").text(sname).attr({for:"id_soundings_" + is});
+			$("#sounding-checkbox").append($label);
+
+			// add this inside the soundings <div>
+		    	// <label for="id_soundings_0"><input checked="checked" data-mini="true" id="id_soundings_0" name="soundings" type="checkbox" value="Jun30_0000Z" /> Jun30_0000Z</label>
+		    }
+		}
+	    }
         }
 
         local_ns.get_start_time = function() {
@@ -81,6 +108,7 @@
             if (local_ns.track_real_time) {
                 local_ns.update_start_time(Date.now() - local_ns.time_length);
             }
+	    local_ns.update_sounding_boxes(local_ns.get_start_time())
         }
 
         // Add support for %Z time formatter
@@ -456,10 +484,25 @@
                     $(this).prop('checked',false);
                 }
             });
+
             $("#id_variables_all").change(function() {
                 // console.log("id_variables_all change, val=",$(this).prop("checked"));
                 if ($(this).prop("checked")) {
                     $('#variable-checkbox :not(:checked)').prop('checked',true);
+                    $(this).prop('checked',false);
+                }
+            });
+
+	    $("#id_soundings_clear").change(function() {
+                if ($(this).prop("checked")) {
+                    $('#sounding-checkbox :checked').prop('checked',false);
+                    $(this).prop('checked',false);
+                }
+            });
+
+            $("#id_soundings_all").change(function() {
+                if ($(this).prop("checked")) {
+                    $('#sounding-checkbox :not(:checked)').prop('checked',true);
                     $(this).prop('checked',false);
                 }
             });
@@ -471,6 +514,12 @@
 
             /* If the user wants to track real time with ajax. */
             local_ns.track_real_time = $("input#id_track_real_time").prop("checked");
+
+            $("input#id_start_time").change(function() {
+	    	var start_time = local_ns.get_start_time();
+		local_ns.update_sounding_boxes(start_time);
+            });
+
             $("input#id_track_real_time").change(function() {
                 local_ns.track_real_time = $(this).prop("checked");
                 if (local_ns.track_real_time) {
@@ -921,13 +970,22 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-		for (var iv = 0; iv < vnames.length; iv++ ) {
+		var data_length = plot_data[sname]['alt'].length;
+		var skip;
+		if (data_length < 100) {
+		    skip = 1;
+		}
+		else {
+		    skip = Math.round(data_length/100);
+		}
+
+		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
 		    var vunit = vunits[iv];
                     var vseries = {};
 		    var vaxis = {};
                     var vdata = [];
-		    for (var idata = 0; idata < plot_data[sname]['alt'].length; idata++) {
+		    for (var idata = 0; idata < data_length; idata+=skip) {
 			if (vname != 'alt') {
 			    vdata.push([plot_data[sname]['alt'][idata],plot_data[sname][vname][idata]]);
 			}
@@ -957,13 +1015,11 @@
                                 series[iv].data.length);
                     }
 		}
-		
-		console.log(series);
 
 		$(this).highcharts({
 		    chart: {
 			showAxes: true,
-			height: 1000,
+		//	height: 1000,
 			inverted: true,
 			type: 'line',
 		    },

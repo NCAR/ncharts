@@ -52,7 +52,7 @@
                     </div>
                     <div class="panel panel-body">
                         <div class="input-group">
-                            {% if form.soundings|length < 4 %}
+                            {% if form.soundings|length < 4%}
                             <label for="id_soundings_all">
                                 <input data-mini="true" id="id_soundings_all" type="checkbox" value="set all"/>set all</label>
                             {% endif %}
@@ -75,7 +75,7 @@
                     </div>
                     <div class="panel panel-body">
                         <div class="input-group">
-                            {% if form.variables|length < 20 %}
+                            {% if form.variables|length < 20%}
                             <label for="id_variables_all">
                                 <input data-mini="true" id="id_variables_all" type="checkbox" value="set all"/>set all</label>
                             {% endif %}
@@ -122,8 +122,11 @@
     </script>
 
     {% for group,val in plot_groups.items %}
-        <div id="{{ val.plot_type }}_{{ group }}" class="do_plot">
-        </div>
+    <div class="chart-wrapper">
+      <div class="chart-inner">
+	<div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
+      </div>
+    </div>    
         <script>
             var div = $("#{{ val.plot_type }}_{{ group }}")[0];
             jQuery.data(div,"series",'{{ val.series }}');
