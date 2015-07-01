@@ -59,7 +59,6 @@
         local_ns.update_sounding_boxes = function(start_time) {
 
 	    try {
-
 		console.log("update_ sounding_boxes, soundings.length=",soundings.length);
 		if (soundings.length > 0) {
 		    $("#sounding-checkbox").empty();
@@ -69,7 +68,6 @@
 			var stime = soundings[is][1] * 1000;	// milliseconds
 			
 			if (stime >= start_time && stime < start_time + local_ns.time_length) {
-			    console.log(sname);
 			    $("<input data-mini='true' name='soundings' type='checkbox' />")
 				.attr("id", "id_soundings_" + is)
 				.attr("value", sname)
