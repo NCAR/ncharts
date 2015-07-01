@@ -919,7 +919,6 @@ class DatasetView(View):
                 'form': form,
                 'dataset': dset,
                 'plot_groups': plot_groups,
-                'selid': client_state.id,
                 'time0': mark_safe(time0),
                 'time': mark_safe(time),
                 'data': mark_safe(data),
@@ -932,7 +931,7 @@ class DataView(View):
     """Respond to ajax request for data.
     """
 
-    def get(self, request, *args, client_id, **kwargs):
+    def get(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a ajax get request.
 
         """
@@ -940,45 +939,13 @@ class DataView(View):
         debug = False
 
         if not request.session.test_cookie_worked():
-            # The django server is backed by memcached, so I believe
-            # this won't happen when the django server is restarted,
-            # but will happen if the memcached daemon is restarted.
-            _logger.error(
-                "session test cookie check failed, host=%s",
-                request.get_host())
+            raise Http404
 
-            # redirect back to square one
-            # return redirect('ncharts:projectsPlatforms')
-
-            return HttpResponse("Your cookie is not recognized.  Either "\
-                "this server was restarted, or you need to enable cookies "\
-                "in your browser. Then please try again.")
-
-        # client id is passed in the get
-        client_state = get_object_or_404(
-            nc_models.ClientState.objects, id=client_id)
-        dset = get_dataset(client_state)
-
-        dataset_name = dset.name
-        project_name = dset.project.name
-
-        client_id = get_client_id_from_session(
+        # Raises 404 if not found
+        client_state = get_client_from_session(
             request.session, project_name, dataset_name)
 
-        if client_id:
-            if not client_id == client_state.id:
-                _logger.warning(
-                    "%s, %s: DataView get, client_id=%s"
-                    " does not match client id from sesson=%d",
-                    project_name, dataset_name, client_id, client_id)
-                return HttpResponseForbidden(
-                    "Unknown browser session, start over")
-        else:
-            _logger.warning(
-                "%s, %s: DataView get, client_id=%s"
-                " not found in session",
-                project_name, dataset_name, client_id)
-            return HttpResponseForbidden("Unknown browser session, start over")
+        dset = get_dataset(client_state)
 
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()

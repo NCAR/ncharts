@@ -135,7 +135,7 @@
         var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
         // url to use with ajax to get real time data
 {% if form.track_real_time.value %}
-        var ajaxurl = "{% url 'ncharts:data' selid %}";
+        var ajaxurl = "{% url 'ncharts:ajax-data' dataset.project.name dataset.name %}";
 {% endif %}
         var soundings = jQuery.parseJSON('{{ soundings }}');
     </script>
@@ -153,7 +153,6 @@
             jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
             jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
             jQuery.data(div,"dim2_name","{{ dim2.name }}");
-            jQuery.data(div,"ajaxurl","{% url 'ncharts:data' selid %}");
         </script>
     {% endfor %}
 {% endif %}

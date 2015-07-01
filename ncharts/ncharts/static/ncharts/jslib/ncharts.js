@@ -556,31 +556,6 @@
             // being passed.
             if (window.plot_times === undefined) return
 
-            if (local_ns.track_real_time) {
-                // mean delta-t of data
-                local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
-                if ('' in plot_times && plot_times[''].length > 1) {
-                    // set ajax update period to 1/2 the data deltat
-                    local_ns.ajaxTimeout =
-                        Math.max(
-                            local_ns.ajaxTimeout,
-                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
-                                (plot_times[''].length - 1) * 1000 / 2)
-                        );
-                }
-                if (local_ns.debug_level > 2) {
-                    // update more frequently for debugging
-                    local_ns.ajaxTimeout = 10 * 1000;
-                }
-
-                // start AJAX
-                setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
-
-                if (local_ns.debug_level) {
-                    console.log("ajaxTimeout=",local_ns.ajaxTimeout);
-                }
-            }
-
             var first_time = null;
 
             $("div[id^='time-series']").each(function(index) {
@@ -1085,6 +1060,30 @@
             if (first_time) {
                 local_ns.update_start_time(first_time);
             } 
+            if (local_ns.track_real_time) {
+                // mean delta-t of data
+                local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
+                if ('' in plot_times && plot_times[''].length > 1) {
+                    // set ajax update period to 1/2 the data deltat
+                    local_ns.ajaxTimeout =
+                        Math.max(
+                            local_ns.ajaxTimeout,
+                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
+                                (plot_times[''].length - 1) * 1000 / 2)
+                        );
+                }
+                if (local_ns.debug_level > 2) {
+                    // update more frequently for debugging
+                    local_ns.ajaxTimeout = 10 * 1000;
+                }
+
+                // start AJAX
+                setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
+
+                if (local_ns.debug_level) {
+                    console.log("ajaxTimeout=",local_ns.ajaxTimeout);
+                }
+            }
         });     // end of DOM-is-ready function
     })
 );
