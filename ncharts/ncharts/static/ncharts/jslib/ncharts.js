@@ -59,7 +59,7 @@
         local_ns.update_sounding_boxes = function(start_time) {
 
 	    try {
-		console.log("update_sounding_boxes, soundings.length=",soundings.length);
+		// console.log("update_sounding_boxes, soundings.length=",soundings.length);
 		if (soundings.length > 0) {
 		    $("#sounding-checkbox").empty();
 		    
@@ -418,7 +418,9 @@
         }
 
         $(function() {
-            console.log("DOM is ready!");
+            if (local_ns.debug_level) {
+                console.log("DOM is ready!");
+            }
 
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
