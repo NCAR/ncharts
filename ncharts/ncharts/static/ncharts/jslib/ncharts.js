@@ -933,7 +933,11 @@
 
 		var series = [];
 		var axis = [];
+		var units = [];
 		var ptitle = "";
+
+		var unique_units = local_ns.unique(vunits);
+		console.log(unique_units);
 
                 if (vnames.length > 1) {
 		    for (var i = 0; i < vnames.length; i++) {
@@ -963,7 +967,6 @@
 		else {
 		    skip = Math.round(data_length/100);
 		}
-
 
                 var alt_increasing = true;  // are altitudes increasing?
                 if (data_length > 1) {
@@ -1002,19 +1005,39 @@
                         last_val = x;
 		    }
 
-		    vaxis['title'] = {text: vname + " (" + vunit + ")",
-				    style: {"color": "black", "fontSize": "20px"}}; 
-		    vaxis['lineWidth'] = 1;
-		    vaxis['minorGridLineDashStyle'] = 'longdash';
-		    vaxis['minorTickInterval'] = 'auto';
-		    vaxis['minorTickWidth'] = 0;
+		    var unitIndex = $.inArray(vunit, units);
 
-		    if (series.length % 2 == 0) {
-			vaxis['opposite'] = false;
+		    if (unitIndex == -1) {
+			units.push(vunit);
+			vaxis['title'] = {text: vname + " (" + vunit + ")",
+					  style: {"color": "black", "fontSize": "20px"},
+					 margin: 0};
+			vaxis['lineWidth'] = 1;
+			vaxis['minorGridLineDashStyle'] = 'longdash';
+			vaxis['minorTickInterval'] = 'auto';
+			vaxis['minorTickWidth'] = 0;
+			vaxis['gridLineWidth'] = 0;
+			
+			if (series.length % 2 == 0) {
+			    vaxis['opposite'] = false;
+			}
+			else {
+			    vaxis['opposite'] = true;
+			}
 		    }
 		    else {
-			vaxis['opposite'] = true;
+			vaxis['title'] = {text: '', align:'high'};
+			vaxis['lineWidth'] = 0;
+			vaxis['minorGridLineWidth'] = 0;
+			vaxis['minorTickLength'] = 0;
+			vaxis['tickLength'] = 0;
+			vaxis['labels'] = {enabled: false};
+			vaxis['gridLineColor'] = 'transparent';
+			vaxis['lineColor'] = 'transparent';
+			vaxis['gridLineWidth'] = 0;
+			axis[unitIndex].title.text = "".concat(vname,", ",axis[unitIndex].title.text);
 		    }
+				   
 		    vseries['data'] = vdata;
                     vseries['name'] = vname;
 		    vseries['yAxis'] = series.length;
@@ -1026,7 +1049,6 @@
 		$(this).highcharts({
 		    chart: {
 			showAxes: true,
-		//	height: 1000,
 			inverted: true,
 			type: 'line',
 		    },
