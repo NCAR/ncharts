@@ -987,7 +987,6 @@
 		    skip = Math.round(data_length/100);
 		}
 
-
                 var alt_increasing = true;  // are altitudes increasing?
                 if (data_length > 1) {
                     // check first and last
@@ -1018,9 +1017,9 @@
                     var last_val = last_val_init;
 		    for (var idata = 0; idata < data_length; idata+=skip) {
                         var x = altitudes[idata];
-                        if (alt_ok(x,last_val) {
+                        if (alt_ok(x,last_val)) {
                             var y = plot_data[sname][vname][idata];
-			    vdata.push(x,y)
+			    vdata.push(x,y);
 			}
                         last_val = x;
 		    }
@@ -1038,12 +1037,14 @@
 		    else {
 			vaxis['opposite'] = true;
 		    }
+
 		    vseries['data'] = vdata;
                     vseries['name'] = vname;
 		    vseries['yAxis'] = iv;
 
                     series.push(vseries);
 		    axis.push(vaxis);
+
 		    if (local_ns.debug_level > 0) {
                         console.log("initial, vname=",vname,", series[",iv,"].length=",
                                 series[iv].data.length);
@@ -1053,7 +1054,6 @@
 		$(this).highcharts({
 		    chart: {
 			showAxes: true,
-		//	height: 1000,
 			inverted: true,
 			type: 'line',
 		    },
