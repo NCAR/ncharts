@@ -59,7 +59,7 @@
         local_ns.update_sounding_boxes = function(start_time) {
 
 	    try {
-		console.log("update_ sounding_boxes, soundings.length=",soundings.length);
+		console.log("update_sounding_boxes, soundings.length=",soundings.length);
 		if (soundings.length > 0) {
 		    $("#sounding-checkbox").empty();
 		    
@@ -89,11 +89,8 @@
         }
 
         // set the value of local_ns.time_length in units of milliseconds
-        local_ns.update_time_length = function(time_length,time_length_units) {
-            /*
-            console.log("update_time_length, len=",time_length,", units=",
-                    time_length_units);
-            */
+        local_ns.update_time_length = function(time_length,time_length_units,update) {
+
             switch(time_length_units) {
             case "day":
                 time_length *= 24;
@@ -110,7 +107,10 @@
             if (local_ns.track_real_time) {
                 local_ns.update_start_time(Date.now() - local_ns.time_length);
             }
-	    local_ns.update_sounding_boxes(local_ns.get_start_time())
+	    
+	    if (update == true) {
+		local_ns.update_sounding_boxes(local_ns.get_start_time());
+	    }
         }
 
         // Add support for %Z time formatter
@@ -510,9 +510,11 @@
             });
 
             // set the time_length
+
             local_ns.update_time_length(
-                $("input#id_time_length_0").val(),
-                 $("select#id_time_length_units").val());
+		$("input#id_time_length_0").val(),
+                $("select#id_time_length_units").val(),
+		false);
 
             /* If the user wants to track real time with ajax. */
             local_ns.track_real_time = $("input#id_track_real_time").prop("checked");
@@ -533,7 +535,7 @@
             $("input#id_time_length_0").change(function() {
                 var time_length = $(this).val();
                 var time_length_units = $("select#id_time_length_units").val();
-                local_ns.update_time_length(time_length,time_length_units);
+                local_ns.update_time_length(time_length,time_length_units,true);
             });
 
             // time_length select widget
@@ -541,14 +543,14 @@
                 var time_length = $(this).val();
                 var time_length_units = $("select#id_time_length_units").val();
                 $("input#id_time_length_0").val(time_length);
-                local_ns.update_time_length(time_length,time_length_units);
+                local_ns.update_time_length(time_length,time_length_units,true);
             });
 
             // time_length units select widget
             $("select#id_time_length_units").change(function() {
                 var time_length_units = $(this).val();
                 var time_length = $("input#id_time_length_0").val();
-                local_ns.update_time_length(time_length,time_length_units);
+                local_ns.update_time_length(time_length,time_length_units,true);
             });
 
             // console.log("track_real_time=",local_ns.track_real_time);
@@ -991,9 +993,9 @@
                     var last_val = last_val_init;
 		    for (var idata = 0; idata < data_length; idata+=skip) {
                         var x = altitudes[idata];
-                        if (alt_ok(x,last_val) {
+                        if (alt_ok(x,last_val)) {
                             var y = plot_data[sname][vname][idata];
-			    vdata.push(x,y)
+			    vdata.push([x,y])
 			}
                         last_val = x;
 		    }
@@ -1005,7 +1007,7 @@
 		    vaxis['minorTickInterval'] = 'auto';
 		    vaxis['minorTickWidth'] = 0;
 
-		    if (iv % 2 == 0) {
+		    if (series.length % 2 == 0) {
 			vaxis['opposite'] = false;
 		    }
 		    else {
@@ -1013,14 +1015,10 @@
 		    }
 		    vseries['data'] = vdata;
                     vseries['name'] = vname;
-		    vseries['yAxis'] = iv;
+		    vseries['yAxis'] = series.length;
 
                     series.push(vseries);
 		    axis.push(vaxis);
-		    if (local_ns.debug_level > 0) {
-                        console.log("initial, vname=",vname,", series[",iv,"].length=",
-                                series[iv].data.length);
-                    }
 		}
 
 		$(this).highcharts({
