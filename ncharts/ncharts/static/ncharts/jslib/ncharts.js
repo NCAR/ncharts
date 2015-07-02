@@ -1019,7 +1019,7 @@
                         var x = altitudes[idata];
                         if (alt_ok(x,last_val)) {
                             var y = plot_data[sname][vname][idata];
-			    vdata.push(x,y);
+			    vdata.push([x,y])
 			}
                         last_val = x;
 		    }
@@ -1031,7 +1031,7 @@
 		    vaxis['minorTickInterval'] = 'auto';
 		    vaxis['minorTickWidth'] = 0;
 
-		    if (iv % 2 == 0) {
+		    if (series.length % 2 == 0) {
 			vaxis['opposite'] = false;
 		    }
 		    else {
@@ -1040,15 +1040,10 @@
 
 		    vseries['data'] = vdata;
                     vseries['name'] = vname;
-		    vseries['yAxis'] = iv;
+		    vseries['yAxis'] = series.length;
 
                     series.push(vseries);
 		    axis.push(vaxis);
-
-		    if (local_ns.debug_level > 0) {
-                        console.log("initial, vname=",vname,", series[",iv,"].length=",
-                                series[iv].data.length);
-                    }
 		}
 
 		$(this).highcharts({
