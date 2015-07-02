@@ -93,22 +93,24 @@
                     </div>
                 </div>
             </div>
+	    {% if dataset.dset_type == 'sounding' %}
 	    <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">yAxis</h3>
-                    </div>
-                    <div class="panel panel-body">
-                        <div id="variable-checkbox">
-                        {% for var in form.variables %}
-			    {% if var|title == "alt" %} 
-                               {{ var }}
-			    {% endif %}
-                        {% endfor %}
-                        </div>
-                    </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title">yAxis</h3>
                 </div>
+                <div class="panel panel-body">
+                  <div id="variable-checkbox">
+                    {% for var in form.variables %}
+		       {% if var|title == "alt" %} 
+                          {{ var }}
+		       {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
             </div>
+	    {% endif %}
         <div class="row">
             <div class="col-md-6">
                 <div class="btn-group">
