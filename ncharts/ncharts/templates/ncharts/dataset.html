@@ -55,12 +55,12 @@
                     </div>
                     <div class="panel panel-body">
                         <div class="input-group">
-                            {% if form.soundings|length < 4%}
-                            <label for="id_soundings_all">
-                                <input data-mini="true" id="id_soundings_all" type="checkbox" value="set all"/>set all</label>
+                            {% if form.soundings|length < 10 %}
+                            <label for="soundings_all">
+                                <input data-mini="true" id="soundings_all" type="checkbox" value="set all"/>set all</label>
                             {% endif %}
-                            <label for="id_soundings_clear">
-                                <input data-mini="true" id="id_soundings_clear" type="checkbox" value="clear all"/>clear all</label>
+                            <label for="soundings_clear">
+                                <input data-mini="true" id="soundings_clear" type="checkbox" value="clear all"/>clear all</label>
                         </div>
                         <div id="sounding-checkbox">
                         {% for sndg in form.soundings %}
@@ -126,6 +126,12 @@
     </form>
 {% endif %}
 
+{% if dataset.dset_type == 'sounding' %}
+    <script>
+        var soundings = jQuery.parseJSON('{{ soundings }}');
+    </script>
+{% endif %}
+
 {% if data %}
     <script>
         var plot_time0 = jQuery.parseJSON('{{ time0 }}');
@@ -142,11 +148,17 @@
     </script>
 
     {% for group,val in plot_groups.items %}
-    <div class="chart-wrapper">
-      <div class="chart-inner">
-	<div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
-      </div>
-    </div>    
+
+        {% if val.plot_type == 'sounding-profile' %}
+            <div class="sounding-chart-wrapper">
+        {% else %}
+            <div class="time-series-chart-wrapper">
+        {% endif %}
+          <div class="chart-inner">
+            <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
+          </div>
+        </div>    
+
         <script>
             var div = $("#{{ val.plot_type }}_{{ group }}")[0];
             jQuery.data(div,"series",'{{ val.series }}');
