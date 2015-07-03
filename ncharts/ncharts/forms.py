@@ -182,6 +182,12 @@ class DataSelectionForm(forms.Form):
         required=False, widget=forms.CheckboxSelectMultiple(
             attrs={'data-mini': 'true'}))
 
+    # Variable to plot on Y axis in sounding plot. Only
+    # required for a sounding
+    yvariable = forms.ChoiceField(
+        label='Variable to plot on Y axis in sounding plot',
+        required=False) 
+
     def __init__(self, *args, dataset=None, **kwargs):
         """Set choices for time zone from dataset.
 
@@ -208,6 +214,15 @@ class DataSelectionForm(forms.Form):
         """
         # choices: (value, label)
         self.fields['variables'].choices = [(v, v) for v in variables]
+
+    def set_yvariable_choices(self, variables):
+        """Set the available Y axis variables in this form.
+
+        Args:
+            variables: list of variable names.
+        """
+        # choices: (value, label)
+        self.fields['yvariable'].choices = [(v, v) for v in variables]
 
 
     def clean(self):

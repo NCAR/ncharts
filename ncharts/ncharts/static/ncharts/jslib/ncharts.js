@@ -516,7 +516,7 @@
             local_ns.update_time_length(
 		$("input#id_time_length_0").val(),
                 $("select#id_time_length_units").val(),
-		false);
+		true);
 
             /* If the user wants to track real time with ajax. */
             local_ns.track_real_time = $("input#id_track_real_time").prop("checked");
@@ -931,6 +931,8 @@
                     long_names = vnames;
                 }
 
+		var yvar =  sounding_yvar;
+
 		var series = [];
 		var axis = [];
 		var units = [];
@@ -954,9 +956,8 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-                var altname = 'alt';
                 // the altitude array
-                var altitudes = plot_data[sname][altname];
+                var altitudes = plot_data[sname][yvar];
 
 		var data_length = altitudes.length;
 		var skip;
@@ -989,7 +990,7 @@
 
 		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
-                    if (vname == altname) continue;
+                    if (vname == yvar) continue;
 		    var vunit = vunits[iv];
                     var vseries = {};
 		    var vaxis = {};

@@ -404,6 +404,9 @@ class ClientState(models.Model):
 
     variables = models.TextField(blank=True)  # list of variables, stringified by json
 
+    # Variable on sounding Y axis
+    yvariable = models.TextField(blank=True)
+
     # The selected Dataset. Dataset is a base class for several
     # types of Datasets. Since it is used here as a ForeignKey,
     # it cannot be abstract.
