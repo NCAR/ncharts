@@ -59,7 +59,7 @@
         local_ns.update_sounding_boxes = function(start_time) {
 
 	    try {
-		console.log("update_sounding_boxes, soundings.length=",soundings.length);
+		// console.log("update_sounding_boxes, soundings.length=",soundings.length);
 		if (soundings.length > 0) {
 		    $("#sounding-checkbox").empty();
 		    
@@ -418,7 +418,9 @@
         }
 
         $(function() {
-            console.log("DOM is ready!");
+            if (local_ns.debug_level) {
+                console.log("DOM is ready!");
+            }
 
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
@@ -514,7 +516,7 @@
             local_ns.update_time_length(
 		$("input#id_time_length_0").val(),
                 $("select#id_time_length_units").val(),
-		false);
+		true);
 
             /* If the user wants to track real time with ajax. */
             local_ns.track_real_time = $("input#id_track_real_time").prop("checked");
@@ -557,31 +559,6 @@
             // Everything below here depends on plot_times and plot_data
             // being passed.
             if (window.plot_times === undefined) return
-
-            if (local_ns.track_real_time) {
-                // mean delta-t of data
-                local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
-                if ('' in plot_times && plot_times[''].length > 1) {
-                    // set ajax update period to 1/2 the data deltat
-                    local_ns.ajaxTimeout =
-                        Math.max(
-                            local_ns.ajaxTimeout,
-                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
-                                (plot_times[''].length - 1) * 1000 / 2)
-                        );
-                }
-                if (local_ns.debug_level > 2) {
-                    // update more frequently for debugging
-                    local_ns.ajaxTimeout = 10 * 1000;
-                }
-
-                // start AJAX
-                setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
-
-                if (local_ns.debug_level) {
-                    console.log("ajaxTimeout=",local_ns.ajaxTimeout);
-                }
-            }
 
             var first_time = null;
 
@@ -954,6 +931,8 @@
                     long_names = vnames;
                 }
 
+		var yvar =  sounding_yvar;
+
 		var series = [];
 		var axis = [];
 		var units = [];
@@ -977,9 +956,8 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-                var altname = 'alt';
                 // the altitude array
-                var altitudes = plot_data[sname][altname];
+                var altitudes = plot_data[sname][yvar];
 
 		var data_length = altitudes.length;
 		var skip;
@@ -1012,7 +990,7 @@
 
 		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
-                    if (vname == altname) continue;
+                    if (vname == yvar) continue;
 		    var vunit = vunits[iv];
                     var vseries = {};
 		    var vaxis = {};
@@ -1095,6 +1073,30 @@
             if (first_time) {
                 local_ns.update_start_time(first_time);
             } 
+            if (local_ns.track_real_time) {
+                // mean delta-t of data
+                local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
+                if ('' in plot_times && plot_times[''].length > 1) {
+                    // set ajax update period to 1/2 the data deltat
+                    local_ns.ajaxTimeout =
+                        Math.max(
+                            local_ns.ajaxTimeout,
+                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
+                                (plot_times[''].length - 1) * 1000 / 2)
+                        );
+                }
+                if (local_ns.debug_level > 2) {
+                    // update more frequently for debugging
+                    local_ns.ajaxTimeout = 10 * 1000;
+                }
+
+                // start AJAX
+                setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
+
+                if (local_ns.debug_level) {
+                    console.log("ajaxTimeout=",local_ns.ajaxTimeout);
+                }
+            }
         });     // end of DOM-is-ready function
     })
 );

@@ -51,14 +51,6 @@ class StaticView(TemplateView):
         except TemplateDoesNotExist:
             raise Http404()
 
-def index_unused(request):
-    """View function which could be used as a default URL.
-
-    Unused.
-    """
-    #pylint: disable=unused-argument
-    return HttpResponse("<a href='projects'>projects</a>")
-
 def projects(request):
     """View function for a view of a list of projects.
     """
@@ -139,17 +131,6 @@ def platform_project(request, platform_name, project_name):
         context = {'project': proj, 'platform': plat, 'datasets': dsets}
         return render(request, 'ncharts/platformProject.html', context)
     except (nc_models.Project.DoesNotExist, nc_models.Platform.DoesNotExist):
-        raise Http404
-
-def dataset_unused(request, project_name, dataset_name):
-    """Unused.
-    """
-    try:
-        proj = nc_models.Project.objects.get(name=project_name)
-        dset = proj.dataset_set.get(name=dataset_name)
-        context = {'project': proj, 'dataset': dset}
-        return render(request, 'ncharts/dataset.html', context)
-    except (nc_models.Project.DoesNotExist, nc_models.Dataset.DoesNotExist):
         raise Http404
 
 class NChartsJSONEncoder(json.JSONEncoder):
@@ -388,6 +369,7 @@ class DatasetView(View):
                 client_state.dataset = dset
                 client_state.timezone = timezone.tz
                 client_state.variables = ""
+                client_state.yvariable = ""
                 client_state.soundings = ""
 
                 tnow = datetime.datetime.now(timezone.tz)
@@ -459,12 +441,14 @@ class DatasetView(View):
         form = nc_forms.DataSelectionForm(
             initial={
                 'variables': svars,
+                'yvariable': client_state.yvariable,
                 'timezone': client_state.timezone,
                 'start_time': start_time,
                 'time_length_units': tunits,
                 'time_length': tlen,
                 'track_real_time': client_state.track_real_time,
                 'soundings': sel_soundings,
+                'variables': svars,
             },
             dataset=dset)
 
@@ -475,6 +459,7 @@ class DatasetView(View):
         try:
             dvars = sorted(dset.get_variables().keys())
             form.set_variable_choices(dvars)
+            form.set_yvariable_choices(dvars)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
@@ -489,7 +474,6 @@ class DatasetView(View):
                         datetime.timedelta(seconds=client_state.time_length))
 
                 s_choices = [(s, s) for s in s_choices]
-                _logger.debug("s_choices=%s",s_choices)
                 form.fields['soundings'].choices = s_choices
 
         except OSError as exc:
@@ -599,6 +583,7 @@ class DatasetView(View):
         try:
             dvars = sorted(dset.get_variables().keys())
             form.set_variable_choices(dvars)
+            form.set_yvariable_choices(dvars)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
@@ -628,6 +613,8 @@ class DatasetView(View):
         svars = form.cleaned_data['variables']
         sel_soundings = form.cleaned_data['soundings']
 
+        yvar = form.cleaned_data['yvariable']
+
         stime = form.cleaned_data['start_time']
         delt = form.get_cleaned_time_length()
         etime = stime + delt
@@ -637,37 +624,8 @@ class DatasetView(View):
         client_state.time_length = delt.total_seconds()
         client_state.track_real_time = form.cleaned_data['track_real_time']
         client_state.soundings = json.dumps(sel_soundings)
+        client_state.yvariable = yvar
         client_state.save()
-
-        # filedset = None
-        # try:
-        #     filedset = dset.filedataset
-        # except nc_models.FileDataset.DoesNotExist as exc:
-        #     raise Http404
-
-        try:
-            dvars = sorted(dset.get_variables().keys())
-            form.set_variable_choices(dvars)
-
-            if dset.dset_type == "sounding":
-                # soundings between the start and end time
-                s_choices = dset.get_series_names(
-                    series_name_fmt=SOUNDING_NAME_FMT,
-                    start_time=stime,
-                    end_time=etime)
-
-                s_choices = [(s, s) for s in s_choices]
-                form.fields['soundings'].choices = s_choices
-        except OSError as exc:
-            _logger.error("%s, %s: %s", project_name, dataset_name, exc)
-            form.no_data(repr(exc))
-            return render(
-                request, self.template_name,
-                {
-                    'form': form,
-                    'dataset': dset,
-                    'soundings': mark_safe(json.dumps(soundings))
-                })
 
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()
@@ -702,6 +660,7 @@ class DatasetView(View):
                         'soundings': mark_safe(json.dumps(soundings))
                     })
 
+
         # selected and available variables, using set intersection
         savail = list(set(svars) & set(dsvars.keys()))
 
@@ -717,6 +676,24 @@ class DatasetView(View):
                     'dataset': dset,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
+
+        if yvar != "":
+            if yvar not in dsvars.keys():
+                exc = nc_exceptions.NoDataException(
+                    "variable {} not found in dataset".format(yvar))
+                _logger.warn(repr(exc))
+                form.no_data(repr(exc))
+                return render(
+                    request, self.template_name,
+                    {
+                        'form': form,
+                        'dataset': dset,
+                        'soundings': mark_safe(json.dumps(soundings))
+                    })
+
+            svars.append(yvar)
+            savail = list(set(svars) & set(dsvars.keys()))
+
 
         series_name_fmt = None
         if dset.dset_type == "sounding":
@@ -919,20 +896,20 @@ class DatasetView(View):
                 'form': form,
                 'dataset': dset,
                 'plot_groups': plot_groups,
-                'selid': client_state.id,
                 'time0': mark_safe(time0),
                 'time': mark_safe(time),
                 'data': mark_safe(data),
                 'dim2': mark_safe(dim2),
                 'time_length': client_state.time_length,
                 'soundings': mark_safe(json.dumps(soundings)),
+                'yvariable': mark_safe(yvar),
                 })
 
 class DataView(View):
     """Respond to ajax request for data.
     """
 
-    def get(self, request, *args, client_id, **kwargs):
+    def get(self, request, *args, project_name, dataset_name, **kwargs):
         """Respond to a ajax get request.
 
         """
@@ -940,45 +917,13 @@ class DataView(View):
         debug = False
 
         if not request.session.test_cookie_worked():
-            # The django server is backed by memcached, so I believe
-            # this won't happen when the django server is restarted,
-            # but will happen if the memcached daemon is restarted.
-            _logger.error(
-                "session test cookie check failed, host=%s",
-                request.get_host())
+            raise Http404
 
-            # redirect back to square one
-            # return redirect('ncharts:projectsPlatforms')
-
-            return HttpResponse("Your cookie is not recognized.  Either "\
-                "this server was restarted, or you need to enable cookies "\
-                "in your browser. Then please try again.")
-
-        # client id is passed in the get
-        client_state = get_object_or_404(
-            nc_models.ClientState.objects, id=client_id)
-        dset = get_dataset(client_state)
-
-        dataset_name = dset.name
-        project_name = dset.project.name
-
-        client_id = get_client_id_from_session(
+        # Raises 404 if not found
+        client_state = get_client_from_session(
             request.session, project_name, dataset_name)
 
-        if client_id:
-            if not client_id == client_state.id:
-                _logger.warning(
-                    "%s, %s: DataView get, client_id=%s"
-                    " does not match client id from sesson=%d",
-                    project_name, dataset_name, client_id, client_id)
-                return HttpResponseForbidden(
-                    "Unknown browser session, start over")
-        else:
-            _logger.warning(
-                "%s, %s: DataView get, client_id=%s"
-                " not found in session",
-                project_name, dataset_name, client_id)
-            return HttpResponseForbidden("Unknown browser session, start over")
+        dset = get_dataset(client_state)
 
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()

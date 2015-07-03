@@ -97,14 +97,12 @@
 	    <div class="col-md-12">
               <div class="panel panel-default">
                 <div class="panel-heading">
-                  <h3 class="panel-title">yAxis</h3>
+                  <h3 class="panel-title">Y axis</h3>
                 </div>
                 <div class="panel panel-body">
                   <div id="variable-checkbox">
-                    {% for var in form.variables %}
-		       {% if var|title == "alt" %} 
-                          {{ var }}
-		       {% endif %}
+                    {% for var in form.yvariable %}
+                      {{ var }}
                     {% endfor %}
                   </div>
                 </div>
@@ -137,9 +135,10 @@
         var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
         // url to use with ajax to get real time data
 {% if form.track_real_time.value %}
-        var ajaxurl = "{% url 'ncharts:data' selid %}";
+        var ajaxurl = "{% url 'ncharts:ajax-data' dataset.project.name dataset.name %}";
 {% endif %}
         var soundings = jQuery.parseJSON('{{ soundings }}');
+        var sounding_yvar = '{{ yvariable }}';
     </script>
 
     {% for group,val in plot_groups.items %}
@@ -155,7 +154,6 @@
             jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
             jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
             jQuery.data(div,"dim2_name","{{ dim2.name }}");
-            jQuery.data(div,"ajaxurl","{% url 'ncharts:data' selid %}");
         </script>
     {% endfor %}
 {% endif %}
