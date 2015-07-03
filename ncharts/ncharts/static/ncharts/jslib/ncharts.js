@@ -937,7 +937,6 @@
 		var ptitle = "";
 
 		var unique_units = local_ns.unique(vunits);
-		console.log(unique_units);
 
                 if (vnames.length > 1) {
 		    for (var i = 0; i < vnames.length; i++) {
@@ -965,7 +964,7 @@
 		    skip = 1;
 		}
 		else {
-		    skip = Math.round(data_length/100);
+		    skip = Math.round(data_length/1000);
 		}
 
                 var alt_increasing = true;  // are altitudes increasing?
@@ -1008,7 +1007,7 @@
 		    var unitIndex = $.inArray(vunit, units);
 
 		    if (unitIndex == -1) {
-			units.push(vunit);
+			unitIndex = units.push(vunit) - 1;
 			vaxis['title'] = {text: vname + " (" + vunit + ")",
 					  style: {"color": "black", "fontSize": "20px"},
 					 margin: 0};
@@ -1024,26 +1023,17 @@
 			else {
 			    vaxis['opposite'] = true;
 			}
+			axis.push(vaxis);
 		    }
-		    else {
-			vaxis['title'] = {text: '', align:'high'};
-			vaxis['lineWidth'] = 0;
-			vaxis['minorGridLineWidth'] = 0;
-			vaxis['minorTickLength'] = 0;
-			vaxis['tickLength'] = 0;
-			vaxis['labels'] = {enabled: false};
-			vaxis['gridLineColor'] = 'transparent';
-			vaxis['lineColor'] = 'transparent';
-			vaxis['gridLineWidth'] = 0;
+		    else {				
 			axis[unitIndex].title.text = "".concat(vname,", ",axis[unitIndex].title.text);
-		    }
-				   
+		    }		    
+		   
+		    vseries['yAxis'] = unitIndex;	   
 		    vseries['data'] = vdata;
                     vseries['name'] = vname;
-		    vseries['yAxis'] = series.length;
 
-                    series.push(vseries);
-		    axis.push(vaxis);
+                    series.push(vseries);		    
 		}
 
 		$(this).highcharts({
