@@ -946,12 +946,9 @@
 
 		var yvar =  sounding_yvar;
 
-		var series = [];
-		var axis = [];
-		var units = [];
 		var ptitle = "";
 
-		var unique_units = local_ns.unique(vunits);
+		// var unique_units = local_ns.unique(vunits);
 
                 if (vnames.length > 1) {
 		    for (var i = 0; i < vnames.length; i++) {
@@ -1013,12 +1010,14 @@
                     }
                 }
 
+                var yAxes = [];
+		var series = [];
+		var units = [];
+
 		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
                     if (vname == yvar) continue;
 		    var vunit = vunits[iv];
-                    var vseries = {};
-		    var vaxis = {};
                     var vdata = [];
                     var last_val = last_val_init;
 		    for (var idata = 0; idata < data_length; idata+=skip) {
@@ -1034,30 +1033,35 @@
 
 		    if (unitIndex == -1) {
 			unitIndex = units.push(vunit) - 1;
-			vaxis['title'] = {text: vname + " (" + vunit + ")",
-					  style: {"color": "black", "fontSize": "20px"},
-					 margin: 0};
-			vaxis['lineWidth'] = 1;
-			vaxis['minorGridLineDashStyle'] = 'longdash';
-			vaxis['minorTickInterval'] = 'auto';
-			vaxis['minorTickWidth'] = 0;
-			vaxis['gridLineWidth'] = 0;
-			
-			if (series.length % 2 == 0) {
-			    vaxis['opposite'] = false;
-			}
-			else {
-			    vaxis['opposite'] = true;
-			}
-			axis.push(vaxis);
+
+                        var yaxis = {
+                            title: {
+                                text: vunit,
+                                style: {"color": "black", "fontSize": "20px"},
+                                margin: 0
+                            },
+                            lineWidth: 1,
+                            // minorGridLineDashStyle: 'longdash',
+                            // minorTickInterval: 'auto',
+                            // minorTickWidth: 0,
+                            // gridLineWidth: (yAxes.length == 0 ? 1 : 0),
+                            gridLineWidth: 1,
+                            opposite: (unitIndex % 2 != 0),
+                            /* Need to start/end on tick if you have
+                             * gridlines on multiple axes */
+                            startOnTick: true,
+                            endOnTick: true,
+                            maxPadding: 0,
+                            minPadding: 0,
+			};
+			yAxes.push(yaxis);
 		    }
-		    else {				
-			axis[unitIndex].title.text = "".concat(vname,", ",axis[unitIndex].title.text);
-		    }		    
 		   
-		    vseries['yAxis'] = unitIndex;	   
-		    vseries['data'] = vdata;
-                    vseries['name'] = vname;
+                    var vseries = {
+                        yAxis: unitIndex,
+                        data: vdata,
+                        name: vname + '(' + vunit + ')',
+                    };
 
                     series.push(vseries);		    
 		}
@@ -1067,16 +1071,19 @@
 			showAxes: true,
 			inverted: true,
 			type: 'line',
+                        zoomType: 'xy',
 		    },
 		    xAxis: {
 			reversed: false,
-			endOnTick: true,
+                        startOnTick: false,
+			endOnTick: false,
                         title: {
                             text: "Altitude (m)",
 			    style: {"color": "black", "fontSize": "20px"},
                         },
+                        gridLineWidth: 1,
                     },
-		    yAxis: axis,
+		    yAxis: yAxes,
 		    legend: {
                         enabled: true,
                         margin: 0,
@@ -1092,6 +1099,10 @@
 			margin: 10,
                         text: ptitle,
 			style: {"color": "black", "fontSize": "25px", "fontWeight": "bold", "text-decoration": "underline"},
+                    },
+                    tooltip: {
+                        shared: true,       // show all points in the tooltip
+                        headerFormat: '<span style="font-size: 10px"><b>' + yvar + ': {point.key}</b></span><br/>',
                     },
 		});
             });

@@ -852,9 +852,9 @@ class DatasetView(View):
             elif ptype == 'sounding-profile':
                 # one profile plot per series name
                 for series_name in ncdata['time']:
-                    vnames = [v for v in variables]
-                    units = [var['units'] for var in variables.values()]
-                    long_names = [var['long_name'] for var in variables.values()]
+                    vnames = sorted([v for v in variables])
+                    units = [variables[v]['units'] for v in vnames]
+                    long_names = [variables[v]['long_name'] for v in vnames]
                     plot_groups['g{}'.format(grpid)] = {
                         'series': series_name,
                         'variables': mark_safe(json.dumps(vnames)),
