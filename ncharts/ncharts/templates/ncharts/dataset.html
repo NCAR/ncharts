@@ -148,11 +148,17 @@
     </script>
 
     {% for group,val in plot_groups.items %}
-    <div class="chart-wrapper">
-      <div class="chart-inner">
-	<div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
-      </div>
-    </div>    
+
+        {% if val.plot_type == 'sounding-profile' %}
+            <div class="sounding-chart-wrapper">
+        {% else %}
+            <div class="time-series-chart-wrapper">
+        {% endif %}
+          <div class="chart-inner">
+            <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
+          </div>
+        </div>    
+
         <script>
             var div = $("#{{ val.plot_type }}_{{ group }}")[0];
             jQuery.data(div,"series",'{{ val.series }}');

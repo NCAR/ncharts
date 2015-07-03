@@ -17,7 +17,12 @@ div#id_start_time {
 	width: 14em;
 }
 
-.chart-wrapper {
+.time-series-chart-wrapper {
+ position: relative;
+    padding-bottom: 40%;
+}
+
+.sounding-chart-wrapper {
  position: relative;
     padding-bottom: 100%;
 }
