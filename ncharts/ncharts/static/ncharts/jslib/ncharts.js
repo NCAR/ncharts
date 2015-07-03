@@ -61,19 +61,32 @@
 	    try {
 		// console.log("update_sounding_boxes, soundings.length=",soundings.length);
 		if (soundings.length > 0) {
+                    var checked_list = [];
+                    $("input[id^='id_soundings']").each(function(index) {
+                        // console.log("this=",this);
+                        if ($(this).prop("checked")) {
+                            // console.log("this=",this," is checked");
+                            checked_list.push($(this).attr("value"));
+                        }
+                    });
 		    $("#sounding-checkbox").empty();
 		    
+                    // console.log("checked_list=",checked_list);
+                    var icb = 0;
 	    	    for (var is = 0; is < soundings.length; is++) {
 			var sname = soundings[is][0];
 			var stime = soundings[is][1] * 1000;	// milliseconds
-			
+                        var checked = checked_list.indexOf(sname) > -1;
+                        // console.log("sname=",sname,", checked=",checked);
 			if (stime >= start_time && stime < start_time + local_ns.time_length) {
 			    $("<input data-mini='true' name='soundings' type='checkbox' />")
-				.attr("id", "id_soundings_" + is)
+				.attr("id", "id_soundings_" + icb)
 				.attr("value", sname)
+				.prop("checked", checked)
 				.appendTo("#sounding-checkbox");
-			    var $label = $("<label>").text(sname).attr({for:"id_soundings_" + is});
-			    $("#sounding-checkbox").append($label);
+			    var label = $("<label>").text(sname).attr({for:"id_soundings_" + icb});
+			    $("#sounding-checkbox").append(label);
+                            icb++;
 			}
 		    }
 		}
@@ -497,14 +510,14 @@
                 }
             });
 
-	    $("#id_soundings_clear").change(function() {
+	    $("#soundings_clear").change(function() {
                 if ($(this).prop("checked")) {
                     $('#sounding-checkbox :checked').prop('checked',false);
                     $(this).prop('checked',false);
                 }
             });
 
-            $("#id_soundings_all").change(function() {
+            $("#soundings_all").change(function() {
                 if ($(this).prop("checked")) {
                     $('#sounding-checkbox :not(:checked)').prop('checked',true);
                     $(this).prop('checked',false);
@@ -971,7 +984,19 @@
                 var alt_increasing = true;  // are altitudes increasing?
                 if (data_length > 1) {
                     // check first and last
-                    alt_increasing = altitudes[data_length-1] > altitudes[0];
+                    var alt1 = null;
+                    for (var i = 0; i < data_length; i++) {
+                        alt1 = altitudes[i];
+                        if (alt1 !== null) break;
+                    }
+                    // console.log("alt1=",alt1);
+                    var altn = null;
+                    for (var i = data_length - 1; i >= 0; i--) {
+                        altn = altitudes[i];
+                        if (altn !== null) break;
+                    }
+                    // console.log("altn=",altn);
+                    alt_increasing = (alt1 !== null && altn > alt1);
                 }
 
                 var alt_check_func;
@@ -979,12 +1004,12 @@
                 if (alt_increasing) {
                     last_val_init = -Number.MAX_VALUE;
                     alt_ok = function(x,xlast) {
-                        return x > xlast;
+                        return x !== null && x > xlast;
                     }
                 } else {
                     last_val_init = Number.MAX_VALUE;
                     alt_ok = function(x,xlast) {
-                        return x < xlast;
+                        return x !== null && x < xlast;
                     }
                 }
 
@@ -1001,8 +1026,8 @@
                         if (alt_ok(x,last_val)) {
                             var y = plot_data[sname][vname][idata];
 			    vdata.push([x,y])
+                            last_val = x;
 			}
-                        last_val = x;
 		    }
 
 		    var unitIndex = $.inArray(vunit, units);
