@@ -59,21 +59,34 @@
         local_ns.update_sounding_boxes = function(start_time) {
 
 	    try {
-		console.log("update_sounding_boxes, soundings.length=",soundings.length);
+		// console.log("update_sounding_boxes, soundings.length=",soundings.length);
 		if (soundings.length > 0) {
+                    var checked_list = [];
+                    $("input[id^='id_soundings']").each(function(index) {
+                        // console.log("this=",this);
+                        if ($(this).prop("checked")) {
+                            // console.log("this=",this," is checked");
+                            checked_list.push($(this).attr("value"));
+                        }
+                    });
 		    $("#sounding-checkbox").empty();
 		    
+                    // console.log("checked_list=",checked_list);
+                    var icb = 0;
 	    	    for (var is = 0; is < soundings.length; is++) {
 			var sname = soundings[is][0];
 			var stime = soundings[is][1] * 1000;	// milliseconds
-			
+                        var checked = checked_list.indexOf(sname) > -1;
+                        // console.log("sname=",sname,", checked=",checked);
 			if (stime >= start_time && stime < start_time + local_ns.time_length) {
 			    $("<input data-mini='true' name='soundings' type='checkbox' />")
-				.attr("id", "id_soundings_" + is)
+				.attr("id", "id_soundings_" + icb)
 				.attr("value", sname)
+				.prop("checked", checked)
 				.appendTo("#sounding-checkbox");
-			    var $label = $("<label>").text(sname).attr({for:"id_soundings_" + is});
-			    $("#sounding-checkbox").append($label);
+			    var label = $("<label>").text(sname).attr({for:"id_soundings_" + icb});
+			    $("#sounding-checkbox").append(label);
+                            icb++;
 			}
 		    }
 		}
@@ -418,7 +431,9 @@
         }
 
         $(function() {
-            console.log("DOM is ready!");
+            if (local_ns.debug_level) {
+                console.log("DOM is ready!");
+            }
 
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
@@ -495,14 +510,14 @@
                 }
             });
 
-	    $("#id_soundings_clear").change(function() {
+	    $("#soundings_clear").change(function() {
                 if ($(this).prop("checked")) {
                     $('#sounding-checkbox :checked').prop('checked',false);
                     $(this).prop('checked',false);
                 }
             });
 
-            $("#id_soundings_all").change(function() {
+            $("#soundings_all").change(function() {
                 if ($(this).prop("checked")) {
                     $('#sounding-checkbox :not(:checked)').prop('checked',true);
                     $(this).prop('checked',false);
@@ -514,7 +529,7 @@
             local_ns.update_time_length(
 		$("input#id_time_length_0").val(),
                 $("select#id_time_length_units").val(),
-		false);
+		true);
 
             /* If the user wants to track real time with ajax. */
             local_ns.track_real_time = $("input#id_track_real_time").prop("checked");
@@ -557,31 +572,6 @@
             // Everything below here depends on plot_times and plot_data
             // being passed.
             if (window.plot_times === undefined) return
-
-            if (local_ns.track_real_time) {
-                // mean delta-t of data
-                local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
-                if ('' in plot_times && plot_times[''].length > 1) {
-                    // set ajax update period to 1/2 the data deltat
-                    local_ns.ajaxTimeout =
-                        Math.max(
-                            local_ns.ajaxTimeout,
-                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
-                                (plot_times[''].length - 1) * 1000 / 2)
-                        );
-                }
-                if (local_ns.debug_level > 2) {
-                    // update more frequently for debugging
-                    local_ns.ajaxTimeout = 10 * 1000;
-                }
-
-                // start AJAX
-                setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
-
-                if (local_ns.debug_level) {
-                    console.log("ajaxTimeout=",local_ns.ajaxTimeout);
-                }
-            }
 
             var first_time = null;
 
@@ -954,12 +944,11 @@
                     long_names = vnames;
                 }
 
-		var series = [];
-		var axis = [];
-		var units = [];
+		var yvar =  sounding_yvar;
+
 		var ptitle = "";
 
-		var unique_units = local_ns.unique(vunits);
+		// var unique_units = local_ns.unique(vunits);
 
                 if (vnames.length > 1) {
 		    for (var i = 0; i < vnames.length; i++) {
@@ -977,9 +966,8 @@
 
 		ptitle = sname + ": "  + ptitle;
 
-                var altname = 'alt';
                 // the altitude array
-                var altitudes = plot_data[sname][altname];
+                var altitudes = plot_data[sname][yvar];
 
 		var data_length = altitudes.length;
 		var skip;
@@ -993,7 +981,19 @@
                 var alt_increasing = true;  // are altitudes increasing?
                 if (data_length > 1) {
                     // check first and last
-                    alt_increasing = altitudes[data_length-1] > altitudes[0];
+                    var alt1 = null;
+                    for (var i = 0; i < data_length; i++) {
+                        alt1 = altitudes[i];
+                        if (alt1 !== null) break;
+                    }
+                    // console.log("alt1=",alt1);
+                    var altn = null;
+                    for (var i = data_length - 1; i >= 0; i--) {
+                        altn = altitudes[i];
+                        if (altn !== null) break;
+                    }
+                    // console.log("altn=",altn);
+                    alt_increasing = (alt1 !== null && altn > alt1);
                 }
 
                 var alt_check_func;
@@ -1001,21 +1001,23 @@
                 if (alt_increasing) {
                     last_val_init = -Number.MAX_VALUE;
                     alt_ok = function(x,xlast) {
-                        return x > xlast;
+                        return x !== null && x > xlast;
                     }
                 } else {
                     last_val_init = Number.MAX_VALUE;
                     alt_ok = function(x,xlast) {
-                        return x < xlast;
+                        return x !== null && x < xlast;
                     }
                 }
 
+                var yAxes = [];
+		var series = [];
+		var units = [];
+
 		for (var iv = 0; iv < vnames.length; iv++) {
 		    var vname = vnames[iv];
-                    if (vname == altname) continue;
+                    if (vname == yvar) continue;
 		    var vunit = vunits[iv];
-                    var vseries = {};
-		    var vaxis = {};
                     var vdata = [];
                     var last_val = last_val_init;
 		    for (var idata = 0; idata < data_length; idata+=skip) {
@@ -1023,38 +1025,43 @@
                         if (alt_ok(x,last_val)) {
                             var y = plot_data[sname][vname][idata];
 			    vdata.push([x,y])
+                            last_val = x;
 			}
-                        last_val = x;
 		    }
 
 		    var unitIndex = $.inArray(vunit, units);
 
 		    if (unitIndex == -1) {
 			unitIndex = units.push(vunit) - 1;
-			vaxis['title'] = {text: vname + " (" + vunit + ")",
-					  style: {"color": "black", "fontSize": "20px"},
-					 margin: 0};
-			vaxis['lineWidth'] = 1;
-			vaxis['minorGridLineDashStyle'] = 'longdash';
-			vaxis['minorTickInterval'] = 'auto';
-			vaxis['minorTickWidth'] = 0;
-			vaxis['gridLineWidth'] = 0;
-			
-			if (series.length % 2 == 0) {
-			    vaxis['opposite'] = false;
-			}
-			else {
-			    vaxis['opposite'] = true;
-			}
-			axis.push(vaxis);
+
+                        var yaxis = {
+                            title: {
+                                text: vunit,
+                                style: {"color": "black", "fontSize": "20px"},
+                                margin: 0
+                            },
+                            lineWidth: 1,
+                            // minorGridLineDashStyle: 'longdash',
+                            // minorTickInterval: 'auto',
+                            // minorTickWidth: 0,
+                            // gridLineWidth: (yAxes.length == 0 ? 1 : 0),
+                            gridLineWidth: 1,
+                            opposite: (unitIndex % 2 != 0),
+                            /* Need to start/end on tick if you have
+                             * gridlines on multiple axes */
+                            startOnTick: true,
+                            endOnTick: true,
+                            maxPadding: 0,
+                            minPadding: 0,
+			};
+			yAxes.push(yaxis);
 		    }
-		    else {				
-			axis[unitIndex].title.text = "".concat(vname,", ",axis[unitIndex].title.text);
-		    }		    
 		   
-		    vseries['yAxis'] = unitIndex;	   
-		    vseries['data'] = vdata;
-                    vseries['name'] = vname;
+                    var vseries = {
+                        yAxis: unitIndex,
+                        data: vdata,
+                        name: vname + '(' + vunit + ')',
+                    };
 
                     series.push(vseries);		    
 		}
@@ -1064,16 +1071,19 @@
 			showAxes: true,
 			inverted: true,
 			type: 'line',
+                        zoomType: 'xy',
 		    },
 		    xAxis: {
 			reversed: false,
-			endOnTick: true,
+                        startOnTick: false,
+			endOnTick: false,
                         title: {
                             text: "Altitude (m)",
 			    style: {"color": "black", "fontSize": "20px"},
                         },
+                        gridLineWidth: 1,
                     },
-		    yAxis: axis,
+		    yAxis: yAxes,
 		    legend: {
                         enabled: true,
                         margin: 0,
@@ -1090,11 +1100,39 @@
                         text: ptitle,
 			style: {"color": "black", "fontSize": "25px", "fontWeight": "bold", "text-decoration": "underline"},
                     },
+                    tooltip: {
+                        shared: true,       // show all points in the tooltip
+                        headerFormat: '<span style="font-size: 10px"><b>' + yvar + ': {point.key}</b></span><br/>',
+                    },
 		});
             });
             if (first_time) {
                 local_ns.update_start_time(first_time);
             } 
+            if (local_ns.track_real_time) {
+                // mean delta-t of data
+                local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
+                if ('' in plot_times && plot_times[''].length > 1) {
+                    // set ajax update period to 1/2 the data deltat
+                    local_ns.ajaxTimeout =
+                        Math.max(
+                            local_ns.ajaxTimeout,
+                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
+                                (plot_times[''].length - 1) * 1000 / 2)
+                        );
+                }
+                if (local_ns.debug_level > 2) {
+                    // update more frequently for debugging
+                    local_ns.ajaxTimeout = 10 * 1000;
+                }
+
+                // start AJAX
+                setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
+
+                if (local_ns.debug_level) {
+                    console.log("ajaxTimeout=",local_ns.ajaxTimeout);
+                }
+            }
         });     // end of DOM-is-ready function
     })
 );

@@ -3,22 +3,23 @@
     "fields": {
         "variables": [], 
         "platforms": [
-            "ISS"
+            "GAUS"
         ], 
         "start_time": "2015-05-16T00:00:00+00:00", 
         "end_time": "2015-07-31T00:00:00+00:00", 
-        "location": "Ellis Kansas", 
-        "name": "ISS1Surface", 
-        "long_name": "ISS1 FP3, Surface", 
-        "project": "PECAN"
+        "location": "Greensburg Kansas", 
+        "name": "FP2Soundings", 
+        "long_name": "FP2 (Greensburg) Soundings, Howard University", 
+        "project": "PECAN",
+        "dset_type": "sounding"
     }, 
     "model": "ncharts.dataset", 
     "pk": 16
 },
 {
     "fields": {
-        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp3/isfs_nc", 
-        "filenames": "isfs_%Y%m%d.%H%M%S.nc"
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp2/class", 
+        "filenames": "fp2_sounding.GREEN_%Y%m%d%H%M.cls.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 16
@@ -32,13 +33,37 @@
         "start_time": "2015-05-16T00:00:00+00:00", 
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
-        "name": "ISS1Soundings", 
-        "long_name": "ISS1 FP3, Soundings", 
+        "name": "FP3Surface", 
+        "long_name": "FP3 (Ellis) Surface, NCAR ISS1", 
+        "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 17
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp3/isfs_nc", 
+        "filenames": "isfs_%Y%m%d.%H%M%S.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 17
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-05-16T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Ellis Kansas", 
+        "name": "FP3Soundings", 
+        "long_name": "FP3 (Ellis) Soundings, Millersville University", 
         "project": "PECAN",
         "dset_type": "sounding"
     }, 
     "model": "ncharts.dataset", 
-    "pk": 17
+    "pk": 18
 },
 {
     "fields": {
@@ -46,7 +71,7 @@
         "filenames": "fp3_sounding.ELLIS_%Y%m%d%H%M.cls.nc"
     }, 
     "model": "ncharts.filedataset", 
-    "pk": 17
+    "pk": 18
 },
 {
     "fields": {
@@ -57,8 +82,8 @@
         "start_time": "2015-05-15T00:00:00+00:00", 
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
-        "name": "ISS1Winds5m", 
-        "long_name": "ISS1 FP3, 449 Profiler, 5 minute winds", 
+        "name": "FP3Winds5m", 
+        "long_name": "FP3 (Ellis) 449 Profiler, 5 minute winds, NCAR ISS1", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
@@ -81,8 +106,8 @@
         "start_time": "2015-05-15T00:00:00+00:00", 
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Ellis Kansas", 
-        "name": "ISS1Winds30m", 
-        "long_name": "ISS1 FP3, 449 Profiler, 30 minute winds", 
+        "name": "FP3Winds30m", 
+        "long_name": "FP3 (Ellis) 449 Profiler, 30 minute winds, NCAR ISS1", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
@@ -105,17 +130,42 @@
         "start_time": "2015-04-23T00:00:00+00:00", 
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Minden Nebraska", 
-        "name": "ISS2Surface", 
-        "long_name": "ISS2 FP4, Surface", 
+        "name": "FP4Surface", 
+        "long_name": "FP4 (Minden) Surface, NCAR ISS2", 
         "project": "PECAN"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 21
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp4/isfs_nc", 
+        "filenames": "isfs_%Y%m%d.%H%M%S.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 21
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-05-16T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Minden Nebraska", 
+        "name": "FP4Soundings", 
+        "long_name": "FP4 (Minden) Soundings, NCAR ISS2", 
+        "project": "PECAN",
+        "dset_type": "sounding"
     }, 
     "model": "ncharts.dataset", 
     "pk": 22
 },
 {
     "fields": {
-        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp4/isfs_nc", 
-        "filenames": "isfs_%Y%m%d.%H%M%S.nc"
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp4/class", 
+        "filenames": "fp4_sounding.D%Y%m%d_%H%M%S_P.1.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 22
@@ -129,12 +179,12 @@
         "start_time": "2015-04-27T00:00:00+00:00", 
         "end_time": "2015-07-31T00:00:00+00:00", 
         "location": "Brewster Kansas", 
-        "name": "ISS3Surface", 
-        "long_name": "ISS3 FP5, Surface", 
+        "name": "FP5Surface", 
+        "long_name": "FP5 (Brewster) Surface, NCAR ISS3", 
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
-    "pk": 24
+    "pk": 23
 },
 {
     "fields": {
@@ -142,7 +192,57 @@
         "filenames": "isfs_%Y%m%d.%H%M%S.nc"
     }, 
     "model": "ncharts.filedataset", 
+    "pk": 23
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISS"
+        ], 
+        "start_time": "2015-05-16T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Brewster Kansas", 
+        "name": "FP5Soundings", 
+        "long_name": "FP5 (Brewster) Soundings, NCAR ISS3", 
+        "project": "PECAN",
+        "dset_type": "sounding"
+    }, 
+    "model": "ncharts.dataset", 
     "pk": 24
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp5/class", 
+        "filenames": "fp5_sounding.D%Y%m%d_%H%M%S_P.1.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 24
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "GAUS"
+        ], 
+        "start_time": "2015-05-16T00:00:00+00:00", 
+        "end_time": "2015-07-31T00:00:00+00:00", 
+        "location": "Hesston Kansas", 
+        "name": "FP6Soundings", 
+        "long_name": "FP6 (Hesston) Soundings, ARM", 
+        "project": "PECAN",
+        "dset_type": "sounding"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 25
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/projects/PECAN/ISS/fp6/class", 
+        "filenames": "fp6_sounding.HESS_%Y%m%d%H%M.cls.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 25
 },
 {
     "fields": {
@@ -158,7 +258,7 @@
         "project": "PECAN"
     }, 
     "model": "ncharts.dataset", 
-    "pk": 25
+    "pk": 26
 },
 {
     "fields": {
@@ -166,6 +266,6 @@
         "filenames": "surface_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
-    "pk": 25
+    "pk": 26
 }
 ]
