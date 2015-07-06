@@ -777,15 +777,16 @@ class DatasetView(View):
                         lastok = np.where(~np.isnan(
                             ncdata['data'][series_name][vname]))[0][-1]
                         time_last_ok = ncdata['time'][series_name][lastok]
-                    except IndexError:
-                        # all data is nan
+                    except IndexError:  # all data is nan
                         time_last_ok = (stime - \
                             datetime.timedelta(seconds=0.001)).timestamp()
 
-                    time_last = ncdata['time'][series_name][-1]
+                    try:
+                        time_last = ncdata['time'][series_name][-1]
+                    except IndexError:  # no data
+                        time_last = time_last_ok
 
-                    client_state.save_data_times(
-                        vname, time_last_ok, time_last)
+                    client_state.save_data_times(vname, time_last_ok, time_last)
 
             # As an easy compression, subtract first time from all times,
             # reducing the number of characters sent.
