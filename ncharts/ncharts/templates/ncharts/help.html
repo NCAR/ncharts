@@ -6,6 +6,10 @@
 
 {% block content %}
 
+NCharts is intended to be a quick-look display of a wide variety of data, not a tool for detailed analysis. The plot options will be limited to keep things simple and useable across a variety of display sizes.
+
+NCharts uses the Highcharts.com javascript plotting library which provides some nice interactive capabilities for zooming and displaying point values.
+
 <h4>Time Series</h4>
 <ul>
     <li>General Information</li>
@@ -21,18 +25,28 @@
         <li>All selected variables with the same units will be plotted together.</li>
         <li>The sequence of plots is alphabetical by the name of the first variable in the plot.</li>
         <li>For all variables with the same units, the sequence in the legend will be alphabetical, by name.</li>
-        <li>Click on the variable name in the legend at the bottom of a plot to toggle the visibility of the trace, and dynamically rescale the remaining traces.</li>
+        <li>Click on a variable name in the legend at the bottom of a plot to toggle the visibility of the trace, and dynamically rescale the remaining traces.</li>
         <li>Use the sliders on the "navigator" trace below the chart to zoom in, and drag the selection to pan back and forth in time</li>
     </ul>
 
-    <li>Time X Height Plots (Currently only 449 profiler)</li>
+    <li>Time vs Height Plots (Currently only 449 profiler)</li>
     <ul>
         <li>The plots will be in alphabetical order, by variable name.</li>
-        <li>For time X height plots, drag a rectangle across the plot to zoom in time.</li>
+        <li>To zoom in time and height, drag a rectangle across the plot. A <b>Reset zoom</b> button will appear in the top right to zoom back out.</li>
         <li>The Y axis is the height index of the observations. Click on the (otherwise boring) height plot to see the height in meters at an index.</li>
     </ul>
 
 </ul>
+
+<h4>Sounding Profiles</h4>
+  <ul>
+      <li>When a start time and time length are selected, the available soundings for that period are shown  by their launch time in UTC.</li>
+      <li>Choose one or more soundings, one or more X axis variables and a Y axis variable, typically <b>alt</b> or <b>gpsalt</b>.  A profile will be plotted for each sounding selected.</li>
+      <li>Currently 1000 points are plotted for each sounding.</li>
+      <li>If the sonde reverses vertical direction, those points will not be shown.<li>
+      <li>Click on a variable name in the legend at the bottom of a plot to toggle the visibility of the trace, and dynamically rescale the remaining traces.</li>
+      <li>To zoom in X and Y, drag a rectangle on the plot with your mouse. A <b>Reset zoom</b> button will appear in the top right to zoom back out.</li>
+  </ul>
 
 <h4>Real-time Updates</h4>
 <ul>
@@ -40,6 +54,7 @@
     <li>This option is only enabled for projects that are on-going.</li>
     <li>Your browser will poll the server for new data, at a time interval equal to 1/2 the average delta-T of the data. The plot will scroll and and start time will be updated when new data arrives.</li>
     <li>Real-time updates will fill in missing data for each variable back to the time of the previous non-missing value. If values previous to that time were updated by data processing, they will not be updated in the Ncharts display. Click on the Plot button to do a complete refresh.</li>
+    <li>Real-time updates are currently not supported for soundings.</li>
 </ul>
 
 <h4>Bugs and Idiosyncracies</h4>
@@ -50,6 +65,13 @@
     <li>On phones, to scroll up or down , try swiping on the right-hand side to activate a small scrollbar.</li>
     <li>Clicking Today in the datetime widget will set the time and date to the current time, in the browser's local time zone. It will then be interpreted in the selected time zone.</li>
     <li>If you return to plot a previous dataset, you may have to do a browser refresh to see the variables and time you selected previously.</li>
+</ul>
+
+<h4>Printing</h4>
+<ul>
+    <li>The "hamburger" icon at the top right of each plot is a print menu.<li>
+    <li>Select <b>Print chart</b> to print on your local system, which may give you the option to a PDF or PNG file.</li>
+    <li>If you select one of the <b>Download</b> options, the plot will be sent to a Highcharts server for rendering and then made available for download. If the Highcharts servers are overloaded, a blank screen may result, in which case, try again later.</li>
 </ul>
 
 {% endblock %}
