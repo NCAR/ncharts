@@ -457,9 +457,10 @@ class DatasetView(View):
 
         soundings = []
         try:
-            dvars = sorted(dset.get_variables().keys())
-            form.set_variable_choices(dvars)
-            form.set_yvariable_choices(dvars)
+            dsetvars = dset.get_variables()
+            dvars = sorted(dsetvars.keys())
+            form.set_variable_choices(dvars,dsetvars)
+            form.set_yvariable_choices(dvars, dsetvars)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
@@ -581,9 +582,10 @@ class DatasetView(View):
         # before the form is validated.
         soundings = []
         try:
-            dvars = sorted(dset.get_variables().keys())
-            form.set_variable_choices(dvars)
-            form.set_yvariable_choices(dvars)
+            dsetvars = dset.get_variables()
+            dvars = sorted(dsetvars.keys())
+            form.set_variable_choices(dvars,dsetvars)
+            form.set_yvariable_choices(dvars, dsetvars)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
@@ -777,15 +779,16 @@ class DatasetView(View):
                         lastok = np.where(~np.isnan(
                             ncdata['data'][series_name][vname]))[0][-1]
                         time_last_ok = ncdata['time'][series_name][lastok]
-                    except IndexError:
-                        # all data is nan
+                    except IndexError:  # all data is nan
                         time_last_ok = (stime - \
                             datetime.timedelta(seconds=0.001)).timestamp()
 
-                    time_last = ncdata['time'][series_name][-1]
+                    try:
+                        time_last = ncdata['time'][series_name][-1]
+                    except IndexError:  # no data
+                        time_last = time_last_ok
 
-                    client_state.save_data_times(
-                        vname, time_last_ok, time_last)
+                    client_state.save_data_times(vname, time_last_ok, time_last)
 
             # As an easy compression, subtract first time from all times,
             # reducing the number of characters sent.
@@ -816,6 +819,7 @@ class DatasetView(View):
 
         plot_types = set()
         if len(ncdata['time']) == 1 and '' in ncdata['time']:
+            # one series, named ''
             for vname, var in variables.items():
                 ptype = type_by_shape(ncdata['data'][''][vname].shape)
                 var['plot_type'] = ptype
@@ -879,17 +883,19 @@ class DatasetView(View):
                 for unit in uunits:
                     uvars = sorted([vname for vname, var in variables.items() \
                         if var['plot_type'] == ptype and var['units'] == unit])
-                    # uvars is list of variables with units unit
-                    plot_groups['g{}'.format(grpid)] = {
-                        'series': "",
-                        'variables': mark_safe(json.dumps(uvars)),
-                        'units': mark_safe(json.dumps(
-                            [variables[v]['units'] for v in uvars])),
-                        'long_names': mark_safe(json.dumps(
-                            [variables[v]['long_name'] for v in uvars])),
-                        'plot_type': mark_safe(ptype),
-                    }
-                    grpid += 1
+                    # uvars is list of variables with units unit. Might be empty
+                    # if the variable is of a different plot type
+                    if len(uvars) > 0:
+                        plot_groups['g{}'.format(grpid)] = {
+                            'series': "",
+                            'variables': mark_safe(json.dumps(uvars)),
+                            'units': mark_safe(json.dumps(
+                                [variables[v]['units'] for v in uvars])),
+                            'long_names': mark_safe(json.dumps(
+                                [variables[v]['long_name'] for v in uvars])),
+                            'plot_type': mark_safe(ptype),
+                        }
+                        grpid += 1
 
         return render(
             request, self.template_name, {

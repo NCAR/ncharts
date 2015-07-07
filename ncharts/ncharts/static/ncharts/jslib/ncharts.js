@@ -853,9 +853,9 @@
                             type: 'heatmap',
                             marginTop: 40,
                             marginBottom: 60,
-                            zoomType: 'x',
-                            panning: true,
-                            panKey: 'shift',
+                            zoomType: 'xy',
+                            // panning: true,
+                            // panKey: 'shift',
                             plotOptions: {
                                 series: {
                                     dataGrouping: {
