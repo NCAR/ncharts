@@ -6,7 +6,7 @@ body {
     border: 1px solid green ;
 }
 input#id_time_length_0 {
-	width: 3em;
+    width: 3em;
 }
 /*
 input#id_start_time {
@@ -14,7 +14,7 @@ input#id_start_time {
 }
 */
 div#id_start_time {
-	width: 14em;
+    width: 14em;
 }
 
 .time-series-chart-wrapper {
@@ -28,18 +28,21 @@ div#id_start_time {
 }
 
 .chart-inner {
-position: absolute;
+    position: absolute;
     width: 100%; height: 100%;
 }
 
 .container {
-	width: 80%;
-	height: 120%;
-	margin: 0 auto;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
 }
 
-.navbar-bottom {
-    bottom: 0px;
+.navbar-brand {
+    width: 100%;
+    left: auto;
+    text-alight: left;
+    margin: auto;
 }
 
 /*
