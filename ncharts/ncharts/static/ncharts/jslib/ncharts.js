@@ -611,6 +611,22 @@
                     yAxis.push(ya);
                 }
 
+		var nav = {
+                    height: 25,
+                    margin: 5,
+                    enabled: true,
+                };
+
+		var isMobile = false; 
+
+		if ('ontouchstart' in window) {
+		    isMobile = true;
+		}
+		
+		if (isMobile) {
+		    nav = {};
+		}
+
                 /*
                  * array of objects, one for each input variable,
                  * with these keys:
@@ -674,7 +690,7 @@
                 $( this ).highcharts({
                     chart: {
                         type: 'line',
-                        // zoomType: 'x',
+                        zoomType: 'xy',
                         // panning: true,
                         // panKey: 'shift',
                         spacingLeft: 20,
@@ -766,15 +782,17 @@
                         valueDecimals: 6,
                         */
                     },
-                    navigator: {
+                /*    navigator: {
                         height: 25,
                         margin: 5,
                         enabled: true,
                         // adaptToUpdatedData: true,
 
-                    },
+                    },*/
+		    navigator: nav,
                     title: {
                         text: ptitle,
+			style: {"color": "black", "fontSize": "20px", "fontWeight": "bold", "text-decoration": "underline"},
                     }
                 });
             });
