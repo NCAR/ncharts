@@ -206,7 +206,7 @@ class DataSelectionForm(forms.Form):
             self.fields['timezone'].choices = \
                 [(v.tz, str(v.tz)) for v in proj.timezones.all()]
 
-    def set_variable_choices(self, variables):
+    def set_variable_choices(self, variables, vardict):
         """Set the available variables in this form.
 
         Args:
@@ -215,7 +215,7 @@ class DataSelectionForm(forms.Form):
         # choices: (value, label)
         self.fields['variables'].choices = [(v, v) for v in variables]
 
-    def set_yvariable_choices(self, variables):
+    def set_yvariable_choices(self, variables, vardict):
         """Set the available Y axis variables in this form.
 
         Args:
