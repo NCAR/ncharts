@@ -305,7 +305,8 @@
                         for (var iv = 0; iv < chart.series.length; iv++ ) {
                             var series = chart.series[iv];
                             var vname = series.name;
-                            // console.log("vname=",vname)
+                            console.log("vname=",vname)
+			    console.log(indata);
 
                             if (series.data.length > 0) {
                                 first_time = series.data[0]['x'];
@@ -314,6 +315,7 @@
                             if (!(vname in indata)) {
                                 continue;
                             }
+
                             var itimes = $.parseJSON(indata[vname]['time'])
 
                             if (itimes.length == 0) {
@@ -327,7 +329,7 @@
                             if (local_ns.debug_level > 1) {
                                 t0 = new Date();
                                 console.log("heatmap ",t0,", vname=",vname,", adding ",itimes.length,
-                                        " points, dim2.length=",dim2.length)
+                                            " points, dim2.length=",dim2.length)
                             }
 
                             var ix = 0;
@@ -885,7 +887,8 @@
                             },
                         },
                         title: {
-                            text: long_name + '(' + units + ')'
+                            text: long_name + '(' + units + ')',
+			    style: {"color": "black", "fontSize": "20px", "fontWeight": "bold", "text-decoration": "underline"},
                         },
                         xAxis: {
                             type: 'datetime',
