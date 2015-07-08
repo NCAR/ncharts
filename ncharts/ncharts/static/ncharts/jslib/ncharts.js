@@ -954,6 +954,10 @@
             });
 
             $("div[id^='sounding-profile']").each(function(index) {
+
+                // track_real_time not supported (yet) for soundings
+                local_ns.track_real_time = false;
+
                 var sname =  $( this ).data("series");
 		var vnames =  $( this ).data("variables");
 		var vunits =  $( this ).data("units");
