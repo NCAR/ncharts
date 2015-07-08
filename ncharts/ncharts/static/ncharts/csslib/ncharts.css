@@ -28,14 +28,49 @@ div#id_start_time {
     width: 14em;
 }
 
-.time-series-chart-wrapper {
-    position: relative;
-    padding-bottom: 50%;
+/* For desktop screen */
+@media screen {
+    .time-series-chart-wrapper {
+	position: relative;
+	padding-bottom: 40%;
+    }
 }
 
-.sounding-chart-wrapper {
-    position: relative;
-    padding-bottom: 100%;
+/* For phones */
+@media only screen and (min-device-width: 480px) {
+    .time-series-chart-wrapper {
+	position: relative;
+	padding-bottom: 70%;
+    }
+}
+
+/* For tablets */
+@media only screen and (min-device-width: 768px) {
+    .time-series-chart-wrapper {
+	position: relative;
+	padding-bottom: 50%;
+    }
+}
+
+@media screen {
+    .sounding-chart-wrapper {
+	position: relative;
+	padding-bottom: 50%;
+    }
+}
+
+@media only screen and (min-device-width: 480px) {
+    .sounding-chart-wrapper {
+	position: relative;
+	padding-bottom: 100%;
+    }
+}
+
+@media only screen and (min-device-width: 768px) {
+    .sounding-chart-wrapper {
+	position: relative;
+	padding-bottom: 70%;
+    }
 }
 
 .chart-inner {
