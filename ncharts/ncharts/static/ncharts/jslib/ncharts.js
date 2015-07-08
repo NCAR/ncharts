@@ -139,6 +139,9 @@
             $.ajax({
                 url: ajaxurl,
                 timeout: 30 * 1000,
+                // Seems that android chrome is not sending out ajax requests.
+                // Web post indicates setting cache: false may help.
+                cache: false,
                 // No data is sent to the server. In the ajax url is a numeric id which
                 // is used to map to the user's selection.
                 dataType: "json",   // type of data back from server
