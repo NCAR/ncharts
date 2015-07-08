@@ -64,9 +64,19 @@ class RAFDatabase(object):
             conn = None
             if hashval in RAFDatabase.__cached_connections:
                 conn = RAFDatabase.__cached_connections[hashval]
+                # connection closed: nonzero if it is closed or broken.
+                # Mainly just checking here if it is broken, in which
+                # case, close and attempt a re-connect.
                 if conn.closed:
-                    conn.rollback()
-                    conn.close()
+                    try:
+                        conn.rollback()
+                    except psycopg2.InterfaceError as exc:
+                        _logger.warn("%s rollback: %s", conn, exc)
+                    try:
+                        conn.close()
+                    except psycopg2.InterfaceError as exc:
+                        # psycopg2.InterfaceError: connection already closed
+                        _logger.warn("%s close: %s", conn, exc)
                     del RAFDatabase.__cached_connections[hashval]
                     conn = None
 
@@ -91,8 +101,15 @@ class RAFDatabase(object):
         with RAFDatabase.__cache_lock:
             for (hashval, cconn) in RAFDatabase.__cached_connections.items():
                 if conn == cconn:
-                    conn.rollback()
-                    conn.close()
+                    try:
+                        conn.rollback()
+                    except psycopg2.InterfaceError as exc:
+                        _logger.warn("%s rollback: %s", conn, exc)
+                    try:
+                        conn.close()
+                    except psycopg2.InterfaceError as exc:
+                        # psycopg2.InterfaceError: connection already closed
+                        _logger.warn("%s close: %s", conn, exc)
                     del RAFDatabase.__cached_connections[hashval]
                     break
 
