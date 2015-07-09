@@ -989,7 +989,7 @@
 
 		var data_length = altitudes.length;
 		var skip;
-		if (data_length < 100) {
+		if (data_length < 1000) {
 		    skip = 1;
 		}
 		else {
