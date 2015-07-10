@@ -17,7 +17,7 @@ file LICENSE in this package.
 
 from django.shortcuts import render, get_object_or_404, redirect
 
-from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.http import HttpResponse, Http404
 
 from django.views.generic.edit import View
 from django.views.generic import TemplateView
@@ -26,7 +26,7 @@ from django.template import TemplateDoesNotExist
 
 from ncharts import models as nc_models
 from ncharts import forms as nc_forms
-from ncharts import exceptions as nc_exceptions
+from ncharts import exceptions as nc_exc
 
 import json, math, logging
 import numpy as np
@@ -448,7 +448,6 @@ class DatasetView(View):
                 'time_length': tlen,
                 'track_real_time': client_state.track_real_time,
                 'soundings': sel_soundings,
-                'variables': svars,
             },
             dataset=dset)
 
@@ -459,7 +458,7 @@ class DatasetView(View):
         try:
             dsetvars = dset.get_variables()
             dvars = sorted(dsetvars.keys())
-            form.set_variable_choices(dvars,dsetvars)
+            form.set_variable_choices(dvars, dsetvars)
             form.set_yvariable_choices(dvars, dsetvars)
 
             if dset.dset_type == "sounding":
@@ -477,8 +476,9 @@ class DatasetView(View):
                 s_choices = [(s, s) for s in s_choices]
                 form.fields['soundings'].choices = s_choices
 
-        except OSError as exc:
-            form.no_data(repr(exc))
+        except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
+            _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
+            form.no_data("No variables found in {): {} ".format(str(dset), exc))
 
         return render(
             request, self.template_name,
@@ -584,7 +584,7 @@ class DatasetView(View):
         try:
             dsetvars = dset.get_variables()
             dvars = sorted(dsetvars.keys())
-            form.set_variable_choices(dvars,dsetvars)
+            form.set_variable_choices(dvars, dsetvars)
             form.set_yvariable_choices(dvars, dsetvars)
 
             if dset.dset_type == "sounding":
@@ -598,8 +598,9 @@ class DatasetView(View):
                 s_choices = [(s, s) for s in s_choices]
                 form.fields['soundings'].choices = s_choices
 
-        except OSError as exc:
-            form.no_data(repr(exc))
+        except (nc_exc.NoDataFoundException, nc_exc.NoDataException) as exc:
+            _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
+            form.no_data("No variables found in {}: {}".format(dset, exc))
 
         if not form.is_valid():
             _logger.error('User form is not valid!: %s', repr(form.errors))
@@ -629,46 +630,34 @@ class DatasetView(View):
         client_state.yvariable = yvar
         client_state.save()
 
-        if isinstance(dset, nc_models.FileDataset):
-            ncdset = dset.get_netcdf_dataset()
-
-            # a variable can be in a dataset, but not in a certain set of files.
-            try:
+        try:
+            if isinstance(dset, nc_models.FileDataset):
+                ncdset = dset.get_netcdf_dataset()
+                # a variable can be in a dataset, but not in a certain set of files.
                 dsvars = ncdset.get_variables(
                     start_time=stime, end_time=etime)
-            except OSError as exc:
-                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
-                form.no_data(repr(exc))
-                return render(
-                    request, self.template_name,
-                    {
-                        'form': form,
-                        'dataset': dset,
-                        'soundings': mark_safe(json.dumps(soundings))
-                    })
 
-        elif isinstance(dset, nc_models.DBDataset):
-            try:
+            elif isinstance(dset, nc_models.DBDataset):
                 dbcon = dset.get_connection()
                 dsvars = dbcon.get_variables()
-            except Exception as exc:
-                _logger.error("%s, %s: %s", project_name, dataset_name, exc)
-                form.no_data(repr(exc))
-                return render(
-                    request, self.template_name,
-                    {
-                        'form': form,
-                        'dataset': dset,
-                        'soundings': mark_safe(json.dumps(soundings))
-                    })
 
+        except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
+            _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
+            form.no_data(repr(exc))
+            return render(
+                request, self.template_name,
+                {
+                    'form': form,
+                    'dataset': dset,
+                    'soundings': mark_safe(json.dumps(soundings))
+                })
 
         # selected and available variables, using set intersection
         savail = list(set(svars) & set(dsvars.keys()))
 
         if len(savail) == 0:
-            exc = nc_exceptions.NoDataException(
-                "variables {} not found in dataset".format(svars))
+            exc = nc_exc.NoDataException(
+                "variables {} not found in {}".format(svars, dset))
             _logger.warn(repr(exc))
             form.no_data(repr(exc))
             return render(
@@ -681,8 +670,8 @@ class DatasetView(View):
 
         if yvar != "":
             if yvar not in dsvars.keys():
-                exc = nc_exceptions.NoDataException(
-                    "variable {} not found in dataset".format(yvar))
+                exc = nc_exc.NoDataException(
+                    "variable {} not found in {}".format(yvar, dset))
                 _logger.warn(repr(exc))
                 form.no_data(repr(exc))
                 return render(
@@ -700,9 +689,8 @@ class DatasetView(View):
         series_name_fmt = None
         if dset.dset_type == "sounding":
             if len(sel_soundings) == 0:
-                exc = nc_exceptions.NoDataException(
+                exc = nc_exc.NoDataException(
                     "select one or more soundings")
-                _logger.warn(repr(exc))
                 form.no_data(repr(exc))
                 return render(
                     request, self.template_name,
@@ -746,7 +734,7 @@ class DatasetView(View):
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
-        except nc_exceptions.TooMuchDataException as exc:
+        except nc_exc.TooMuchDataException as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
             form.too_much_data(repr(exc))
             return render(
@@ -757,7 +745,7 @@ class DatasetView(View):
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
-        except nc_exceptions.NoDataException as exc:
+        except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
             form.no_data(repr(exc))
             return render(
@@ -869,9 +857,8 @@ class DatasetView(View):
                     grpid += 1
             else:
                 # unique units, in alphabetical order by the name of the
-                # first variable which uses it. It is better to
-                # have plots in alphabetical order by the first variable
-                # plotted, rather than by their units.
+                # first variable which uses it. In this way the plots
+                # are in alphabetical order on the page by the first plotted variable.
                 uunits = []
                 # sorted(dict) becomes a list of sorted keys
                 for vname in sorted(variables):
@@ -880,11 +867,11 @@ class DatasetView(View):
                         uunits.append(units)
 
                 # unique units
-                for unit in uunits:
+                for units in uunits:
                     uvars = sorted([vname for vname, var in variables.items() \
-                        if var['plot_type'] == ptype and var['units'] == unit])
-                    # uvars is list of variables with units unit. Might be empty
-                    # if the variable is of a different plot type
+                        if var['plot_type'] == ptype and var['units'] == units])
+                    # uvars is a sorted list of variables with units and this plot type.
+                    # Might be empty if the variable is of a different plot type
                     if len(uvars) > 0:
                         plot_groups['g{}'.format(grpid)] = {
                             'series': "",
@@ -1022,10 +1009,10 @@ class DataView(View):
             except OSError as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 raise Http404(str(exc))
-            except nc_exceptions.TooMuchDataException as exc:
+            except nc_exc.TooMuchDataException as exc:
                 _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
                 raise Http404(str(exc))
-            except nc_exceptions.NoDataException as exc:
+            except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
                 if debug:
                     _logger.debug(
                         "Dataview Get: %s, %s ,%s: variable=%s, "

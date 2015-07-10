@@ -20,6 +20,7 @@ from django.core import exceptions as dj_exc
 
 import datetime
 
+
 from timezone_field import TimeZoneField
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
@@ -274,6 +275,9 @@ class FileDataset(Dataset):
 
     def get_variables(self):
         """Return the time series variable names of this dataset.
+
+        Raises:
+            exception.NoDataFoundException
         """
         if len(self.variables.values()) > 0:
             res = {}
@@ -302,7 +306,7 @@ class FileDataset(Dataset):
         # series names, formatted from the time of the file.
         # The scan function returns the file previous to start_time.
         # Remove that.
-        return [(f.time.strftime(series_name_fmt),f.time.timestamp()) for f in files \
+        return [(f.time.strftime(series_name_fmt), f.time.timestamp()) for f in files \
                 if f.time >= start_time]
 
     def get_series_names(
@@ -367,11 +371,16 @@ class DBDataset(Dataset):
 
     def get_variables(self):
         """Return the time series variables in this DBDataset.
+
+        Raises:
+            exception.NoDataFoundException
         """
         return self.get_connection().get_variables()
 
     def get_start_time(self):
         """
+        Raises:
+            exception.NoDataFoundException
         """
         return self.get_connection().get_start_time()
 
