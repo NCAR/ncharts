@@ -10,6 +10,9 @@
 
         local_ns.debug_level = 0;
 
+        local_ns.colorAxisRecomputeEvery = 10;
+        local_ns.colorAxisRecomputeCntr = 0;
+
         local_ns.find_x_ge = function(arr,val) {
             var index = null;
             arr.some(function(e1,i) {
@@ -181,7 +184,7 @@
                             }
 
                             if (series.data.length > 0) {
-                                first_time = series.data[0]['x'];
+                                first_time = series.data[0].x;
                             }
 
                             var itimes = $.parseJSON(indata[vname]['time'])
@@ -211,7 +214,7 @@
                                 // var dl = series.data.length; 
                                 for ( ; ix < series.data.length; ix++) {
                                     try {
-                                        if (series.data[ix]['x'] >= tx) break;
+                                        if (series.data[ix].x >= tx) break;
                                     }
                                     catch(err) {
                                         console.log("error ",err," in looping over chart times, ",
@@ -226,14 +229,19 @@
                                 // later time than all in chart, add with possible shift
                                 if (ix == series.data.length) {
                                     var shift = (first_time &&
-                                        (tx > first_time + local_ns.time_length)) ? true : false;
+                                        (tx > first_time + local_ns.time_length));
 
-                                    // With StockChart, saw this exception frequently:
-                                    // "TypeError: Cannot read property 'x' of undefined"
                                     series.addPoint([tx,dx],redraw,shift);
-                                    if (shift) {
+                                    if (shift && series.data.length) {
                                         try {
-                                            first_time = series.data[0]['x'];
+                                            // Even though a point was just added, series.data.length
+                                            // may be 0 here, and you'll get this exception when
+                                            // accessing series.data[0].x:
+                                            // "TypeError: Cannot read property 'x' of undefined"
+                                            // It appears that series.data is cached somehow
+                                            // Add the above check for series.data.length to
+                                            // avoid this error
+                                            first_time = series.data[0].x;
                                         }
                                         catch(err) {
                                             var first_time_str = "null";
@@ -252,7 +260,8 @@
                                     }
                                 }
                                 else {
-                                    var ctx = series.data[ix]['x'];
+                                    var ctx = 0;
+                                    if (ix < series.data.length) ctx = series.data[ix].x;
                                     if (ctx == tx) {    // same time, replace it
                                         series.data[ix].update(dx,redraw);
                                     }
@@ -274,10 +283,10 @@
 
                             var npts = 0
                             while ((l = series.data.length) > 1 &&
-                                series.data[l-1]['x'] >
-                                    series.data[0]['x'] + local_ns.time_length) {
+                                series.data[l-1].x >
+                                    series.data[0].x + local_ns.time_length) {
                                 series.removePoint(0,true);
-                                first_time = series.data[0]['x'];
+                                first_time = series.data[0].x;
                                 npts++;
                             }
                             if (npts && local_ns.debug_level) {
@@ -299,6 +308,23 @@
 
                         // update heatmap plots from ajax data
                         var chart = $( this ).highcharts();
+                        
+                        var extr =  chart.colorAxis[0].getExtremes();
+                        // on the first ajax callback, this seems to be undefined
+                        if (extr.dataMin === undefined) {
+                            var cminval = chart.colorAxis[0].min;
+                            var cmaxval = chart.colorAxis[0].max;
+                        } else {
+                            var cminval = extr.dataMin;
+                            var cmaxval = extr.dataMax;
+                        }
+                        if (local_ns.debug_level) {
+                            console.log("heatmap, colorAxis dataMin=",cminval,
+                                ", dataMax=",cmaxval);
+                        }
+                        var minval = cminval;
+                        var maxval = cmaxval;
+                        var resetColorAxis = false;
 
                         var t0 = new Date();
                         var t1;
@@ -308,7 +334,7 @@
                             // console.log("vname=",vname)
 
                             if (series.data.length > 0) {
-                                first_time = series.data[0]['x'];
+                                first_time = series.data[0].x;
                             }
 
                             if (!(vname in indata)) {
@@ -344,31 +370,50 @@
                                 tx = (itime0 + itimes[idata]) * 1000;
 
                                 for ( ; ix < series.data.length; ix++) {
-                                    if (series.data[ix]['x'] >= tx) break;
+                                    if (series.data[ix].x >= tx) break;
                                 }
 
                                 // later time than all in chart, add with possible shift
                                 if (ix == series.data.length) {
-                                    // shift=true is also slow on a heatmap. Disable it.
-                                    var shift = (false && first_time &&
-                                        (tx > first_time + local_ns.time_length)) ? true : false;
+                                    // shift=true is slow on a heatmap. Disable it.
+                                    var shift = false;
                                     for (var j = 0; j < dim2.length; j++) {
                                         dx = vdata[idata][j];
+                                        if (dx !== null) {
+                                            if (dx > maxval) {
+                                                resetColorAxis = true;
+                                                maxval = dx;
+                                            }
+                                            else if (dx < minval) {
+                                                resetColorAxis = true;
+                                                minval = dx;
+                                            }
+                                        }
                                         // console.log("heatmap addPoint, idata=",idata,
                                         //         ", iv=",iv,", j=",j," length=",series.data.length);
                                         series.addPoint(
                                             [tx,dim2[j],dx], redraw,shift);
                                     }
                                     if (shift || !first_time) {
-                                        first_time = series.data[0]['x'];
+                                        first_time = series.data[0].x;
                                         ix -= dim2.length;
                                     }
                                 }
                                 else {
-                                    var ctx = series.data[ix]['x'];
+                                    var ctx = series.data[ix].x;
                                     if (ctx == tx) {    // same time, replace it
                                         for (var j = 0; j < dim2.length; j++) {
                                             dx = vdata[idata][j];
+                                            if (dx !== null) {
+                                                if (dx > maxval) {
+                                                    resetColorAxis = true;
+                                                    maxval = dx;
+                                                }
+                                                else if (dx < minval) {
+                                                    resetColorAxis = true;
+                                                    minval = dx;
+                                                }
+                                            }
                                             series.data[ix+j].update([tx,dim2[j],dx],redraw);
                                         }
                                     }
@@ -376,13 +421,23 @@
                                         // shift=false, adding in middle
                                         for (var j = 0; j < dim2.length; j++) {
                                             dx = vdata[idata][j];
+                                            if (dx !== null) {
+                                                if (dx > maxval) {
+                                                    resetColorAxis = true;
+                                                    maxval = dx;
+                                                }
+                                                else if (dx < minval) {
+                                                    resetColorAxis = true;
+                                                    minval = dx;
+                                                }
+                                            }
                                             // console.log("heatmap addPoint, idata=",idata,
                                             //         ", iv=",iv,", j=",j," length=",series.data.length);
                                             series.addPoint(
                                                 [tx,dim2[j],dx], redraw,false);
                                         }
                                         if (ctx > tx && ix == 0) {
-                                            first_time = series.data[0]['x'];
+                                            first_time = series.data[0].x;
                                         }
                                     }
                                 }
@@ -395,10 +450,18 @@
                             // remove points
                             var npts = 0;
                             while ((l = series.data.length) > 1 &&
-                                series.data[l-1]['x'] >
-                                    series.data[0]['x'] + local_ns.time_length) {
+                                series.data[l-1].x >
+                                    series.data[0].x + local_ns.time_length) {
+
+                                dx = series.data[0].value;
                                 series.removePoint(0,redraw);
-                                first_time = series.data[0]['x'];
+                                first_time = series.data[0].x;
+                                if (!local_ns.colorAxisRecomputeCntr && dx !== null &&
+                                    (dx == cminval || dx == cmaxval)) {
+                                    // schedule a recompute of the colorAxis
+                                    local_ns.colorAxisRecomputeCntr =
+                                        local_ns.colorAxisRecomputeEvery;
+                                }
                                 npts++;
                             }
                             if (local_ns.debug_level > 1) {
@@ -412,6 +475,36 @@
                                     ", first_time=", local_ns.format_time(first_time),
                                     ", chart.series[",iv,"].data.length=", series.data.length)
                             }
+                        }
+                        if (local_ns.colorAxisRecomputeCntr > 0) {
+                            if (local_ns.debug_level) {
+                                console.log("colorAxisRecomputeCntr=",
+                                        local_ns.colorAxisRecomputeCntr);
+                            }
+                            local_ns.colorAxisRecomputeCntr--;
+                            if (!local_ns.colorAxisRecomputeCntr) {
+                                resetColorAxis = true;
+                                minval = Number.POSITIVE_INFINITY;
+                                maxval = Number.NEGATIVE_INFINITY;
+                                for (ix = 0 ; ix < series.data.length; ix++) {
+                                    dx = series.data[ix].value;
+                                    if (dx !== null) {
+                                        minval = Math.min(minval,dx);
+                                        maxval = Math.max(maxval,dx);
+                                    }
+                                }
+                                if (local_ns.debug_level)
+                                    console.log("new minval=",minval,", maxval=",maxval);
+                            }
+                        }
+
+                        if (resetColorAxis) {
+                            if (local_ns.debug_level)
+                                console.log("resetColorAxis, minval=",minval,", maxval=",maxval);
+                            chart.colorAxis[0].update({
+                                min: minval,
+                                max: maxval,
+                            },true);
                         }
                         chart.redraw();
                         if (local_ns.debug_level > 1) {
@@ -809,6 +902,8 @@
                 var vunits =  $( this ).data("units");
                 var long_names = $( this ).data("long_names");
 
+                local_ns.colorAxisRecomputeCntr = 0;
+
                 // console.log("vnames=",vnames);
                 for (var iv = 0; iv < vnames.length; iv++) {
                     var vname = vnames[iv];
@@ -925,6 +1020,10 @@
                             min: minval,
                             max: maxval,
                             reversed: false,
+                            // maxPadding: 0.2, does seem to have an effect
+                            // minPadding: 0.2,
+                            startOnTick: false,
+                            endOnTick: false,
                             // minColor: '#FFFFFF',
                             // maxColor: Highcharts.getOptions().colors[0]
                         },
