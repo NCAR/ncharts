@@ -116,10 +116,31 @@
             </div>
         </div>
     </nav>
-    <script>
-    $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip();   
-    });
-    </script>
+    <!-- OrgNavFooter Script -->
+    <div align="center">
+      <script>
+	
+      // CUSTOM VARIABLES
+      var contactLink = "mailto:jfable@ucar.edu";     // enter your Webmaster/Feedback link. Include http:// or mailto:
+      var hideOrgNav = false;        // hide the entire OrgNav from view
+      var hideFooter = false;          // hide the entire OrgFooter from view
+      var hideNSF = false;               // hide the NSF disclaimer
+      var footerColor = '#000000';       // hex color of the footer font including the #
+      
+      // DO NOT EDIT BELOW THIS POINT
+      var jsHost = (("https:" == document.location.protocol) ? "https://" : "http://");
+      if(typeof jQuery === "undefined"){
+      document.write("<scr"+"ipt src='"+jsHost+"ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js' type='text/javascript'></scr"+"ipt>");
+      }
+      document.write("<scr"+"ipt src='"+jsHost+"www2.ucar.edu/js/orgnav' type='text/javascript'></scr"+"ipt>");
+      </script>
+      <noscript><iframe frameborder="0" width="100%" src="http://www2.ucar.edu/sites/default/modules/custom/ucar_comm_site/includes/noscript.php"></iframe></noscript>
+      <!-- END OrgNavFooter Script -->
+      <script>
+	$(document).ready(function(){
+	$('[data-toggle="tooltip"]').tooltip();   
+	});
+      </script>
+    </div>
 </body>
 </html>

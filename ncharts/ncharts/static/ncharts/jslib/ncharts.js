@@ -1,3 +1,4 @@
+
 // See gregfranko.com/blog/jquery-best-practices
 //
 // IIFE: Immediately Invoked Function Expression
@@ -331,7 +332,7 @@
                         for (var iv = 0; iv < chart.series.length; iv++ ) {
                             var series = chart.series[iv];
                             var vname = series.name;
-                            // console.log("vname=",vname)
+                            //console.log("vname=",vname)
 
                             if (series.data.length > 0) {
                                 first_time = series.data[0].x;
@@ -340,20 +341,21 @@
                             if (!(vname in indata)) {
                                 continue;
                             }
-                            var itimes = $.parseJSON(indata[vname]['time'])
+
+                            var itimes = $.parseJSON(indata[vname]['time']);
 
                             if (itimes.length == 0) {
                                 continue;
                             }
 
-                            var itime0 = indata[vname]['time0']
-                            var vdata = $.parseJSON(indata[vname]['data'])
-                            var dim2 = $.parseJSON(indata[vname]['dim2'])
+                            var itime0 = indata[vname]['time0'];
+                            var vdata = $.parseJSON(indata[vname]['data']);
+                            var dim2 = $.parseJSON(indata[vname]['dim2']);
 
                             if (local_ns.debug_level > 1) {
                                 t0 = new Date();
                                 console.log("heatmap ",t0,", vname=",vname,", adding ",itimes.length,
-                                        " points, dim2.length=",dim2.length)
+                                            " points, dim2.length=",dim2.length);
                             }
 
                             var ix = 0;
@@ -761,6 +763,7 @@
 
                     vseries['data'] = vdata;
                     vseries['name'] = vname;
+		    vseries['lineWidth'] = 1;
                     /*
                     vseries['tooltip'] = {
                         valuePrefix: long_names[iv] + ':',
@@ -980,7 +983,8 @@
                             },
                         },
                         title: {
-                            text: long_name + '(' + units + ')'
+                            text: long_name + '(' + units + ')',
+			    style: {"color": "black", "fontSize": "20px", "fontWeight": "bold", "text-decoration": "underline"},
                         },
                         xAxis: {
                             type: 'datetime',
@@ -1185,6 +1189,7 @@
                         yAxis: unitIndex,
                         data: vdata,
                         name: vname + '(' + vunit + ')',
+			lineWidth: 1,
                     };
 
                     series.push(vseries);		    
