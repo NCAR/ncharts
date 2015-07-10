@@ -21,7 +21,7 @@ import operator
 
 from functools import reduce as reduce_
 
-from ncharts import exceptions
+from ncharts import exceptions as nc_exc
 from ncharts import fileset as nc_fileset
 
 # __name__ is ncharts.netcdf
@@ -140,7 +140,7 @@ class NetCDFDataset(object):
                 long_name: long_name attribute of the NetCDF variable
                 short_name: short_name attribute of the NetCDF variable
         Raises:
-            FileNotFoundError, PermissionError
+            nc_exc.NoDataFoundException
         """
 
         filepaths = self.get_filepaths(start_time, end_time)
@@ -152,6 +152,9 @@ class NetCDFDataset(object):
         # Read at most MAX_NUM_FILES_TO_PRESCAN, including latest file.
         # Files are scanned in a backwards sequence
         pindex = len(filepaths) - 1
+
+        n_files_read = 0
+
         while pindex >= 0:
             ncpath = filepaths[int(pindex)]
             pindex -= skip
@@ -186,7 +189,7 @@ class NetCDFDataset(object):
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
                     break
-                except IOError as exc:
+                except OSError as exc:
                     _logger.error("%s: %s", ncpath, exc)
                     time.sleep(itry)
                 except RuntimeError as exc:
@@ -196,6 +199,7 @@ class NetCDFDataset(object):
             if not fileok:
                 continue
 
+            n_files_read += 1
             try:
                 if not self.base_time and \
                     "base_time" in ncfile.variables:
@@ -330,6 +334,14 @@ class NetCDFDataset(object):
             finally:
                 ncfile.close()
 
+        if not n_files_read:
+            if start_time == pytz.utc.localize(datetime.min):
+                msg = "No variables found"
+            else:
+                msg = "No variables found between {} and {}".format(
+                    start_time.isoformat(), end_time.isoformat())
+            raise nc_exc.NoDataFoundException(msg)
+
         return self.variables
 
     def resolve_variable_shapes(self, variables, selectdim):
@@ -424,7 +436,8 @@ class NetCDFDataset(object):
             also extended with the times read from the file.
 
         Raises:
-            exceptions.TooMuchDataException
+            TODO: what exceptions can be raised when slicing a netcdf4 variable?
+            nc_exc.TooMuchDataException
         """
 
         debug = False
@@ -537,7 +550,7 @@ class NetCDFDataset(object):
 
             tsize = sys.getsizeof(tvals)
             if tsize > size_limit:
-                raise exceptions.TooMuchDataException(
+                raise nc_exc.TooMuchDataException(
                     "too many time values requested, size={0} MB".\
                             format(tsize/(1000 * 1000)))
 
@@ -715,7 +728,8 @@ class NetCDFDataset(object):
             }
 
         Raises:
-            FileNotFoundError, PermissionError
+            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
 
         """
 
@@ -753,9 +767,8 @@ class NetCDFDataset(object):
                 continue
 
             if debug:
-                _logger.debug("series=%s",str(series))
-                _logger.debug("series_name=%s ,ncpath=%s",
-                    series_name, ncpath)
+                _logger.debug("series=%s", str(series))
+                _logger.debug("series_name=%s ,ncpath=%s", series_name, ncpath)
 
             # the files might be in the process of being moved, deleted, etc
             fileok = False
@@ -764,7 +777,7 @@ class NetCDFDataset(object):
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
                     break
-                except IOError as exc:
+                except OSError as exc:
                     _logger.error("%s: %s", ncpath, exc)
                     time.sleep(itry)
                 except RuntimeError as exc:
@@ -811,7 +824,7 @@ class NetCDFDataset(object):
                         self.variables[vname]["dtype"].itemsize
 
                     if total_size + vsize > size_limit:
-                        raise exceptions.TooMuchDataException(
+                        raise nc_exc.TooMuchDataException(
                             "too much data requested, will exceed {} mbytes".
                             format(size_limit/(1000 * 1000)))
 
@@ -845,7 +858,7 @@ class NetCDFDataset(object):
 
             if not series_name in res_times:
                 if debug:
-                    _logger.debug("len(otimes)=%d",len(otimes))
+                    _logger.debug("len(otimes)=%d", len(otimes))
                 res_times[series_name] = otimes
                 res_data[series_name] = odata
                 res_dim2[series_name] = odim2
@@ -853,10 +866,10 @@ class NetCDFDataset(object):
         ntimes = sum([len(x) for x in res_times.values()])
 
         if ntimes == 0:
-            exc = exceptions.NoDataException(
-                "{}: no data found between {} and {}".
+            exc = nc_exc.NoDataException(
+                "No data found between {} and {}".
                 format(
-                    str(self), start_time.isoformat(),
+                    start_time.isoformat(),
                     end_time.isoformat()))
             # _logger.warning("%s: %s", str(self), repr(exc))
             raise exc
