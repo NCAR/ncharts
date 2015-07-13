@@ -360,8 +360,10 @@ class DBDataset(Dataset):
     def get_connection(self):
         """Return a database connection for this DBDataset.
 
-        Raises: Exception
+        Raises:
+            exception.NoDataFoundException
         """
+
         return raf_database.RAFDatabase(
             database=self.dbname,
             host=self.host,

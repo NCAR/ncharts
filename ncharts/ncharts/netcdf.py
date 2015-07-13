@@ -75,6 +75,8 @@ class NetCDFDataset(object):
     def __init__(self, path):
         """Constructs NetCDFDataset with a path to a filesetFileset.
 
+        Raises:
+            none
         """
 
         self.fileset = nc_fileset.Fileset.get(path)

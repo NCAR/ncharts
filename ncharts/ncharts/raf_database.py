@@ -131,18 +131,22 @@ class RAFDatabase(object):
                 the time-series data to be read.
 
         Raises:
-            psycopg2.Error
+            nc_exc.NoDataFoundException
         """
 
-        self.conn = RAFDatabase.get_connection(
-            database=database, user=user,
-            host=host, port=port, password=password)
-        self.database = database
-        self.user = user
-        self.host = host
-        self.port = port
-        self.password = password
-        self.table = table
+        try:
+            self.conn = RAFDatabase.get_connection(
+                database=database, user=user,
+                host=host, port=port, password=password)
+            self.database = database
+            self.user = user
+            self.host = host
+            self.port = port
+            self.password = password
+            self.table = table
+        except psycopg2.Error as exc:
+            raise nc_exc.NoDataFoundException(
+                "Database not available: {}".format(exc))
 
     def get_variables(self):
         """Fetch pertinent fields from the 'variable_list' table in

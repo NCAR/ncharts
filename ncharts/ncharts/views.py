@@ -921,7 +921,15 @@ class DataView(View):
         if isinstance(dset, nc_models.FileDataset):
             ncdset = dset.get_netcdf_dataset()
         elif isinstance(dset, nc_models.DBDataset):
-            dbcon = dset.get_connection()
+            try:
+                dbcon = dset.get_connection()
+            except nc_exc.NoDataFoundException as exc:
+                _logger.warn(
+                    "%s, %s, %d, database connection failed: %s",
+                    project_name, dataset_name, client_state.id,exc)
+                return redirect(
+                    'ncharts:dataset', project_name=project_name,
+                    dataset_name=dataset_name)
 
         # selected variables
         svars = json.loads(client_state.variables)
