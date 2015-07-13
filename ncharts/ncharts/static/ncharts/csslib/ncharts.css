@@ -29,48 +29,51 @@ div#id_start_time {
     width: 14em;
 }
 
-/* For desktop screen */
-@media screen {
+/* For desktop screen time-series */
+@media only screen and (min-device-width:1224px) {
+    .time-series-chart-wrapper {
+	position: relative;
+	padding-bottom: 25%;
+    }
+}
+
+/* For phones time-series */
+@media only screen and (min-device-width: 320px) and (max-device-width: 736px) {
+    .time-series-chart-wrapper {
+	position: relative;
+	padding-bottom: 50%;
+    }
+}
+
+/* For tablets time-series */
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
     .time-series-chart-wrapper {
 	position: relative;
 	padding-bottom: 40%;
     }
 }
 
-/* For phones */
-@media only screen and (min-device-width: 480px) {
-    .time-series-chart-wrapper {
-	position: relative;
-	padding-bottom: 70%;
-    }
-}
-
-/* For tablets */
-@media only screen and (min-device-width: 768px) {
-    .time-series-chart-wrapper {
-	position: relative;
-	padding-bottom: 50%;
-    }
-}
-
-@media screen {
+/* For desktop screen soundings */
+@media only screen and (min-device-width: 1224px) {
     .sounding-chart-wrapper {
 	position: relative;
 	padding-bottom: 50%;
     }
 }
 
-@media only screen and (min-device-width: 480px) {
+/* For phones screen soundings */
+@media only screen and (min-device-width: 320px) and (max-device-width: 736px) { 
     .sounding-chart-wrapper {
 	position: relative;
-	padding-bottom: 100%;
+	padding-bottom: 80%;
     }
 }
 
-@media only screen and (min-device-width: 768px) {
+/* For tablets screen soundings */
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
     .sounding-chart-wrapper {
 	position: relative;
-	padding-bottom: 70%;
+	padding-bottom: 60%;
     }
 }
 
