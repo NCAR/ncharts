@@ -84,6 +84,9 @@ class RAFDatabase(object):
                 conn = psycopg2.connect(
                     database=database, user=user,
                     host=host, port=port, password=password)
+                conn.set_session(
+                        isolation_level="READ COMMITTED",
+                        readonly=True)
                 RAFDatabase.__cached_connections[hashval] = conn
 
         return conn
