@@ -70,12 +70,11 @@ class RAFDatabase(object):
                 if conn.closed:
                     try:
                         conn.rollback()
-                    except psycopg2.InterfaceError as exc:
+                    except psycopg2.Error as exc:
                         _logger.warn("%s rollback: %s", conn, exc)
                     try:
                         conn.close()
-                    except psycopg2.InterfaceError as exc:
-                        # psycopg2.InterfaceError: connection already closed
+                    except psycopg2.Error as exc:
                         _logger.warn("%s close: %s", conn, exc)
                     del RAFDatabase.__cached_connections[hashval]
                     conn = None
@@ -85,8 +84,8 @@ class RAFDatabase(object):
                     database=database, user=user,
                     host=host, port=port, password=password)
                 conn.set_session(
-                        isolation_level="READ COMMITTED",
-                        readonly=True)
+                    isolation_level="READ COMMITTED",
+                    readonly=True)
                 RAFDatabase.__cached_connections[hashval] = conn
 
         return conn
@@ -106,12 +105,11 @@ class RAFDatabase(object):
                 if conn == cconn:
                     try:
                         conn.rollback()
-                    except psycopg2.InterfaceError as exc:
+                    except psycopg2.Error as exc:
                         _logger.warn("%s rollback: %s", conn, exc)
                     try:
                         conn.close()
-                    except psycopg2.InterfaceError as exc:
-                        # psycopg2.InterfaceError: connection already closed
+                    except psycopg2.Error as exc:
                         _logger.warn("%s close: %s", conn, exc)
                     del RAFDatabase.__cached_connections[hashval]
                     break
@@ -155,25 +153,25 @@ class RAFDatabase(object):
             nc_exc.NoDataFoundException
         """
 
-        with self.conn.cursor() as cur:
-            try:
+        try:
+            with self.conn.cursor() as cur:
                 cur.execute("\
 SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
-            except psycopg2.OperationalError as exc:
-                # psycopg.connections are thread safe
-                RAFDatabase.close_connection(self.conn)
-                raise nc_exc.NoDataFoundException(
-                    "No variables found: {}".format(exc))
+                variables = {}
+                for var in cur:
+                    variables[var[0]] = {
+                        "units": var[1],
+                        "long_name": var[2],
+                        "shape": var[4]
+                        }
 
-            variables = {}
-            for var in cur:
-                variables[var[0]] = {
-                    "units": var[1],
-                    "long_name": var[2],
-                    "shape": var[4]
-                    }
+                return variables
+        except psycopg2.Error as exc:
+            # psycopg.connections are thread safe
+            RAFDatabase.close_connection(self.conn)
+            raise nc_exc.NoDataFoundException(
+                "No variables found: {}".format(exc))
 
-            return variables
 
     def read_times(
             self,
@@ -190,20 +188,20 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
 
         _logger.debug("read_times, table=%s", self.table)
 
-        with self.conn.cursor() as cur:
+        try:
+            with self.conn.cursor() as cur:
             # datetimes in database are returned to python as timezone naive.
-            try:
                 vname = "datetime"
                 cur.execute(
                     "SELECT {} FROM {} WHERE {} >= %s AND {} < %s;"
                     .format(vname, self.table, vname, vname),
                     (start_time, end_time))
-            except psycopg2.OperationalError as exc:
-                RAFDatabase.close_connection(self.conn)
-                raise nc_exc.NoDataFoundException(
-                    "read {}: {}".format(vname, exc))
+                return [pytz.utc.localize(x[0]).timestamp() for x in cur]
+        except psycopg2.Error as exc:
+            RAFDatabase.close_connection(self.conn)
+            raise nc_exc.NoDataFoundException(
+                "read {}: {}".format(vname, exc))
 
-            return [pytz.utc.localize(x[0]).timestamp() for x in cur]
 
     def get_start_time(self):
         """Read first datatime from the database table.
@@ -212,20 +210,19 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
             nc_exc.NoDataFoundException
         """
 
-        with self.conn.cursor() as cur:
+        try:
+            with self.conn.cursor() as cur:
             # datetimes in database are returned to python as timezone naive.
-            try:
                 vname = "datetime"
                 cur.execute(
                     "SELECT {} FROM {} FETCH FIRST 1 ROW ONLY;"
                     .format(vname, self.table))
-            except psycopg2.OperationalError as exc:
-                RAFDatabase.close_connection(self.conn)
-                raise nc_exc.NoDataFoundException(
-                    "read {}: {}".format(vname, exc))
+                start_time = cur.fetchone()[0]
+                return pytz.utc.localize(start_time)
+        except psycopg2.Error as exc:
+            RAFDatabase.close_connection(self.conn)
+            raise nc_exc.NoDataFoundException("read {}: {}".format(vname, exc))
 
-            start_time = cur.fetchone()[0]
-            return pytz.utc.localize(start_time)
 
     def read_time_series(
             self,
@@ -273,80 +270,74 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
             raise nc_exc.TooMuchDataException(
                 "too many time values requested, size={0} MB".\
                 format(total_size/(1000 * 1000)))
+        vdata = {}
+        vdim2 = {}
 
-        with self.conn.cursor() as cur:
-            vdata = {}
-            vdim2 = {}
-            for vname in variables:
-                # _logger.debug("vname=%s",vname)
+        try:
+            with self.conn.cursor() as cur:
+                for vname in variables:
 
-                try:
+                    operation = "read variable_list"
+                    # _logger.debug("vname=%s",vname)
                     cur.execute(
                         "SELECT dims, missing_value from variable_list where name=%s;",
                         (vname,))
-                except psycopg2.OperationalError as exc:
-                    RAFDatabase.close_connection(self.conn)
-                    raise nc_exc.NoDataFoundException(
-                        "read variable_list: {}".format(exc))
+                    vinfo = cur.fetchall()
+                    # _logger.debug("vinfo=%s",vinfo)
+                    dims = vinfo[0][0]
+                    dims[0] = len(times)
+                    missval = vinfo[0][1]
 
-                vinfo = cur.fetchall()
-                # _logger.debug("vinfo=%s",vinfo)
-                dims = vinfo[0][0]
-                dims[0] = len(times)
-                missval = vinfo[0][1]
-
-                if len(dims) > 1:
-                    # In initial CSET data, dims for CUHSAS_RWOOU in variable_list was [1,99]
-                    # Seems that the 99 should have been 100, which is what is returned
-                    # by this:
-                    try:
+                    if len(dims) > 1:
+                        # In initial CSET data, dims for CUHSAS_RWOOU in variable_list was [1,99]
+                        # Seems that the 99 should have been 100, which is what is returned
+                        # by this:
+                        operation = "read dimension of {}".format(vname)
                         cur.execute("\
 SELECT array_upper({},1) FROM {} FETCH FIRST 1 ROW ONLY;\
 ".format(vname, self.table))
-                    except psycopg2.OperationalError as exc:
-                        RAFDatabase.close_connection(self.conn)
-                        raise nc_exc.NoDataFoundException(
-                            "read dimension of {}: {}".format(vname, exc))
 
-                    dimsx = cur.fetchall()[0]
-                    dims[1] = dimsx[0]
-                    _logger.debug("vname=%s, dims=%s, dimsx=%s", vname, dims, dimsx)
+                        dimsx = cur.fetchall()[0]
+                        dims[1] = dimsx[0]
+                        _logger.debug("vname=%s, dims=%s, dimsx=%s", vname, dims, dimsx)
 
-                try:
+                    operation = "read {}".format(vname)
                     cur.execute("\
 SELECT {} FROM {} WHERE datetime >= %s AND datetime < %s;\
 ".format(vname, self.table), (start_time, end_time))
-                except psycopg2.OperationalError as exc:
-                    RAFDatabase.close_connection(self.conn)
-                    raise nc_exc.NoDataFoundException(
-                        "read {}: {}".format(vname, exc))
 
-                cdata = np.ma.masked_values(np.ndarray(
-                    shape=dims, buffer=np.array(
-                        [v for v in cur], dtype=float)), value=missval)
+                    cdata = np.ma.masked_values(np.ndarray(
+                        shape=dims, buffer=np.array(
+                            [v for v in cur], dtype=float)), value=missval)
 
-                if isinstance(cdata, np.ma.core.MaskedArray):
-                    # _logger.debug("is MaskedArray")
-                    cdata = cdata.filled(fill_value=float('nan'))
+                    if isinstance(cdata, np.ma.core.MaskedArray):
+                        # _logger.debug("is MaskedArray")
+                        cdata = cdata.filled(fill_value=float('nan'))
 
-                total_size += sys.getsizeof(cdata)
-                if total_size > size_limit:
-                    raise nc_exc.TooMuchDataException(
-                        "too many values requested, size={0} MB".\
-                        format(total_size/(1000 * 1000)))
-                vdata[vname] = cdata
-                if len(dims) > 1:
-                    vdim2[vname] = {
-                        "data": [i for i in range(dims[1])],
-                        "name": "bin",
-                        "units": ""
+                    total_size += sys.getsizeof(cdata)
+                    if total_size > size_limit:
+                        raise nc_exc.TooMuchDataException(
+                            "too many values requested, size={0} MB".\
+                            format(total_size/(1000 * 1000)))
+                    vdata[vname] = cdata
+                    if len(dims) > 1:
+                        vdim2[vname] = {
+                            "data": [i for i in range(dims[1])],
+                            "name": "bin",
+                            "units": ""
                         }
 
-            return {
-                "time": {"": times},
-                "data": {"": vdata},
-                "dim2": {"": vdim2},
-            }
+                return {
+                    "time": {"": times},
+                    "data": {"": vdata},
+                    "dim2": {"": vdim2},
+                }
+
+        except psycopg2.Error as exc:
+            RAFDatabase.close_connection(self.conn)
+            raise nc_exc.NoDataFoundException(
+                (operation + ": {}").format(exc))
+
 
 def test_func():
     """ """
