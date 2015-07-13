@@ -790,8 +790,8 @@
                     chart: {
                         type: 'line',
                         zoomType: 'xy',
-                        // panning: true,
-                        // panKey: 'shift',
+                        panning: true,
+                        panKey: 'shift',
                         spacingLeft: 20,
                         spacingRight: 20,
                         // marginLeft: 20,
@@ -881,18 +881,11 @@
                         valueDecimals: 6,
                         */
                     },
-                /*    navigator: {
-                        height: 25,
-                        margin: 5,
-                        enabled: true,
-                        // adaptToUpdatedData: true,
-
-                    },*/
-		    navigator: nav,
+		    /*navigator: nav,
                     title: {
                         text: ptitle,
 			style: {"color": "black", "fontSize": "20px", "fontWeight": "bold", "text-decoration": "underline"},
-                    }
+                    }*/
                 });
             });
 
@@ -955,8 +948,8 @@
                             marginTop: 40,
                             marginBottom: 60,
                             zoomType: 'xy',
-                            // panning: true,
-                            // panKey: 'shift',
+                            panning: true,
+                            panKey: 'shift',
                             plotOptions: {
                                 series: {
                                     dataGrouping: {
@@ -1201,6 +1194,8 @@
 			inverted: true,
 			type: 'line',
                         zoomType: 'xy',
+			//panning: true,
+                        //panKey: 'shift',
 		    },
 		    xAxis: {
 			reversed: false,
