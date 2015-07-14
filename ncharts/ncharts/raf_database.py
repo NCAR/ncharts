@@ -192,10 +192,11 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
 
         _logger.debug("read_times, table=%s", self.table)
 
+        vname = "datetime"
+
         try:
             with self.conn.cursor() as cur:
             # datetimes in database are returned to python as timezone naive.
-                vname = "datetime"
                 cur.execute(
                     "SELECT {} FROM {} WHERE {} >= %s AND {} < %s;"
                     .format(vname, self.table, vname, vname),
@@ -214,10 +215,11 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
             nc_exc.NoDataFoundException
         """
 
+        vname = "datetime"
+
         try:
             with self.conn.cursor() as cur:
             # datetimes in database are returned to python as timezone naive.
-                vname = "datetime"
                 cur.execute(
                     "SELECT {} FROM {} FETCH FIRST 1 ROW ONLY;"
                     .format(vname, self.table))
