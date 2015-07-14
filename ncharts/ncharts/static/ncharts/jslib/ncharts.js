@@ -673,7 +673,16 @@
 
             var first_time = null;
 
-            $("div[id^='time-series']").each(function(index) {
+            var $plots = $("div[id^='time-series']");
+            var nplots = $plots.length;
+
+            var isMobile = false; 
+
+            if ('ontouchstart' in window) {
+                isMobile = true;
+            }
+		
+            $plots.each(function(plotindex) {
 
                 // console.log("time-series");
 
@@ -712,18 +721,14 @@
 		var nav = {
                     height: 25,
                     margin: 5,
-                    enabled: true,
+                    enabled: false,
                 };
 
-		var isMobile = false; 
-
-		if ('ontouchstart' in window) {
-		    isMobile = true;
-		}
-		
+                /*
 		if (isMobile) {
-		    nav = {};
+		    nav.enabled = false;
 		}
+                */
 
                 /*
                  * array of objects, one for each input variable,
@@ -799,6 +804,9 @@
                         // marginTop: 40,
                         // marginBottom: 80,
                     },
+                    credits: {  // highcharts.com link
+                        enabled: (plotindex == nplots-1),
+                    },
                     plotOptions: {
                         series: {
                             dataGrouping: {
@@ -850,6 +858,7 @@
                     legend: {
                         enabled: true,
                         margin: 0,
+                        // floating: true,
                     },
                     rangeSelector: {
                         enabled: false,
@@ -881,15 +890,18 @@
                         valueDecimals: 6,
                         */
                     },
-		    /*navigator: nav,
+		    navigator: nav,
                     title: {
                         text: ptitle,
-			style: {"color": "black", "fontSize": "20px", "fontWeight": "bold", "text-decoration": "underline"},
-                    }*/
+			// style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
+			style: {"color": "#333333", "fontSize": "14px"},
+                    }
                 });
             });
 
-            $("div[id^='heatmap']").each(function(index) {
+            $plots = $("div[id^='heatmap']");
+            nplots = $plots.length;
+            $plots.each(function(plotindex) {
 
                 // one plot per variable, vnames will have length of 1
 
@@ -975,9 +987,13 @@
                                 }
                             },
                         },
+                        credits: {  // highcharts.com link
+                            enabled: (plotindex == nplots-1),
+                        },
                         title: {
                             text: long_name + '(' + units + ')',
-			    style: {"color": "black", "fontSize": "20px", "fontWeight": "bold", "text-decoration": "underline"},
+			    // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
+                            style: {"color": "#333333", "fontSize": "14px"},
                         },
                         xAxis: {
                             type: 'datetime',
@@ -1052,7 +1068,9 @@
                 }
             });
 
-            $("div[id^='sounding-profile']").each(function(index) {
+            $plots = $("div[id^='sounding-profile']");
+            nplots = $plots.length;
+            $plots.each(function(plotindex) {
 
                 // track_real_time not supported (yet) for soundings
                 local_ns.track_real_time = false;
@@ -1158,7 +1176,7 @@
                         var yaxis = {
                             title: {
                                 text: vunit,
-                                style: {"color": "black", "fontSize": "20px"},
+                                // style: {"color": "black", "fontSize": "14px"},
                                 margin: 0
                             },
                             lineWidth: 1,
@@ -1197,13 +1215,16 @@
 			//panning: true,
                         //panKey: 'shift',
 		    },
+                    credits: {  // highcharts.com link
+                        enabled: (plotindex == nplots-1),
+                    },
 		    xAxis: {
 			reversed: false,
                         startOnTick: false,
 			endOnTick: false,
                         title: {
                             text: "Altitude (m)",
-			    style: {"color": "black", "fontSize": "20px"},
+			    // style: {"color": "black", "fontSize": "14px"},
                         },
                         gridLineWidth: 1,
                     },
@@ -1222,7 +1243,8 @@
                     title: {
 			margin: 10,
                         text: ptitle,
-			style: {"color": "black", "fontSize": "25px", "fontWeight": "bold", "text-decoration": "underline"},
+			// style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
+			style: {"color": "#333333", "fontSize": "14px"},
                     },
                     tooltip: {
                         shared: true,       // show all points in the tooltip

@@ -149,10 +149,11 @@
 
     {% for group,val in plot_groups.items %}
 
+        <hr>
         {% if val.plot_type == 'sounding-profile' %}
-            <div class="sounding-chart-wrapper">
+        <div class="sounding-chart-wrapper">
         {% else %}
-            <div class="time-series-chart-wrapper">
+        <div class="time-series-chart-wrapper">
         {% endif %}
           <div class="chart-inner">
             <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
