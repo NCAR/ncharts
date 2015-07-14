@@ -721,14 +721,12 @@
 		var nav = {
                     height: 25,
                     margin: 5,
-                    enabled: false,
+                    enabled: true,
                 };
 
-                /*
 		if (isMobile) {
 		    nav.enabled = false;
 		}
-                */
 
                 /*
                  * array of objects, one for each input variable,
