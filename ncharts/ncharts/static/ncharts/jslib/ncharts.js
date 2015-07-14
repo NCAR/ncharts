@@ -797,10 +797,10 @@
                         panKey: 'shift',
                         spacingLeft: 20,
                         spacingRight: 20,
-                        // marginLeft: 20,
-                        // marginRight: 20,
-                        // marginTop: 40,
-                        // marginBottom: 80,
+			marginLeft: 60,
+			marginRight: 0,
+			marginTop: 30,
+			spacing: [0, 0, 0, 0],
                     },
                     credits: {  // highcharts.com link
                         enabled: (plotindex == nplots-1),
@@ -960,6 +960,7 @@
                             zoomType: 'xy',
                             panning: true,
                             panKey: 'shift',
+			    spacing: [0, 0, 0, 0],
                             plotOptions: {
                                 series: {
                                     dataGrouping: {
@@ -1082,6 +1083,7 @@
                 }
 
 		var yvar =  sounding_yvar;
+		var yvar_unit = vunits[vnames.indexOf(yvar)];
 
 		var ptitle = "";
 
@@ -1197,7 +1199,7 @@
                     var vseries = {
                         yAxis: unitIndex,
                         data: vdata,
-                        name: vname + '(' + vunit + ')',
+                        name: vname + ' (' + vunit + ')',
 			lineWidth: 1,
                     };
 
@@ -1210,8 +1212,8 @@
 			inverted: true,
 			type: 'line',
                         zoomType: 'xy',
-			//panning: true,
-                        //panKey: 'shift',
+			marginRight: 5,
+			spacing: [0, 0, 0, 0],
 		    },
                     credits: {  // highcharts.com link
                         enabled: (plotindex == nplots-1),
@@ -1221,7 +1223,7 @@
                         startOnTick: false,
 			endOnTick: false,
                         title: {
-                            text: "Altitude (m)",
+                            text: yvar + ' (' + yvar_unit + ')',
 			    // style: {"color": "black", "fontSize": "14px"},
                         },
                         gridLineWidth: 1,
