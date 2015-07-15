@@ -14,9 +14,11 @@
             </div>
             <div class="panel-body">
             {% if datasets %}
+	    <ul class="list-inline">
                 {% for dataset in datasets %}
-                <a class="col-md-2" href="{% url 'ncharts:dataset' project.name dataset.name %}" data-toggle="tooltip" title="{{ dataset.long_name }}">{{ dataset.name }}</a>
+                <li><a href="{% url 'ncharts:dataset' project.name dataset.name %}" data-toggle="tooltip" title="{{ dataset.long_name }}">{{ dataset.name }}</a></li>
                 {% endfor %}
+	    </ul>
             {% else %}
                 <p>No datasets for {{ project.name }}.</p>
             {% endif %}
@@ -33,9 +35,11 @@
             </div>
             <div class="panel-body">
             {% if platforms %}
+	    <ul class="list-inline">
                 {% for platform in platforms %}
-                <a class="col-md-2" href="{% url 'ncharts:platformProject' platform.name project.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a>
+                <li><a class="col-md-2" href="{% url 'ncharts:platformProject' platform.name project.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a></li>
                 {% endfor %}
+	    </ul>
             {% else %}
                 <p>No platforms for {{ project.name }}.</p>
             {% endif %}
