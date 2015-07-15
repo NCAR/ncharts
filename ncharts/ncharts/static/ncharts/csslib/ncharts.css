@@ -35,6 +35,10 @@ div#id_start_time {
 	position: relative;
 	padding-bottom: 30%;
     }
+    .sounding-chart-wrapper {
+	position: relative;
+	padding-bottom: 50%;
+    }
 }
 
 /* For phones time-series */
@@ -42,6 +46,10 @@ div#id_start_time {
     .time-series-chart-wrapper {
 	position: relative;
 	padding-bottom: 50%;
+    }
+    .sounding-chart-wrapper {
+	position: relative;
+	padding-bottom: 80%;
     }
 }
 
@@ -51,26 +59,6 @@ div#id_start_time {
 	position: relative;
 	padding-bottom: 40%;
     }
-}
-
-/* For desktop screen soundings */
-@media only screen and (min-device-width: 1224px) {
-    .sounding-chart-wrapper {
-	position: relative;
-	padding-bottom: 50%;
-    }
-}
-
-/* For phones screen soundings */
-@media only screen and (min-device-width: 320px) and (max-device-width: 736px) { 
-    .sounding-chart-wrapper {
-	position: relative;
-	padding-bottom: 80%;
-    }
-}
-
-/* For tablets screen soundings */
-@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
     .sounding-chart-wrapper {
 	position: relative;
 	padding-bottom: 60%;
