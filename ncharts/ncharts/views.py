@@ -478,7 +478,7 @@ class DatasetView(View):
 
         except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
             _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
-            form.no_data("No variables found in {): {} ".format(str(dset), exc))
+            form.no_data("No variables found in {}: {} ".format(str(dset), exc))
 
         return render(
             request, self.template_name,
@@ -926,7 +926,7 @@ class DataView(View):
             except nc_exc.NoDataFoundException as exc:
                 _logger.warn(
                     "%s, %s, %d, database connection failed: %s",
-                    project_name, dataset_name, client_state.id,exc)
+                    project_name, dataset_name, client_state.id, exc)
                 return redirect(
                     'ncharts:dataset', project_name=project_name,
                     dataset_name=dataset_name)
@@ -988,7 +988,7 @@ class DataView(View):
                                 time_last_ok, tz=timezone).isoformat(),
                             stime.isoformat(), etime.isoformat())
                 except IndexError:
-                    # all data nan. Only send those after time_last
+                    # All data nan. Only send those after time_last.
                     if debug:
                         _logger.debug(
                             "Dataview Get, %s, %s: variable=%s, all data nan, " \
@@ -1020,7 +1020,8 @@ class DataView(View):
             except nc_exc.TooMuchDataException as exc:
                 _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
                 raise Http404(str(exc))
-            except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
+            except (nc_exc.NoDataException, nc_exc.NoDataFoundException, KeyError) as exc:
+                # KeyError: variable not found in data
                 if debug:
                     _logger.debug(
                         "Dataview Get: %s, %s ,%s: variable=%s, "
