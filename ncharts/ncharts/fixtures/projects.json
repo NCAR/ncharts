@@ -10,7 +10,8 @@
 },
 {
     "fields": {
-        "timezones": ["US/Mountain", "UTC"]
+        "timezones": ["US/Mountain", "UTC"],
+	"long_name": "NCAR Weather Station Plots"
     }, 
     "model": "ncharts.project", 
     "pk": "Weather"

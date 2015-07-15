@@ -37,7 +37,7 @@
             {% if platforms %}
 	    <ul class="list-inline">
                 {% for platform in platforms %}
-                <li><a class="col-md-2" href="{% url 'ncharts:platformProject' platform.name project.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a></li>
+                <li><a href="{% url 'ncharts:platformProject' platform.name project.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a></li>
                 {% endfor %}
 	    </ul>
             {% else %}
