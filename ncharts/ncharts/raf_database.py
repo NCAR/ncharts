@@ -190,7 +190,7 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
         start_time = start_time.replace(tzinfo=None)
         end_time = end_time.replace(tzinfo=None)
 
-        _logger.debug("read_times, table=%s", self.table)
+        # _logger.debug("read_times, table=%s", self.table)
 
         vname = "datetime"
 
@@ -269,7 +269,7 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
         end_time = end_time.replace(tzinfo=None)
 
         times = self.read_times(start_time=start_time, end_time=end_time)
-        _logger.debug("read_times, len=%d", len(times))
+        # _logger.debug("read_times, len=%d", len(times))
 
         total_size += sys.getsizeof(times)
         if total_size > size_limit:
@@ -305,7 +305,7 @@ SELECT array_upper({},1) FROM {} FETCH FIRST 1 ROW ONLY;\
 
                         dimsx = cur.fetchall()[0]
                         dims[1] = dimsx[0]
-                        _logger.debug("vname=%s, dims=%s, dimsx=%s", vname, dims, dimsx)
+                        # _logger.debug("vname=%s, dims=%s, dimsx=%s", vname, dims, dimsx)
 
                     operation = "read {}".format(vname)
                     cur.execute("\
