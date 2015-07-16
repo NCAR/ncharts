@@ -58,15 +58,15 @@
                         <div class="input-group">
                             {% if form.soundings|length < 10 %}
                             <label for="soundings_all">
-                                <input id="soundings_all" type="checkbox" value="set all"/>set all</label>&nbsp;
+                                <input id="soundings_all" type="checkbox" value="set all"/>set all&nbsp;&nbsp;</label>
                             {% endif %}
                             <label for="soundings_clear">
-                                <input id="soundings_clear" type="checkbox" value="clear all"/>clear all</label>&nbsp;
+                                <input id="soundings_clear" type="checkbox" value="clear all"/>clear all&nbsp;&nbsp;</label>
                         </div>
                         <div id="sounding-checkbox">
                         {% for sndg in form.soundings %}
                             <label for="{{ sndg.id_for_label }}">
-                                {{ sndg.tag }}{{ sndg.choice_label }}</label>&nbsp;
+                                {{ sndg.tag }}{{ sndg.choice_label }}&nbsp;&nbsp;</label>
                         {% endfor %}
                         </div>
                     </div>
@@ -82,16 +82,16 @@
                         <div class="input-group">
                             {% if form.variables|length < 20%}
                             <label for="id_variables_all">
-                                <input id="id_variables_all" type="checkbox" value="set all"/>set all</label>&nbsp;
+                                <input id="id_variables_all" type="checkbox" value="set all"/>set all&nbsp;&nbsp;</label>
                             {% endif %}
                             <label for="id_variables_clear">
-                                <input id="id_variables_clear" type="checkbox" value="clear all"/>clear all</label>&nbsp;
+                                <input id="id_variables_clear" type="checkbox" value="clear all"/>clear all&nbsp;&nbsp;</label>
                         </div>
                         <div id="variable-checkbox">
                         {% for var in form.variables %}
                             <label for="{{ var.id_for_label }}" data-toggle="tooltip"
                                 title="{{ variables|get_long_name:var.choice_label }}">
-                                {{ var.tag }}{{ var.choice_label }}</label>&nbsp;
+                                {{ var.tag }}{{ var.choice_label }}&nbsp;&nbsp;</label>
                         {% endfor %}
                         </div>
                     </div>

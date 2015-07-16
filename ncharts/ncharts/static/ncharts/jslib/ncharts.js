@@ -91,8 +91,8 @@
 			    var $label = $("<label>");
                             $label.append($cb);
                             $label.append(sname);
+			    $label.append('&nbsp;&nbsp;');
 			    $scb.append($label);
-			    $scb.append('&nbsp;&nbsp;');
                             icb++;
 			}
 		    }
