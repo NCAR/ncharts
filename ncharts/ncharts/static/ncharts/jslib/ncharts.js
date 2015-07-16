@@ -73,7 +73,8 @@
                             checked_list.push($(this).attr("value"));
                         }
                     });
-		    $("#sounding-checkbox").empty();
+                    var $scb = $("#sounding-checkbox");
+                    $scb.empty();
 		    
                     // console.log("checked_list=",checked_list);
                     var icb = 0;
@@ -83,13 +84,15 @@
                         var checked = checked_list.indexOf(sname) > -1;
                         // console.log("sname=",sname,", checked=",checked);
 			if (stime >= start_time && stime < start_time + local_ns.time_length) {
-			    $("<input data-mini='true' name='soundings' type='checkbox' />")
+                            var $cb = $("<input name='soundings' type='checkbox'/>")
 				.attr("id", "id_soundings_" + icb)
 				.attr("value", sname)
-				.prop("checked", checked)
-				.appendTo("#sounding-checkbox");
-			    var label = $("<label>").text(sname).attr({for:"id_soundings_" + icb});
-			    $("#sounding-checkbox").append(label);
+				.prop("checked", checked);
+			    var $label = $("<label>");
+                            $label.append(sname);
+                            $label.append($cb);
+			    $label.append('&nbsp;&nbsp;');
+			    $scb.append($label);
                             icb++;
 			}
 		    }

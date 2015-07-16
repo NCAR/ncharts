@@ -12,7 +12,7 @@ file LICENSE in this package.
 
 from django import forms
 
-from datetimewidget import widgets
+from datetimewidget import widgets as dt_widgets
 
 import pytz
 
@@ -145,7 +145,9 @@ class DataSelectionForm(forms.Form):
     variables = forms.MultipleChoiceField(
         label='Variables:',
         required=True, widget=forms.CheckboxSelectMultiple(
-            attrs={'data-mini': 'true'}))
+            attrs={
+                # 'data-mini': 'true'
+            }))
 
     timezone = forms.TypedChoiceField(
         required=True,
@@ -155,7 +157,7 @@ class DataSelectionForm(forms.Form):
     # pickerPosition: bottom-right, bottom-left
     #       popup calendar box is to lower left or right of textbox & icon
     start_time = forms.DateTimeField(
-        widget=widgets.DateTimeWidget(
+        widget=dt_widgets.DateTimeWidget(
             bootstrap_version=3,
             options={
                 'format': 'yyyy-mm-dd hh:ii',
@@ -180,7 +182,9 @@ class DataSelectionForm(forms.Form):
     soundings = forms.MultipleChoiceField(
         label='Soundings',
         required=False, widget=forms.CheckboxSelectMultiple(
-            attrs={'data-mini': 'true'}))
+            attrs={
+                # 'data-mini': 'true'
+            }))
 
     # Variable to plot on Y axis in sounding plot. Only
     # required for a sounding

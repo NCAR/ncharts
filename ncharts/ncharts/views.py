@@ -381,6 +381,7 @@ class DatasetView(View):
 
                 client_state.start_time = stime
                 client_state.time_length = delta.total_seconds()
+                client_state.track_real_time = False
                 client_state.save()
 
         # variables selected previously by user
@@ -423,9 +424,14 @@ class DatasetView(View):
 
         # when sending times to datetimepicker, make them naive,
         # with values set as approproate for the dataset timezone
-        start_time = datetime.datetime.fromtimestamp(
-            client_state.start_time.timestamp(),
-            tz=timezone.tz).replace(tzinfo=None)
+        if client_state.track_real_time:
+            start_time = datetime.datetime.now(timezone.tz) - \
+                datetime.timedelta(seconds=client_state.time_length)
+        else:
+            start_time = datetime.datetime.fromtimestamp(
+                client_state.start_time.timestamp(), tz=timezone.tz)
+
+        start_time = start_time.replace(tzinfo=None)
 
         if debug:
             _logger.debug(
@@ -485,6 +491,7 @@ class DatasetView(View):
             {
                 'form': form,
                 'dataset': dset,
+                'variables': dsetvars,
                 'soundings': mark_safe(json.dumps(soundings))
             })
 
@@ -572,9 +579,10 @@ class DatasetView(View):
             elif request.POST['submit'] == 'page-forward':
                 stime = stime + delt
 
-            postx = request.POST.copy()
-            postx['start_time'] = stime.strftime("%Y-%m-%d %H:%M")
-            form = nc_forms.DataSelectionForm(postx, dataset=dset)
+            post = request.POST.copy()
+            post['start_time'] = stime.strftime("%Y-%m-%d %H:%M")
+            post['track_real_time'] = False
+            form = nc_forms.DataSelectionForm(post, dataset=dset)
         else:
             form = nc_forms.DataSelectionForm(request.POST, dataset=dset)
 
@@ -609,6 +617,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'variables': dsetvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -641,6 +650,18 @@ class DatasetView(View):
                 dbcon = dset.get_connection()
                 dsvars = dbcon.get_variables()
 
+            if dset.dset_type == "sounding":
+                # set sounding choices for selected time period
+                # soundings between the start and end time
+                s_choices = dset.get_series_names(
+                    series_name_fmt=SOUNDING_NAME_FMT,
+                    start_time=client_state.start_time,
+                    end_time=client_state.start_time + \
+                        datetime.timedelta(seconds=client_state.time_length))
+
+                s_choices = [(s, s) for s in s_choices]
+                form.fields['soundings'].choices = s_choices
+
         except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
             _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
             form.no_data(repr(exc))
@@ -649,6 +670,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'variables': dsvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -665,6 +687,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'variables': dsvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -679,6 +702,7 @@ class DatasetView(View):
                     {
                         'form': form,
                         'dataset': dset,
+                        'variables': dsvars,
                         'soundings': mark_safe(json.dumps(soundings))
                     })
 
@@ -697,6 +721,7 @@ class DatasetView(View):
                     {
                         'form': form,
                         'dataset': dset,
+                        'variables': dsvars,
                         'soundings': mark_safe(json.dumps(soundings))
                     })
             series_name_fmt = SOUNDING_NAME_FMT
@@ -731,6 +756,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'variables': dsvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -742,6 +768,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'variables': dsvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -753,6 +780,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'variables': dsvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -888,6 +916,7 @@ class DatasetView(View):
             request, self.template_name, {
                 'form': form,
                 'dataset': dset,
+                'variables': dsvars,
                 'plot_groups': plot_groups,
                 'time0': mark_safe(time0),
                 'time': mark_safe(time),

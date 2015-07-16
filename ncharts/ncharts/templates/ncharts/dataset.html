@@ -1,5 +1,6 @@
 {% extends "ncharts/base.html" %}
 
+{% load filters %}
 {% block head %}
 {{ form.media }}
 {% endblock %}
@@ -29,11 +30,11 @@
                     <div class="panel panel-body">
                         <strong>{{ form.start_time.errors }} {{ form.time_length.errors }} {{ form.time_length_units.errors }}</strong>
                         <div class="col-md-3">
-                            <span class="label label-default">Start:</span>
+                            <span class="label label-default">Choose Start Time:</span>
                             {{ form.start_time }}
                         </div>
                         <div class="col-md-3">
-                            <span class="label label-default">Track Real Time:</span>
+                            <span class="label label-default">Or Track Real Time:</span>
                             {{ form.track_real_time }}
                         </div>
                         <div class="col-md-3">
@@ -56,15 +57,13 @@
                     <div class="panel panel-body">
                         <div class="input-group">
                             {% if form.soundings|length < 10 %}
-                            <label for="soundings_all">
-                                <input data-mini="true" id="soundings_all" type="checkbox" value="set all"/>set all</label>
+                            <label>set all<input id="soundings_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
                             {% endif %}
-                            <label for="soundings_clear">
-                                <input data-mini="true" id="soundings_clear" type="checkbox" value="clear all"/>clear all</label>
+                            <label>clear all<input id="soundings_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                         </div>
                         <div id="sounding-checkbox">
                         {% for sndg in form.soundings %}
-                            {{ sndg }}
+                            <label>{{ sndg.choice_label }}{{ sndg.tag }}&nbsp;&nbsp;</label>
                         {% endfor %}
                         </div>
                     </div>
@@ -79,15 +78,15 @@
                     <div class="panel panel-body">
                         <div class="input-group">
                             {% if form.variables|length < 20%}
-                            <label for="id_variables_all">
-                                <input data-mini="true" id="id_variables_all" type="checkbox" value="set all"/>set all</label>
+                            <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
                             {% endif %}
-                            <label for="id_variables_clear">
-                                <input data-mini="true" id="id_variables_clear" type="checkbox" value="clear all"/>clear all</label>
+                            <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                         </div>
                         <div id="variable-checkbox">
                         {% for var in form.variables %}
-                            {{ var }}
+                            <label data-toggle="tooltip"
+                                title="{{ variables|get_long_name:var.choice_label }}">
+                                {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label>
                         {% endfor %}
                         </div>
                     </div>
