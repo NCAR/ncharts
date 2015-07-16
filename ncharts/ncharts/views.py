@@ -381,6 +381,7 @@ class DatasetView(View):
 
                 client_state.start_time = stime
                 client_state.time_length = delta.total_seconds()
+                client_state.track_real_time = False
                 client_state.save()
 
         # variables selected previously by user
@@ -423,9 +424,14 @@ class DatasetView(View):
 
         # when sending times to datetimepicker, make them naive,
         # with values set as approproate for the dataset timezone
-        start_time = datetime.datetime.fromtimestamp(
-            client_state.start_time.timestamp(),
-            tz=timezone.tz).replace(tzinfo=None)
+        if client_state.track_real_time:
+            start_time = datetime.datetime.now(timezone.tz) - \
+                datetime.timedelta(seconds=client_state.time_length)
+        else:
+            start_time = datetime.datetime.fromtimestamp(
+                client_state.start_time.timestamp(), tz=timezone.tz)
+
+        start_time = start_time.replace(tzinfo=None)
 
         if debug:
             _logger.debug(
