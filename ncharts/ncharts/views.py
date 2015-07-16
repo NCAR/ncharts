@@ -579,9 +579,10 @@ class DatasetView(View):
             elif request.POST['submit'] == 'page-forward':
                 stime = stime + delt
 
-            postx = request.POST.copy()
-            postx['start_time'] = stime.strftime("%Y-%m-%d %H:%M")
-            form = nc_forms.DataSelectionForm(postx, dataset=dset)
+            post = request.POST.copy()
+            post['start_time'] = stime.strftime("%Y-%m-%d %H:%M")
+            post['track_real_time'] = False
+            form = nc_forms.DataSelectionForm(post, dataset=dset)
         else:
             form = nc_forms.DataSelectionForm(request.POST, dataset=dset)
 
