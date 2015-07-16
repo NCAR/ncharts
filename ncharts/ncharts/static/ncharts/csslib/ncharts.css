@@ -91,6 +91,10 @@ div#id_start_time {
     width: 100%;
     position: relative;
 }
+   
+.list-inline li {
+   width: 300px;
+}
 
 /*
 .date {

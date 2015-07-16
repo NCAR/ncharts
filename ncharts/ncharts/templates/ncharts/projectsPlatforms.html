@@ -1,4 +1,3 @@
-
 {% extends "ncharts/base.html" %}
 
 {% block title %}NCharts Home{% endblock %}
@@ -15,9 +14,11 @@
             </div>
             <div class="panel-body">
             {% if projects %}
+	    <ul class="list-inline">
                 {% for project in projects %}
-                    <a class="col-md-2" href="{% url 'ncharts:project' project.name %}" data-toggle="tooltip" title="{{ project.long_name }}">{{ project.name }}</a>
+                   <li><a href="{% url 'ncharts:project' project.name %}" data-toggle="tooltip" title="{{ project.long_name }}">{{ project.name }}</a></li>   
                 {% endfor %}
+	    </ul>
             {% else %}
                 <p>No projects are available.</p>
             {% endif %}
@@ -34,9 +35,11 @@
             </div>
             <div class="panel-body">
             {% if platforms %}
+	    <ul class="list-inline">
                 {% for platform in platforms %}
-                    <a class="col-md-2" href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a>
+                    <li><a href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a></li>
                 {% endfor %}
+	    </ul>
             {% else %}
                 <p>No platforms are available.</p>
             {% endif %}

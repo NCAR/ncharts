@@ -12,9 +12,11 @@
             <div class="panel-heading">Available Platforms</div>
             <div class="panel-body">
                 {% if platforms %}
+		<ul class="list-inline">
                     {% for platform in platforms %}
-                        <a class="col-md-2" href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a>
+                        <li><a href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a></li>
                     {% endfor %}
+		</ul>
                 {% else %}
                     <p>No platforms are available.</p>
                 {% endif %}
