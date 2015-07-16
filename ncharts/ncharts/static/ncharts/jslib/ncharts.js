@@ -89,8 +89,8 @@
 				.attr("value", sname)
 				.prop("checked", checked);
 			    var $label = $("<label>");
-                            $label.append($cb);
                             $label.append(sname);
+                            $label.append($cb);
 			    $label.append('&nbsp;&nbsp;');
 			    $scb.append($label);
                             icb++;
