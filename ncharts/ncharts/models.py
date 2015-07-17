@@ -160,6 +160,16 @@ class Dataset(models.Model):
         max_length=256,
         help_text='More detailed description of a dataset')
 
+    url = models.URLField(
+        blank=True,
+        max_length=200,
+        help_text='The URL that specifies the complete project dataset')     
+
+    status = models.CharField(
+        blank=True,
+        max_length=256,
+        help_text='Current status of the project dataset')
+                                                                     
     # This adds a dataset_set attribute to Project
     project = models.ForeignKey(
         Project,

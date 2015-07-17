@@ -23,7 +23,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "flab-5min", 
         "long_name": "NCAR Foothills Lab Weather Station", 
-        "project": "Weather"
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=fl",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 1
@@ -60,7 +62,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "nwsc-5min", 
         "long_name": "NWSC Weather Station", 
-        "project": "Weather"
+        "project": "Weather",
+	"url": "https://www.eol.ucar.edu/cgi-bin/weather.cgi?site=nwsc",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 2
@@ -97,7 +101,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "mlab-5min", 
         "long_name": "NCAR Mesa Lab Weather Station", 
-        "project": "Weather"
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=ml",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 3
@@ -134,7 +140,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "nsf-5min", 
         "long_name": "NSF Weather Station", 
-        "project": "Weather"
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=nsf&fields=tdry&fields=rh&fields=cpres0&fields=wspd&fields=wdir&fields=raina&site=ml&units=metric&period=5-minute",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 4
@@ -171,7 +179,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "raf-5min", 
         "long_name": "NCAR RAF Weather Station", 
-        "project": "Weather"
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=raf&fields=tdry&fields=rh&fields=cpres0&fields=wspd&fields=wdir&fields=raina&site=nsf&units=metric&period=5-minute",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 5
@@ -208,7 +218,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "fireside-5min", 
         "long_name": "Foothills Elementary Weather Station", 
-        "project": "Weather"
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=fireside&fields=tdry&fields=rh&fields=cpres0&fields=wspd&fields=wdir&fields=raina&site=raf&units=metric&period=5-minute",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 6

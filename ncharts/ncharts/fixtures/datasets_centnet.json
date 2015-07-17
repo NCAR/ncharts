@@ -8,7 +8,9 @@
         "start_time": "2015-06-23T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "trh-test",
-        "long_name": "TRH Test"
+        "long_name": "TRH Test",
+	"url": "https://www.eol.ucar.edu/observing_facilities/centnet",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 11
