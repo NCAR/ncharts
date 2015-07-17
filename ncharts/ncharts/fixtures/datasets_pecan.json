@@ -11,7 +11,9 @@
         "name": "FP2Soundings", 
         "long_name": "FP2 (Greensburg) Soundings, Howard University", 
         "project": "PECAN",
-        "dset_type": "sounding"
+        "dset_type": "sounding",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 16
@@ -35,7 +37,9 @@
         "location": "Ellis Kansas", 
         "name": "FP3Surface", 
         "long_name": "FP3 (Ellis) Surface, NCAR ISS1", 
-        "project": "PECAN"
+        "project": "PECAN",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 17
@@ -60,7 +64,9 @@
         "name": "FP3Soundings", 
         "long_name": "FP3 (Ellis) Soundings, Millersville University", 
         "project": "PECAN",
-        "dset_type": "sounding"
+        "dset_type": "sounding",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 18
@@ -84,7 +90,9 @@
         "location": "Ellis Kansas", 
         "name": "FP3Winds5m", 
         "long_name": "FP3 (Ellis) 449 Profiler, 5 minute winds, NCAR ISS1", 
-        "project": "PECAN"
+        "project": "PECAN",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 19
@@ -108,7 +116,9 @@
         "location": "Ellis Kansas", 
         "name": "FP3Winds30m", 
         "long_name": "FP3 (Ellis) 449 Profiler, 30 minute winds, NCAR ISS1", 
-        "project": "PECAN"
+        "project": "PECAN",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 20
@@ -132,7 +142,9 @@
         "location": "Minden Nebraska", 
         "name": "FP4Surface", 
         "long_name": "FP4 (Minden) Surface, NCAR ISS2", 
-        "project": "PECAN"
+        "project": "PECAN",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 21
@@ -157,7 +169,9 @@
         "name": "FP4Soundings", 
         "long_name": "FP4 (Minden) Soundings, NCAR ISS2", 
         "project": "PECAN",
-        "dset_type": "sounding"
+        "dset_type": "sounding",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 22
@@ -181,7 +195,9 @@
         "location": "Brewster Kansas", 
         "name": "FP5Surface", 
         "long_name": "FP5 (Brewster) Surface, NCAR ISS3", 
-        "project": "PECAN"
+        "project": "PECAN",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 23
@@ -206,7 +222,9 @@
         "name": "FP5Soundings", 
         "long_name": "FP5 (Brewster) Soundings, NCAR ISS3", 
         "project": "PECAN",
-        "dset_type": "sounding"
+        "dset_type": "sounding",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 24
@@ -231,7 +249,9 @@
         "name": "FP6Soundings", 
         "long_name": "FP6 (Hesston) Soundings, ARM", 
         "project": "PECAN",
-        "dset_type": "sounding"
+        "dset_type": "sounding",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 25
@@ -255,7 +275,9 @@
         "location": "McCracken Kansas", 
         "name": "SPolSurface", 
         "long_name": "S-PolKa Surface Met", 
-        "project": "PECAN"
+        "project": "PECAN",
+	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 26

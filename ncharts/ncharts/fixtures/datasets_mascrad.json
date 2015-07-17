@@ -9,7 +9,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "wxt_std", 
         "long_name": "Surface data from WXT", 
-        "project": "MASCRAD"
+        "project": "MASCRAD",
+	"url": "https://www.eol.ucar.edu/events/multi-angle-snowflake-camera-radar-experiment-mascrad",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 12
@@ -32,7 +34,9 @@
         "end_time": "2015-12-31T00:00:00+00:00", 
         "name": "surface_two", 
         "long_name": "Surface \"two\" data from WXT", 
-        "project": "MASCRAD"
+        "project": "MASCRAD",
+	"url": "https://www.eol.ucar.edu/events/multi-angle-snowflake-camera-radar-experiment-mascrad",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 13
