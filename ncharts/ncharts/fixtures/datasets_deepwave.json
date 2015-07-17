@@ -9,7 +9,9 @@
         "end_time": "2014-07-30T00:00:00+00:00", 
         "name": "30min_winds", 
         "long_name": "449 Profiler, 30 minute winds", 
-        "project": "DEEPWAVE"
+        "project": "DEEPWAVE",
+	"url": "http://data.eol.ucar.edu/codiac/ds_proj?DEEPWAVE",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset",
     "pk": 7
@@ -32,7 +34,9 @@
         "end_time": "2014-07-01T14:00:00+00:00", 
         "name": "GV-1sec", 
         "long_name": "GV, 1 sec data", 
-        "project": "DEEPWAVE"
+        "project": "DEEPWAVE",
+	"url": "http://data.eol.ucar.edu/codiac/ds_proj?DEEPWAVE",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset",
     "pk": 8

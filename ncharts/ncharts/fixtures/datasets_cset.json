@@ -10,7 +10,9 @@
         "name": "GV-LRT", 
         "long_name": "NCAR Gulfstream V, low-rate realtime data", 
         "location": "Eastern Pacific",
-        "project": "CSET"
+        "project": "CSET",
+	"url": "https://www.eol.ucar.edu/field_projects/cset",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset",
     "pk": 30

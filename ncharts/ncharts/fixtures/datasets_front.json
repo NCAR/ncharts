@@ -9,7 +9,9 @@
         "end_time": "2015-12-31T00:00:00+00:00",
         "name": "SPOL-FRONTSurface", 
         "long_name": "SPOL-FRONT surface met", 
-        "project": "FRONT"
+        "project": "FRONT",
+	"url": "http://data.eol.ucar.edu/codiac/ds_proj?FRONT",
+	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset", 
     "pk": 14

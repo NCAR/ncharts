@@ -13,6 +13,8 @@
 {% block content %}
 <p>Project: <a href="{% url 'ncharts:project' dataset.project.name %}">{{ dataset.project.name }}</a></p>
 <p>Location: {{ dataset.location }}</p>
+<p>URL: <a href={{ dataset.url }}>{{ dataset.name }} Dataset</a></p>
+<p>Status: {{ dataset.status }}</p>
 
 <div class="row">
 {% if messages %}
