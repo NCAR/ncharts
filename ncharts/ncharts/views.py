@@ -222,7 +222,13 @@ def get_client_id_from_session(session, project_name, dataset_name):
     """
 
     sel_id_name = client_id_name(project_name, dataset_name)
-    return session.get(sel_id_name)
+
+    client_id = session.get(sel_id_name)
+
+    if not client_id:
+        session.set_test_cookie()
+        raise Http404("session does not contain " + sel_id_name)
+    return client_id
 
 def get_client_from_session(session, project_name, dataset_name):
     """Return a client state, given a session, project and dataset.
@@ -231,25 +237,19 @@ def get_client_from_session(session, project_name, dataset_name):
         session
         project_name
         dataset_name
-    Raises:
-        Http404
     Returns:
         The nc_models.ClientState for the project and dataset
         associated with the session.
+    Raises:
+        Http404
 
     Note that for this to work, caching must be turned off for this view
-    in django, otherwise the get() method may not be called, and the
-    previous client state will not be displayed.
+    in django, otherwise django will just reply from its cache, which means
+    the get() or post() method is not called for the view.
     """
 
     client_id = get_client_id_from_session(session, project_name, dataset_name)
-    client_state = None
-    if client_id:
-        client_state = get_object_or_404(
-            nc_models.ClientState.objects, id=client_id)
-    else:
-        session.set_test_cookie()
-    return client_state
+    return get_object_or_404(nc_models.ClientState.objects, id=client_id)
 
 def attach_client_to_session(
         session, project_name, dataset_name, client_state):
