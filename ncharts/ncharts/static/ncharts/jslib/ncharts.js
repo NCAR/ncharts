@@ -1255,11 +1255,11 @@
                     },
 		});
             });
-            if (first_time) {
-                local_ns.update_start_time(first_time);
-            } 
             if (local_ns.track_real_time) {
-                // mean delta-t of data
+                if (first_time) {
+                    local_ns.update_start_time(first_time);
+                } 
+                    // mean delta-t of data
                 local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
                 if ('' in plot_times && plot_times[''].length > 1) {
                     // set ajax update period to 1/2 the data deltat
