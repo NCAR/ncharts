@@ -11,6 +11,7 @@ file LICENSE in this package.
 """
 
 from django import forms
+from django.contrib import messages
 
 from datetimewidget import widgets as dt_widgets
 
@@ -190,9 +191,9 @@ class DataSelectionForm(forms.Form):
     # required for a sounding
     yvariable = forms.ChoiceField(
         label='Variable to plot on Y axis in sounding plot',
-        required=False) 
+        required=False)
 
-    def __init__(self, *args, dataset=None, **kwargs):
+    def __init__(self, *args, dataset=None, request=None, **kwargs):
         """Set choices for time zone from dataset.
 
         Raises:
@@ -201,6 +202,8 @@ class DataSelectionForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.dataset = dataset
+        self.request = request
+        self.clean_method_altered_data = False
 
         if len(dataset.timezones.all()) > 0:
             self.fields['timezone'].choices = \
@@ -210,7 +213,8 @@ class DataSelectionForm(forms.Form):
             self.fields['timezone'].choices = \
                 [(v.tz, str(v.tz)) for v in proj.timezones.all()]
 
-    def set_variable_choices(self, variables, vardict):
+
+    def set_variable_choices(self, variables):
         """Set the available variables in this form.
 
         Args:
@@ -219,7 +223,7 @@ class DataSelectionForm(forms.Form):
         # choices: (value, label)
         self.fields['variables'].choices = [(v, v) for v in variables]
 
-    def set_yvariable_choices(self, variables, vardict):
+    def set_yvariable_choices(self, variables):
         """Set the available Y axis variables in this form.
 
         Args:
@@ -231,6 +235,7 @@ class DataSelectionForm(forms.Form):
 
     def clean(self):
         """Check the user's selections for correctness.
+
         """
 
         '''
@@ -240,38 +245,31 @@ class DataSelectionForm(forms.Form):
 
         cleaned_data = super().clean()
 
-        start_time = cleaned_data['start_time']
         timezone = cleaned_data['timezone']
+        tnow = datetime.datetime.now(timezone)
+        post_real_time = tnow > self.dataset.end_time
 
-        # start_time in cleaned data is timezone aware, but
-        # with the browser's timezone
-        """
-        A datetime object d is aware if d.tzinfo is not None and
-        d.tzinfo.utcoffset(d) does not return None. If d.tzinfo is
-        None, or if d.tzinfo is not None but d.tzinfo.utcoffset(d)
-        returns None, d is naive.
-        if start_time.tzinfo == None or
-            start_time.tzinfo.utcoffset(start_time) == None:
-            _logger.debug("form clean start_time is timezone naive")
-        else:
-            _logger.debug("form clean start_time is timezone aware")
-        """
+        if post_real_time:
+            if cleaned_data['track_real_time']:
+                self.clean_method_altered_data = True
+            cleaned_data['track_real_time'] = False
+            self.fields['track_real_time'].widget.attrs['disabled'] = True
 
         # the time fields are in the browser's timezone. Use those exact fields,
         # but interpret them in the dataset timezone
-        start_time = timezone.localize(start_time.replace(tzinfo=None))
+        start_time = self.get_cleaned_start_time()
 
-        # Allow user to be sloppy by a week
-        if start_time < self.dataset.get_start_time() - \
-                datetime.timedelta(days=7):
+        if start_time < self.dataset.get_start_time():
             msg = "chosen start time: {} is earlier than " \
-                "dataset start time: {}".format(
+                "dataset start time, resetting to {}".format(
                     start_time.isoformat(),
-                    self.dataset.get_start_time().isoformat())
-            self._errors['start_time'] = self.error_class([msg])
-            raise forms.ValidationError(msg)
-
-        cleaned_data['start_time'] = start_time
+                    self.dataset.get_start_time().astimezone(timezone).isoformat())
+            if self.request:
+                messages.warning(self.request, msg)
+            # self.add_error('start_time', forms.ValidationError(msg))
+            start_time = self.dataset.get_start_time().astimezone(timezone)
+            cleaned_data['start_time'] = start_time.replace(tzinfo=None)
+            self.clean_method_altered_data = True
 
         tunits = cleaned_data['time_length_units']
 
@@ -279,28 +277,39 @@ class DataSelectionForm(forms.Form):
             raise forms.ValidationError('invalid time units: {}'.format(tunits))
 
         if not 'time_length' in cleaned_data:
-            raise forms.ValidationError('invalid time length')
+            self.add_error('time_length', forms.ValidationError('invalid time length'))
 
-        tval = cleaned_data['time_length']
-
-        if tunits == 'day':
-            tdelta = datetime.timedelta(days=tval)
-        elif tunits == 'hour':
-            tdelta = datetime.timedelta(hours=tval)
-        elif tunits == 'minute':
-            tdelta = datetime.timedelta(minutes=tval)
-        else:
-            tdelta = datetime.timedelta(seconds=tval)
+        tdelta = self.get_cleaned_time_length()
 
         if tdelta.total_seconds() <= 0:
             msg = "time length must be positive"
-            raise forms.ValidationError(msg)
+            self.add_error('time_length', forms.ValidationError(msg))
 
-        # end_time = start_time + tdelta
+        if cleaned_data['track_real_time']:
+            start_time = (tnow - tdelta).astimezone(timezone)
+            cleaned_data['start_time'] = start_time.replace(tzinfo=None)
+            self.clean_method_altered_data = True
+        elif start_time > self.dataset.get_end_time():
+            new_start_time = (self.dataset.get_end_time() - tdelta).astimezone(timezone)
+            msg = "chosen start time: {} is later than " \
+                "dataset end time: {}, resetting to {}".format(
+                    start_time.isoformat(),
+                    self.dataset.get_end_time().astimezone(timezone).isoformat(),
+                    new_start_time.isoformat())
+            if self.request:
+                messages.warning(self.request, msg)
+            # self.add_error('start_time', forms.ValidationError(msg))
+            start_time = new_start_time
+            cleaned_data['start_time'] = start_time.replace(tzinfo=None)
+            self.clean_method_altered_data = True
 
-        if not 'variables' in cleaned_data or \
-            len(cleaned_data['variables']) == 0:
-            raise forms.ValidationError('no variables selected')
+        if not 'variables' in cleaned_data or len(cleaned_data['variables']) == 0:
+            self.add_error('variables', forms.ValidationError('no variables selected'))
+
+        if self.dataset.dset_type == "sounding":
+            if not 'soundings' in cleaned_data or \
+                len(cleaned_data['soundings']) == 0:
+                self.add_error('soundings', forms.ValidationError('no soundings selected'))
 
         return cleaned_data
 
@@ -323,6 +332,31 @@ class DataSelectionForm(forms.Form):
             return datetime.timedelta(minutes=tlen)
         else:
             return datetime.timedelta(seconds=tlen)
+
+    def get_cleaned_start_time(self):
+        """Return non-timezone naive start_time.
+        """
+        start_time = self.cleaned_data['start_time']
+        timezone = self.cleaned_data['timezone']
+
+        # start_time in cleaned data at this point is timezone aware, but
+        # with the browser's timezone
+        """
+        A datetime object d is aware if d.tzinfo is not None and
+        d.tzinfo.utcoffset(d) does not return None. If d.tzinfo is
+        None, or if d.tzinfo is not None but d.tzinfo.utcoffset(d)
+        returns None, d is naive.
+        if start_time.tzinfo == None or
+            start_time.tzinfo.utcoffset(start_time) == None:
+            _logger.debug("form clean start_time is timezone naive")
+        else:
+            _logger.debug("form clean start_time is timezone aware")
+        """
+
+        # the time fields are in the browser's timezone. Use those exact fields,
+        # but interpret them in the dataset timezone
+        return timezone.localize(start_time.replace(tzinfo=None))
+
 
     def too_much_data(self, exc):
         """Set an error on this form. """

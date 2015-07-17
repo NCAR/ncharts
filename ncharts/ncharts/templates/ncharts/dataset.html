@@ -15,6 +15,15 @@
 <p>Location: {{ dataset.location }}</p>
 
 <div class="row">
+{% if messages %}
+<strong>
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+</strong>
+{% endif %}
 {{ form.non_field_errors }}
 </div>
 
@@ -55,6 +64,7 @@
                         <h3 class="panel-title">Soundings</h3>
                     </div>
                     <div class="panel panel-body">
+                        <strong>{{ form.soundings.errors }}</strong>
                         <div class="input-group">
                             {% if form.soundings|length < 10 %}
                             <label>set all<input id="soundings_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
@@ -76,6 +86,7 @@
                         <h3 class="panel-title">Variables</h3>
                     </div>
                     <div class="panel panel-body">
+                        <strong>{{ form.variables.errors }}</strong>
                         <div class="input-group">
                             {% if form.variables|length < 20%}
                             <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>

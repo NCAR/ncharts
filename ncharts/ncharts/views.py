@@ -251,9 +251,9 @@ def get_client_from_session(session, project_name, dataset_name):
         session.set_test_cookie()
     return client_state
 
-def save_client_to_session(
+def attach_client_to_session(
         session, project_name, dataset_name, client_state):
-    """Save the client state to the session.
+    """Attach the client state to the session, by saving its id.
 
     Args:
         session
@@ -331,25 +331,27 @@ class DatasetView(View):
         except Http404:
             pass
 
+        client_state_needs_save = False
+
         if not client_state:
             # _logger.debug('DatasetView get, dset.variables=%s',
             #   dset.variables)
 
             tnow = datetime.datetime.now(timezone.tz)
-            delta = datetime.timedelta(days=1)
+            tdelta = datetime.timedelta(days=1)
 
             if dset.get_end_time() < tnow or isinstance(dset, nc_models.DBDataset):
                 stime = dset.get_start_time()
             else:
-                stime = tnow - delta
+                stime = tnow - tdelta
 
             client_state = nc_models.ClientState.objects.create(
                 dataset=dset,
                 timezone=timezone.tz,
                 start_time=stime,
-                time_length=delta.total_seconds())
+                time_length=tdelta.total_seconds())
 
-            save_client_to_session(
+            attach_client_to_session(
                 request.session, project_name, dataset_name, client_state)
             _logger.info(
                 "get, new session, client id=%d, project=%s,"
@@ -373,16 +375,16 @@ class DatasetView(View):
                 client_state.soundings = ""
 
                 tnow = datetime.datetime.now(timezone.tz)
-                delta = datetime.timedelta(days=1)
+                tdelta = datetime.timedelta(days=1)
                 if dset.get_end_time() > tnow:
-                    stime = tnow - delta
+                    stime = tnow - tdelta
                 else:
                     stime = dset.get_start_time()
 
                 client_state.start_time = stime
-                client_state.time_length = delta.total_seconds()
+                client_state.time_length = tdelta.total_seconds()
                 client_state.track_real_time = False
-                client_state.save()
+                client_state_needs_save = True
 
         # variables selected previously by user
         if client_state.variables:
@@ -420,25 +422,36 @@ class DatasetView(View):
             tlen = 0
             tother = tlen
 
-        tlen = '{:f}'.format(tlen)
+        tlenstr = '{:f}'.format(tlen)
+
+        post_real_time = datetime.datetime.now(timezone.tz) > dset.end_time
+
+        if post_real_time and client_state.track_real_time:
+            client_state.track_real_time = False
+            client_state_needs_save = True
+
+        if client_state.track_real_time:
+            client_state.start_time = datetime.datetime.now(timezone.tz) - \
+                datetime.timedelta(seconds=client_state.time_length)
+            client_state_needs_save = True
+        elif client_state.start_time > dset.end_time:
+            client_state.start_time = dset.end_time - \
+                datetime.timedelta(seconds=client_state.time_length)
+            client_state_needs_save = True
+
+        if client_state_needs_save:
+            client_state.save()
 
         # when sending times to datetimepicker, make them naive,
         # with values set as approproate for the dataset timezone
-        if client_state.track_real_time:
-            start_time = datetime.datetime.now(timezone.tz) - \
-                datetime.timedelta(seconds=client_state.time_length)
-        else:
-            start_time = datetime.datetime.fromtimestamp(
-                client_state.start_time.timestamp(), tz=timezone.tz)
-
-        start_time = start_time.replace(tzinfo=None)
+        form_start_time = client_state.start_time.astimezone(timezone.tz).replace(tzinfo=None)
 
         if debug:
             _logger.debug(
                 "DatasetView get, old session, same dataset, "
                 "project=%s, dataset=%s, start_time=%s, vars=%s",
                 project_name, dataset_name,
-                start_time, client_state.variables)
+                client_state.start_time, client_state.variables)
 
         sel_soundings = []
         if client_state.soundings:
@@ -449,23 +462,23 @@ class DatasetView(View):
                 'variables': svars,
                 'yvariable': client_state.yvariable,
                 'timezone': client_state.timezone,
-                'start_time': start_time,
+                'start_time': form_start_time,
                 'time_length_units': tunits,
-                'time_length': tlen,
+                'time_length': tlenstr,
                 'track_real_time': client_state.track_real_time,
                 'soundings': sel_soundings,
             },
             dataset=dset)
 
-        if dset.end_time < datetime.datetime.now(timezone.tz):
+        if post_real_time:
             form.fields['track_real_time'].widget.attrs['disabled'] = True
 
         soundings = []
         try:
             dsetvars = dset.get_variables()
             dvars = sorted(dsetvars.keys())
-            form.set_variable_choices(dvars, dsetvars)
-            form.set_yvariable_choices(dvars, dsetvars)
+            form.set_variable_choices(dvars)
+            form.set_yvariable_choices(dvars)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
@@ -566,7 +579,7 @@ class DatasetView(View):
             timezone = nc_models.TimeZone.objects.get(
                 tz=request.POST['timezone']).tz
 
-            stime = timezone.localize(
+            start_time = timezone.localize(
                 datetime.datetime.strptime(
                     request.POST['start_time'], "%Y-%m-%d %H:%M"))
 
@@ -575,36 +588,38 @@ class DatasetView(View):
                 request.POST['time_length_units'])
 
             if request.POST['submit'] == 'page-backward':
-                stime = stime - delt
+                start_time = start_time - delt
             elif request.POST['submit'] == 'page-forward':
-                stime = stime + delt
+                start_time = start_time + delt
 
             post = request.POST.copy()
-            post['start_time'] = stime.strftime("%Y-%m-%d %H:%M")
+            post['start_time'] = start_time.replace(tzinfo=None)
             post['track_real_time'] = False
-            form = nc_forms.DataSelectionForm(post, dataset=dset)
+            form = nc_forms.DataSelectionForm(post, dataset=dset, request=request)
         else:
-            form = nc_forms.DataSelectionForm(request.POST, dataset=dset)
+            form = nc_forms.DataSelectionForm(request.POST, dataset=dset, request=request)
 
         # Have to set the choices for variables and soundings
         # before the form is validated.
         soundings = []
+        variable_choices = []
+        sounding_choices = []
         try:
             dsetvars = dset.get_variables()
-            dvars = sorted(dsetvars.keys())
-            form.set_variable_choices(dvars, dsetvars)
-            form.set_yvariable_choices(dvars, dsetvars)
+            variable_choices = sorted(dsetvars.keys())
+            form.set_variable_choices(variable_choices)
+            form.set_yvariable_choices(variable_choices)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
                 soundings = dset.get_series_tuples(
                     series_name_fmt=SOUNDING_NAME_FMT)
 
-                s_choices = dset.get_series_names(
+                sounding_choices = dset.get_series_names(
                     series_name_fmt=SOUNDING_NAME_FMT)
 
-                s_choices = [(s, s) for s in s_choices]
-                form.fields['soundings'].choices = s_choices
+                sounding_choices = [(s, s) for s in sounding_choices]
+                form.fields['soundings'].choices = sounding_choices
 
         except (nc_exc.NoDataFoundException, nc_exc.NoDataException) as exc:
             _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
@@ -612,6 +627,16 @@ class DatasetView(View):
 
         if not form.is_valid():
             _logger.error('User form is not valid!: %s', repr(form.errors))
+            if form.clean_method_altered_data:
+                post = request.POST.copy()
+                post['start_time'] = form.cleaned_data['start_time']
+                post['track_real_time'] = form.cleaned_data['track_real_time']
+                form = nc_forms.DataSelectionForm(post, dataset=dset)
+
+            form.set_variable_choices(variable_choices)
+            form.set_yvariable_choices(variable_choices)
+            if dset.dset_type == "sounding":
+                form.fields['soundings'].choices = sounding_choices
             return render(
                 request, self.template_name,
                 {
@@ -627,24 +652,35 @@ class DatasetView(View):
 
         yvar = form.cleaned_data['yvariable']
 
-        stime = form.cleaned_data['start_time']
-        delt = form.get_cleaned_time_length()
-        etime = stime + delt
+        tdelta = form.get_cleaned_time_length()
+        start_time = form.get_cleaned_start_time()
+
+        end_time = start_time + tdelta
         client_state.variables = json.dumps(svars)
-        client_state.start_time = stime
+        client_state.start_time = start_time
         client_state.timezone = form.cleaned_data['timezone']
-        client_state.time_length = delt.total_seconds()
+        client_state.time_length = tdelta.total_seconds()
         client_state.track_real_time = form.cleaned_data['track_real_time']
         client_state.soundings = json.dumps(sel_soundings)
         client_state.yvariable = yvar
         client_state.save()
+
+        # Re-create form if any values have been altered
+        if form.clean_method_altered_data:
+            post = request.POST.copy()
+            post['start_time'] = form.cleaned_data['start_time']
+            post['track_real_time'] = form.cleaned_data['track_real_time']
+            form = nc_forms.DataSelectionForm(post, dataset=dset)
+
+        form.set_variable_choices(variable_choices)
+        form.set_yvariable_choices(variable_choices)
 
         try:
             if isinstance(dset, nc_models.FileDataset):
                 ncdset = dset.get_netcdf_dataset()
                 # a variable can be in a dataset, but not in a certain set of files.
                 dsvars = ncdset.get_variables(
-                    start_time=stime, end_time=etime)
+                    start_time=start_time, end_time=end_time)
 
             elif isinstance(dset, nc_models.DBDataset):
                 dbcon = dset.get_connection()
@@ -653,14 +689,14 @@ class DatasetView(View):
             if dset.dset_type == "sounding":
                 # set sounding choices for selected time period
                 # soundings between the start and end time
-                s_choices = dset.get_series_names(
+                sounding_choices = dset.get_series_names(
                     series_name_fmt=SOUNDING_NAME_FMT,
                     start_time=client_state.start_time,
                     end_time=client_state.start_time + \
                         datetime.timedelta(seconds=client_state.time_length))
 
-                s_choices = [(s, s) for s in s_choices]
-                form.fields['soundings'].choices = s_choices
+                sounding_choices = [(s, s) for s in sounding_choices]
+                form.fields['soundings'].choices = sounding_choices
 
         except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
             _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
@@ -712,18 +748,6 @@ class DatasetView(View):
 
         series_name_fmt = None
         if dset.dset_type == "sounding":
-            if len(sel_soundings) == 0:
-                exc = nc_exc.NoDataException(
-                    "select one or more soundings")
-                form.no_data(repr(exc))
-                return render(
-                    request, self.template_name,
-                    {
-                        'form': form,
-                        'dataset': dset,
-                        'variables': dsvars,
-                        'soundings': mark_safe(json.dumps(soundings))
-                    })
             series_name_fmt = SOUNDING_NAME_FMT
         else:
             sel_soundings = None
@@ -741,12 +765,12 @@ class DatasetView(View):
         try:
             if isinstance(dset, nc_models.FileDataset):
                 ncdata = ncdset.read_time_series(
-                    savail, start_time=stime, end_time=etime,
+                    savail, start_time=start_time, end_time=end_time,
                     series=sel_soundings,
                     series_name_fmt=series_name_fmt)
             else:
                 ncdata = dbcon.read_time_series(
-                    savail, start_time=stime, end_time=etime)
+                    savail, start_time=start_time, end_time=end_time)
 
         except OSError as exc:
             _logger.error("%s, %s: %s", project_name, dataset_name, exc)
@@ -796,7 +820,7 @@ class DatasetView(View):
                             ncdata['data'][series_name][vname]))[0][-1]
                         time_last_ok = ncdata['time'][series_name][lastok]
                     except IndexError:  # all data is nan
-                        time_last_ok = (stime - \
+                        time_last_ok = (start_time - \
                             datetime.timedelta(seconds=0.001)).timestamp()
 
                     try:
