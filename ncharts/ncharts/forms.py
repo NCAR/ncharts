@@ -236,12 +236,21 @@ class DataSelectionForm(forms.Form):
     def clean(self):
         """Check the user's selections for correctness.
 
-        """
+        If the user has selected a start_time outside of the dataset's time
+        period, the value of cleaned_data['start_time'] will be updated
+        to be within the dataset period.  A message will be added to the
+        request to indicate what has happened.
 
-        '''
-        _logger.debug('DataSelectionForm clean')
-        _logger.debug("cleaned_data=%s", cleaned_data)
-        '''
+        Likewise, set cleaned_data['track_real_time'] to False if the current
+        time is after the end of the dataset.
+
+        If either field has been altered, set self.clean_method_altered_data=True
+        so that the view method knows to generate a new form with the altered values.
+
+        Returns:
+            A dictionary of cleaned_data. As of django 1.7 this is no longer required.
+
+        """
 
         cleaned_data = super().clean()
 
@@ -334,7 +343,11 @@ class DataSelectionForm(forms.Form):
             return datetime.timedelta(seconds=tlen)
 
     def get_cleaned_start_time(self):
-        """Return non-timezone naive start_time.
+        """Return a timezone aware start_time from cleaned_data of the form.
+
+        Returns:
+            A datetime.datetime, within the timezone of cleaned_data['timezone'].
+
         """
         start_time = self.cleaned_data['start_time']
         timezone = self.cleaned_data['timezone']
