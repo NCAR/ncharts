@@ -416,12 +416,6 @@ class DatasetView(View):
         else:
             tunits = 'second'
 
-        if tlen in nc_forms.TIME_LEN_CHOICES:
-            tother = 0
-        else:
-            tlen = 0
-            tother = tlen
-
         tlenstr = '{:f}'.format(tlen)
 
         post_real_time = datetime.datetime.now(timezone.tz) > dset.end_time
@@ -1009,9 +1003,7 @@ class DataView(View):
                     "%s, %s: data times not found for client id=%d, " \
                     "variable=%s",
                     project_name, dataset_name, client_state.id, vname)
-                return redirect(
-                    'ncharts:dataset', project_name=project_name,
-                    dataset_name=dataset_name)
+                continue
 
             stime = datetime.datetime.fromtimestamp(
                 time_last_ok + 0.001, tz=timezone)
@@ -1069,10 +1061,10 @@ class DataView(View):
                         ncdata['data'][''][vname] = []
             except OSError as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
-                raise Http404(str(exc))
+                continue
             except nc_exc.TooMuchDataException as exc:
                 _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
-                raise Http404(str(exc))
+                continue
             except (nc_exc.NoDataException, nc_exc.NoDataFoundException, KeyError) as exc:
                 # KeyError: variable not found in data
                 if debug:
@@ -1082,21 +1074,7 @@ class DataView(View):
                         project_name, dataset_name, exc, vname,
                         datetime.datetime.fromtimestamp(
                             time_last, tz=timezone).isoformat())
-                # make up some data
-                ncdata = {
-                    'time': {
-                        '': []
-                    },
-                    'data': {
-                        '': {
-                            vname: [],
-                        },
-                    },
-                    'dim2': {
-                        '': {},
-                    }
-                }
-                # {vname: np.array([], dtype=np.dtype("float32"))},
+                continue
 
             client_state.save_data_times(vname, time_last_ok, time_last)
 
