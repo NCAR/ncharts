@@ -23,6 +23,8 @@ from django.views.generic.edit import View
 from django.views.generic import TemplateView
 from django.utils.safestring import mark_safe
 from django.template import TemplateDoesNotExist
+from django.core.urlresolvers import reverse
+from django.contrib import messages
 
 from ncharts import models as nc_models
 from ncharts import forms as nc_forms
@@ -226,8 +228,10 @@ def get_client_id_from_session(session, project_name, dataset_name):
     client_id = session.get(sel_id_name)
 
     if not client_id:
-        session.set_test_cookie()
-        raise Http404("session does not contain " + sel_id_name)
+        raise Http404(
+            "Session not found for " + \
+            project_name + ": " + dataset_name + \
+            ". The server may have been restarted or you may need to enable cookies.")
     return client_id
 
 def get_client_from_session(session, project_name, dataset_name):
@@ -402,22 +406,6 @@ class DatasetView(View):
                     project_name, dataset_name)
             svars = []
 
-        tlen = client_state.time_length
-
-        if tlen >= datetime.timedelta(days=1).total_seconds():
-            tunits = 'day'
-            tlen /= 86400
-        elif tlen >= datetime.timedelta(hours=1).total_seconds():
-            tunits = 'hour'
-            tlen /= 3600
-        elif tlen >= datetime.timedelta(minutes=1).total_seconds():
-            tunits = 'minute'
-            tlen /= 60
-        else:
-            tunits = 'second'
-
-        tlenstr = '{:f}'.format(tlen)
-
         post_real_time = datetime.datetime.now(timezone.tz) > dset.end_time
 
         if post_real_time and client_state.track_real_time:
@@ -451,14 +439,16 @@ class DatasetView(View):
         if client_state.soundings:
             sel_soundings = json.loads(client_state.soundings)
 
+        tlfields = nc_forms.get_time_length_fields(client_state.time_length)
+
         form = nc_forms.DataSelectionForm(
             initial={
                 'variables': svars,
                 'yvariable': client_state.yvariable,
                 'timezone': client_state.timezone,
                 'start_time': form_start_time,
-                'time_length_units': tunits,
-                'time_length': tlenstr,
+                'time_length_units': tlfields[1],
+                'time_length': tlfields[0],
                 'track_real_time': client_state.track_real_time,
                 'soundings': sel_soundings,
             },
@@ -510,39 +500,12 @@ class DatasetView(View):
         sent back to the user.
         """
 
-        if not request.session.test_cookie_worked():
-            # The django server is backed by memcached, so I believe
-            # this won't happen when the django server is restarted,
-            # but will happen if the memcached daemon is restarted.
-            _logger.error(
-                "session cookie check failed. Either this server "
-                "was restarted, or the user needs to enable cookies")
-
-            # redirect so that next request is a get
-            # Uses the name='dataset' in urls.py
-            return redirect(
-                'ncharts:dataset', project_name=project_name,
-                dataset_name=dataset_name)
-
-            # return HttpResponse("Your cookie is not recognized.
-            # Either this server was restarted, or you need to
-            # enable cookies in your browser. Then please try again.")
-
-        client_state = None
         try:
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
-        except Http404:
-            pass
-
-        if not client_state:
-            # There is probably a scenario where a POST can come in
-            # without client id. Redirect them back to the get.
-            _logger.error(
-                "post but no session value for project %s, "
-                "dataset %s, redirecting to get",
-                project_name, dataset_name)
-            # Uses the name='dataset' in urls.py
+        except Http404 as exc:
+            _logger.error(exc)
+            messages.warning(request, exc)
             return redirect(
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
@@ -557,7 +520,7 @@ class DatasetView(View):
                 "url project=%s, dataset=%s",
                 dset.project.name, dset.name,
                 project_name, dataset_name)
-
+            messages.warning(request, "session is for a different dataset")
             return redirect(
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
@@ -956,12 +919,26 @@ class DataView(View):
 
         debug = False
 
-        if not request.session.test_cookie_worked():
-            raise Http404
+        ajax_data = {}
 
-        # Raises 404 if not found
-        client_state = get_client_from_session(
-            request.session, project_name, dataset_name)
+        try:
+            client_state = get_client_from_session(
+                request.session, project_name, dataset_name)
+        except Http404 as exc:
+            _logger.error("AJAX DataView get: " + exc)
+            ajax_data['redirect'] = \
+                request.build_absolute_uri(
+                    reverse(
+                        'ncharts:dataset',
+                        kwargs={
+                            'project_name': project_name,
+                            'dataset_name':dataset_name,
+                        }))
+            ajax_data['message'] = exc
+
+            return HttpResponse(
+                json.dumps(ajax_data),
+                content_type="application/json")
 
         dset = get_dataset(client_state)
 
@@ -974,24 +951,40 @@ class DataView(View):
                 _logger.warn(
                     "%s, %s, %d, database connection failed: %s",
                     project_name, dataset_name, client_state.id, exc)
-                return redirect(
-                    'ncharts:dataset', project_name=project_name,
-                    dataset_name=dataset_name)
+                ajax_data['redirect'] = \
+                    request.build_absolute_uri(
+                        reverse(
+                            'ncharts:dataset',
+                            kwargs={
+                                'project_name': project_name,
+                                'dataset_name':dataset_name,
+                            }))
+                ajax_data['message'] = exc
+                return HttpResponse(
+                    json.dumps(ajax_data),
+                    content_type="application/json")
 
         # selected variables
         svars = json.loads(client_state.variables)
 
-        if len(svars) == 0:
+        if not len(svars):
             _logger.warn(
                 "%s, %s: variables not found for id=%d",
                 project_name, dataset_name, client_state.id)
-            return redirect(
-                'ncharts:dataset', project_name=project_name,
-                dataset_name=dataset_name)
+            ajax_data['redirect'] = \
+                request.build_absolute_uri(
+                    reverse(
+                        'ncharts:dataset',
+                        kwargs={
+                            'project_name': project_name,
+                            'dataset_name':dataset_name,
+                        }))
+            ajax_data['message'] = "No selected variables"
+            return HttpResponse(
+                json.dumps(ajax_data),
+                content_type="application/json")
 
         timezone = client_state.timezone
-
-        all_vars_data = {}
 
         for vname in svars:
 
@@ -1094,17 +1087,17 @@ class DataView(View):
 
             data = json.dumps(ncdata['data'][''][vname], cls=NChartsJSONEncoder)
 
-            all_vars_data[vname] = {
+            ajax_data[vname] = {
                 'time0': time0,
                 'time': time,
                 'data': data,
                 'dim2': dim2
             }
 
-        # jstr = json.dumps(all_vars_data)
+        # jstr = json.dumps(ajax_data)
         # _logger.debug("json data=%s",jstr)
         # return HttpResponse(jstr, content_type="application/json")
         return HttpResponse(
-            json.dumps(all_vars_data),
+            json.dumps(ajax_data),
             content_type="application/json")
 

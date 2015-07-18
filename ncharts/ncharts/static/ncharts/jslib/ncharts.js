@@ -168,6 +168,11 @@
                 },
                 success: function(indata) {
 
+                    if (indata.redirect) {
+                        alert("AJAX request failed: " + indata.message);
+                        window.location.replace(indata.redirect);
+                    }
+
                     // console.log("ajax success!, now=",new Date(),",
                     // itime0=",itime0);
                     var first_time = null;  // first plotted time
