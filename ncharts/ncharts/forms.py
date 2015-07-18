@@ -333,14 +333,7 @@ class DataSelectionForm(forms.Form):
 
         tunits = self.cleaned_data['time_length_units']     # string
 
-        if tunits == 'day':
-            return datetime.timedelta(days=tlen)
-        elif tunits == 'hour':
-            return datetime.timedelta(hours=tlen)
-        elif tunits == 'minute':
-            return datetime.timedelta(minutes=tlen)
-        else:
-            return datetime.timedelta(seconds=tlen)
+        return get_time_length(tlen, tunits)
 
     def get_cleaned_start_time(self):
         """Return a timezone aware start_time from cleaned_data of the form.
@@ -387,10 +380,17 @@ class DataSelectionForm(forms.Form):
     #     return self.files
 
 def get_time_length(tval, tunits):
-    """From string values of tval and tunits, return a timedelta.
+    """From a time length and string of units, return a timedelta.
+
+    Args:
+        tval: a length of time
+        tunits: the units of tval: 'day', 'hour', 'minute' or 'seconds'
+    Returns:
+        a datetime.timedelta.
     """
 
-    tval = float(tval)
+    if isinstance(tval, str):
+        tval = float(tval)
 
     if tunits == 'day':
         return datetime.timedelta(days=tval)
@@ -401,4 +401,32 @@ def get_time_length(tval, tunits):
     else:
         return datetime.timedelta(seconds=tval)
 
+def get_time_length_fields(tdelta):
+    """From a timedeltat, or time length in seconds, return
+    values of a length and a string tunits.
+
+    Args:
+        tdelta: a datetime.timedelta or a number of seconds
+
+    Returns:
+        (tval, tunits), where tval is a numeric time length and tunits
+            are the units of tval: 'day', 'hour', 'minute' or 'seconds'.
+    """
+
+    if isinstance(tdelta, datetime.timedelta):
+        tdelta = tdelta.total_seconds()
+
+    if tdelta >= datetime.timedelta(days=1).total_seconds():
+        tunits = 'day'
+        tdelta /= 86400
+    elif tdelta >= datetime.timedelta(hours=1).total_seconds():
+        tunits = 'hour'
+        tdelta /= 3600
+    elif tdelta >= datetime.timedelta(minutes=1).total_seconds():
+        tunits = 'minute'
+        tdelta /= 60
+    else:
+        tunits = 'second'
+
+    return (tdelta, tunits)
 
