@@ -16,20 +16,25 @@ from ncharts import models as nc_models
 class ProjectAdmin(admin.ModelAdmin):
     pass
 
+admin.site.register(nc_models.Project, ProjectAdmin)
+
 class PlatformAdmin(admin.ModelAdmin):
     pass
+
+admin.site.register(nc_models.Platform, PlatformAdmin)
 
 class FileDatasetAdmin(admin.ModelAdmin):
     pass
 
+admin.site.register(nc_models.FileDataset, FileDatasetAdmin)
+
 class DBDatasetAdmin(admin.ModelAdmin):
     pass
 
-admin.site.register(nc_models.Project, ProjectAdmin)
-
-admin.site.register(nc_models.Platform, PlatformAdmin)
-
-admin.site.register(nc_models.FileDataset, FileDatasetAdmin)
-
 admin.site.register(nc_models.DBDataset, DBDatasetAdmin)
+
+class ClientStateAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(nc_models.ClientState, ClientStateAdmin)
 
