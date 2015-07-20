@@ -60,6 +60,10 @@
 	    local_ns.update_sounding_boxes(start_time);
         }
 
+	local_ns.scroll = function(id) {
+	    $('html,body').animate({scrollTop: $("#"+id).offset().top},'fast');
+	}
+
         local_ns.update_sounding_boxes = function(start_time) {
 
 	    try {
@@ -537,10 +541,11 @@
         }
 
         $(function() {
+
             if (local_ns.debug_level) {
                 console.log("DOM is ready!");
             }
-
+	  
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
             var tz = tzelem.val();
@@ -1287,6 +1292,8 @@
                     console.log("ajaxTimeout=",local_ns.ajaxTimeout);
                 }
             }
+
+	    local_ns.scroll('plot_button');
         });     // end of DOM-is-ready function
     })
 );
