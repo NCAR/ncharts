@@ -183,9 +183,6 @@
 
                     $("div[id^='time-series']").each(function(index) {
 
-			console.log($(this).attr("id"));
-			console.log($(this).offset());
-
                         // update time series plots from ajax data
                         var chart = $( this ).highcharts();
 
