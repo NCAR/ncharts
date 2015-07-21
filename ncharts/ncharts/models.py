@@ -97,7 +97,7 @@ class Platform(models.Model):
         return self.name
 
 class Variable(models.Model):
-    """A variable in a dataset, used if the xdataset does not have
+    """A variable in a dataset, used if the dataset does not have
     sufficient meta-data for its variables.
     """
 

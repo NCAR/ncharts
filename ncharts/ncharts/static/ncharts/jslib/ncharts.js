@@ -61,7 +61,7 @@
         }
 
 	local_ns.scroll = function(offset) {
-	    $('html,body').animate({scrollTop: offset},'fast');
+	    $('html,body').animate({scrollTop: offset},1000);
 	}
 
         local_ns.update_sounding_boxes = function(start_time) {
@@ -182,6 +182,9 @@
                     var first_time = null;  // first plotted time
 
                     $("div[id^='time-series']").each(function(index) {
+
+			console.log($(this).attr("id"));
+			console.log($(this).offset());
 
                         // update time series plots from ajax data
                         var chart = $( this ).highcharts();
@@ -315,6 +318,14 @@
                         }
                         // charts of multiple variables sometimes take a while to redraw
                         // if (chart.series.length > 1) chart.redraw();
+
+			var current_top = $(document).scrollTop();
+			var update_top = $(this).offset().top;
+			var plot_top = $("#plot_button").offset().top;
+			
+			if (current_top < plot_top) {			  
+			    local_ns.scroll(update_top);
+			}
                     });
 
                     $("div[id^='heatmap']").each(function(index) {
@@ -526,6 +537,14 @@
                             console.log("chart redraw, elapsed time=",(t1 - t0)/1000," seconds");
                             t0 = t1;
                         }
+
+			var update_top = $(this).offset().top;
+			var current_top = $(document).scrollTop();
+			var plot_top = $("#plot_button").offset().top;
+
+			if (current_top < plot_top) {
+			    local_ns.scroll(update_top);
+			}
                     });
 
                     // update the start time on the datetimepicker from
@@ -545,9 +564,6 @@
             if (local_ns.debug_level) {
                 console.log("DOM is ready!");
             }
-
-	    console.log($("#plot_button").offset());
-	    console.log($(document).scrollTop());
 	  
             // When doc is ready, grab the selected time zone
             var tzelem = $("select#id_timezone");
