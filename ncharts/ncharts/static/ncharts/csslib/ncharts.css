@@ -114,6 +114,10 @@ div#id_start_time {
    width: 300px;
 }
 
+ul#variable-list li {
+   display: inline; 
+}
+
 /*
 .date {
 	width: 200px;

@@ -95,13 +95,19 @@
                             {% endif %}
                             <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                         </div>
-                        <div id="variable-checkbox">
-                        {% for var in form.variables %}
-                            <label data-toggle="tooltip"
-                                title="{{ variables|get_long_name:var.choice_label }}">
-                                {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label>
-                        {% endfor %}
-                        </div>
+			{% for var in form.variables %}
+			   {% ifchanged var.choice_label|slice:"1"|lower %}
+			      </ul>
+			      </div>
+		              <div id="variable-checkbox" class="col-md-3">
+			      <ul id="variable-list">
+			      <h1>{{ var.choice_label|slice:"1"|upper }}</h1>
+			   {% endifchanged %}
+			    <li><label data-toggle="tooltip"
+                                       title="{{ variables|get_long_name:var.choice_label }}">
+				{{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
+		        {% endfor %}
+			</ul>
                     </div>
                 </div>
             </div>
