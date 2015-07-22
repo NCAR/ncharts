@@ -7,6 +7,7 @@
         ], 
         "start_time": "2015-06-23T00:00:00+00:00", 
         "end_time": "2015-12-31T00:00:00+00:00", 
+        "location": "NCAR Foothills Lab", 
         "name": "trh-test",
         "long_name": "TRH Test",
 	"url": "https://www.eol.ucar.edu/observing_facilities/centnet",

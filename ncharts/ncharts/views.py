@@ -561,6 +561,7 @@ class DatasetView(View):
         soundings = []
         variable_choices = []
         sounding_choices = []
+        dsetvars = {}
         try:
             dsetvars = dset.get_variables()
             variable_choices = sorted(dsetvars.keys())
