@@ -13,7 +13,7 @@
 {% block content %}
 <p>Project: <a href="{% url 'ncharts:project' dataset.project.name %}">{{ dataset.project.name }}</a></p>
 <p>Location: {{ dataset.location }}</p>
-<p>URL: <a href={{ dataset.url }}>{{ dataset.name }} Dataset</a></p>
+<p>More Information: <a href={{ dataset.url }}>{{ dataset.name }} Dataset</a></p>
 <p>Status: {{ dataset.status }}</p>
 
 <div class="row">
@@ -95,18 +95,22 @@
                             {% endif %}
                             <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                         </div>
-			<div class="container">
-			  <ul class="nav nav-tabs">
+			<div class="container" id="variable-checkbox">
+			  <ul class="tabrow">
 			    {% for var in form.variables %}
 			    {% ifchanged var.choice_label|slice:"1"|lower %}
-			    <li><a data-toggle="tab" href="#{{ var.choice_label|slice:"1"|upper }}"> {{ var.choice_label|slice:"1"|upper }}</a></li>  
+			    {% ifequal var.choice_label form.variables.0.choice_label %}
+			    <li class="selected"><a data-toggle="tab" href="#{{ var.choice_label|slice:"1"|upper }}"> {{ var.choice_label|slice:"1"|upper }}</a></li> 
+			    {% else %}
+			    <li><a data-toggle="tab" href="#{{ var.choice_label|slice:"1"|upper }}"> {{ var.choice_label|slice:"1"|upper }}</a></li>
+			    {% endifequal %}
 			    {% endifchanged %}
 		            {% endfor %}
 			  </ul>
 			  <div class="tab-content">
 			    {% for var in form.variables %}
 			    {% ifequal var.choice_label form.variables.0.choice_label %}
-			    <div id="{{ var.choice_label|slice:"1"|upper }}" class="tab-pane fade">
+			    <div id="{{ var.choice_label|slice:"1"|upper }}" class="tab-pane fade in active">
 			      <h1> {{ var.choice_label|slice:"1"|upper }}</h1> 
 			      {% else %}
 			      {% ifchanged var.choice_label|slice:"1"|lower %}
