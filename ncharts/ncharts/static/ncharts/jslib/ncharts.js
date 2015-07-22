@@ -820,16 +820,12 @@
                  */
                 $( this ).highcharts({
                     chart: {
+                        borderWidth: 1,
                         type: 'line',
                         zoomType: 'xy',
                         panning: true,
                         panKey: 'shift',
-                        spacingLeft: 20,
-                        spacingRight: 20,
-			marginLeft: 60,
-			marginRight: 0,
-			marginTop: 30,
-			spacing: [0, 0, 0, 0],
+			spacing: [10, 10, 5, 5],    // top,right,bot,left
                     },
                     credits: {  // highcharts.com link
                         enabled: (plotindex == nplots-1),
@@ -922,6 +918,7 @@
                         text: ptitle,
 			// style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
 			style: {"color": "#333333", "fontSize": "14px"},
+                        margin: 5,
                     }
                 });
             });
@@ -983,13 +980,12 @@
 
                     $( this ).highcharts({
                         chart: {
+                            borderWidth: 1,
                             type: 'heatmap',
-                            marginTop: 40,
-                            marginBottom: 60,
                             zoomType: 'xy',
                             panning: true,
                             panKey: 'shift',
-			    spacing: [0, 0, 0, 0],
+			    spacing: [10, 10, 5, 5], // top,right,bot,left
                             plotOptions: {
                                 series: {
                                     dataGrouping: {
@@ -1022,6 +1018,7 @@
                             text: long_name + '(' + units + ')',
 			    // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
                             style: {"color": "#333333", "fontSize": "14px"},
+                            margin: 0,
                         },
                         xAxis: {
                             type: 'datetime',
@@ -1034,10 +1031,6 @@
                                 month: '%Y<br/>%m',
                                 year: '%Y'
                             },
-                            /*
-                            min: mintime,
-                            max: maxtime,
-                            */
                             title: {
                                 margin: 0,
                                 text: "time (" + local_ns.plotTimezone + ")",
@@ -1237,12 +1230,12 @@
 
 		$(this).highcharts({
 		    chart: {
+                        borderWidth: 1,
 			showAxes: true,
 			inverted: true,
 			type: 'line',
                         zoomType: 'xy',
-			marginRight: 5,
-			spacing: [0, 0, 0, 0],
+			spacing: [10, 10, 5, 5],    // top,right,bot,left
 		    },
                     credits: {  // highcharts.com link
                         enabled: (plotindex == nplots-1),
@@ -1270,10 +1263,10 @@
                     },
                     series: series,
                     title: {
-			margin: 10,
                         text: ptitle,
 			// style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
 			style: {"color": "#333333", "fontSize": "14px"},
+			margin: 0,
                     },
                     tooltip: {
                         shared: true,       // show all points in the tooltip
