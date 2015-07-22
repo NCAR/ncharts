@@ -651,6 +651,12 @@
                 }
             });
 
+	    $("ul.tabrow li").click(function(e) {
+		e.preventDefault();
+		$("li").removeClass("selected");
+		$(this).addClass("selected");
+	    });
+
             // set the time_length
 
             local_ns.update_time_length(
