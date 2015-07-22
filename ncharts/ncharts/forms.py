@@ -220,6 +220,7 @@ class DataSelectionForm(forms.Form):
         Args:
             variables: list of variable names.
         """
+        variables = sorted(variables, key = str.lower)
         # choices: (value, label)
         self.fields['variables'].choices = [(v, v) for v in variables]
 
