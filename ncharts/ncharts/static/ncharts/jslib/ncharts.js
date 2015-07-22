@@ -881,6 +881,7 @@
                     legend: {
                         enabled: true,
                         margin: 0,
+                        verticalAlign: 'top',
                         // floating: true,
                     },
                     rangeSelector: {
@@ -915,7 +916,10 @@
                     },
 		    navigator: nav,
                     title: {
-                        text: ptitle,
+                        // disable title, legend is good enough
+                        // May want to put dataset name in title at some point
+                        text: '',
+                        // text: ptitle,
 			// style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
 			style: {"color": "#333333", "fontSize": "14px"},
                         margin: 5,
