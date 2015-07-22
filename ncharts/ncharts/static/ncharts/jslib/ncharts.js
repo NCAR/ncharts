@@ -316,12 +316,12 @@
                         // charts of multiple variables sometimes take a while to redraw
                         // if (chart.series.length > 1) chart.redraw();
 
+			//var update_top = $(this).offset().top;
 			var current_top = $(document).scrollTop();
-			var update_top = $(this).offset().top;
 			var plot_top = $("#plot_button").offset().top;
 			
 			if (current_top < plot_top) {			  
-			    local_ns.scroll(update_top);
+			    local_ns.scroll(plot_top);
 			}
                     });
 
@@ -535,12 +535,12 @@
                             t0 = t1;
                         }
 
-			var update_top = $(this).offset().top;
+			//var update_top = $(this).offset().top;
 			var current_top = $(document).scrollTop();
 			var plot_top = $("#plot_button").offset().top;
 
 			if (current_top < plot_top) {
-			    local_ns.scroll(update_top);
+			    local_ns.scroll(plot_top);
 			}
                     });
 
