@@ -110,6 +110,10 @@ div#id_start_time {
     position: relative;
 }
 
+.list-inline li {
+    width: 300px;
+}
+
 li#variable_list {
 
 }
