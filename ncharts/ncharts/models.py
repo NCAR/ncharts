@@ -20,8 +20,7 @@ from django.core import exceptions as dj_exc
 
 import datetime
 
-
-from timezone_field import TimeZoneField
+from timezone_field import TimeZoneField                                                                           
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 

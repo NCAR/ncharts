@@ -95,13 +95,35 @@
                             {% endif %}
                             <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                         </div>
-                        <div id="variable-checkbox">
-                        {% for var in form.variables %}
-                            <label data-toggle="tooltip"
-                                title="{{ variables|get_long_name:var.choice_label }}">
-                                {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label>
-                        {% endfor %}
-                        </div>
+			<div class="container">
+			  <ul class="nav nav-tabs">
+			    {% for var in form.variables %}
+			    {% ifchanged var.choice_label|slice:"1"|lower %}
+			    <li><a data-toggle="tab" href="#{{ var.choice_label|slice:"1"|upper }}"> {{ var.choice_label|slice:"1"|upper }}</a></li>  
+			    {% endifchanged %}
+		            {% endfor %}
+			  </ul>
+			  <div class="tab-content">
+			    {% for var in form.variables %}
+			    {% ifequal var.choice_label form.variables.0.choice_label %}
+			    <div id="{{ var.choice_label|slice:"1"|upper }}" class="tab-pane fade">
+			      <h1> {{ var.choice_label|slice:"1"|upper }}</h1> 
+			      {% else %}
+			      {% ifchanged var.choice_label|slice:"1"|lower %}
+			    </div>
+			    <div id="{{ var.choice_label|slice:"1"|upper }}" class="tab-pane fade">
+			      <h1> {{ var.choice_label|slice:"1"|upper }}</h1>  
+			      {% endifchanged %}
+			      {% endifequal %}
+			      <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
+					 title="{{ variables|get_long_name:var.choice_label }}">
+				  {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
+			      {% ifequal var.choice_label form.variables.last.choice_label %}
+			    </div>
+			    {% endifequal %}
+		            {% endfor %}
+			  </div>
+			</div>  
                     </div>
                 </div>
             </div>

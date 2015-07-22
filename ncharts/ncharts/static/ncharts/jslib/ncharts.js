@@ -60,8 +60,8 @@
 	    local_ns.update_sounding_boxes(start_time);
         }
 
-	local_ns.scroll = function(id) {
-	    $('html,body').animate({scrollTop: $("#"+id).offset().top},'fast');
+	local_ns.scroll = function(offset) {
+	    $('html,body').animate({scrollTop: offset},1000);
 	}
 
         local_ns.update_sounding_boxes = function(start_time) {
@@ -315,6 +315,14 @@
                         }
                         // charts of multiple variables sometimes take a while to redraw
                         // if (chart.series.length > 1) chart.redraw();
+
+			var current_top = $(document).scrollTop();
+			var update_top = $(this).offset().top;
+			var plot_top = $("#plot_button").offset().top;
+			
+			if (current_top < plot_top) {			  
+			    local_ns.scroll(update_top);
+			}
                     });
 
                     $("div[id^='heatmap']").each(function(index) {
@@ -526,6 +534,14 @@
                             console.log("chart redraw, elapsed time=",(t1 - t0)/1000," seconds");
                             t0 = t1;
                         }
+
+			var update_top = $(this).offset().top;
+			var current_top = $(document).scrollTop();
+			var plot_top = $("#plot_button").offset().top;
+
+			if (current_top < plot_top) {
+			    local_ns.scroll(update_top);
+			}
                     });
 
                     // update the start time on the datetimepicker from
@@ -1292,8 +1308,16 @@
                     console.log("ajaxTimeout=",local_ns.ajaxTimeout);
                 }
             }
+	    
+	    var current_top = $(document).scrollTop();
+	    var plot_top = $("#plot_button").offset().top;
 
-	    local_ns.scroll('plot_button');
+	    if (current_top > plot_top) {
+		local_ns.scroll(current_top);
+	    }
+	    else {
+		local_ns.scroll(plot_top);
+	    }
         });     // end of DOM-is-ready function
     })
 );
