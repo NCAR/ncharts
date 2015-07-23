@@ -51,7 +51,7 @@ div#id_start_time {
 @media only screen and (min-device-width:1224px) {
     .time-series-chart-wrapper {
 	position: relative;
-	padding-bottom: 30%;
+	padding-bottom: 40%;
     }
     .sounding-chart-wrapper {
 	position: relative;

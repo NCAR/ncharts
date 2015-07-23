@@ -179,31 +179,34 @@ class ModelTestCase(test.TestCase):
         tsd = ncset.read_time_series(
             rvars, start_time, end_time, selectdim=sdim)
 
-        # print(x['data'].keys())
+        # print("len(tsd['data'])={}".format(len(tsd['data'])))
+        # print("len(tsd['data'][''])={}".format(len(tsd['data'][''])))
+        # print("len(tsd['time'])={}".format(len(tsd['time'])))
+        # print("len(tsd['time'][''])={}".format(len(tsd['time'][''])))
 
         # ndays of 5 minute data
-        self.assertEqual(len(tsd['time']), 86400/(5*60) * ndays)
-        self.assertEqual(len(tsd['data']), len(rvars))
+        self.assertEqual(len(tsd['time']['']), 86400/(5*60) * ndays)
+        self.assertEqual(len(tsd['data']['']), len(rvars))
 
-        for var in tsd["data"]:
-            self.assertEqual(len(tsd['time']), tsd['data'][var].shape[0])
+        for var in tsd['data']['']:
+            self.assertEqual(len(tsd['time']['']), tsd['data'][''][var].shape[0])
             self.assertTrue(
-                tsd['data'][var].shape[1:] == (1,) or
-                tsd['data'][var].shape[1:] == ())
+                tsd['data'][''][var].shape[1:] == (1,) or
+                tsd['data'][''][var].shape[1:] == ())
 
         # check some data values for a given time
         xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=utc).timestamp()
 
-        self.assertTrue(xtime in tsd['time'])
-        ixtime = tsd['time'].index(xtime)
+        self.assertTrue(xtime in tsd['time'][''])
+        ixtime = tsd['time'][''].index(xtime)
 
         ixtime_expected = int((xtime-start_time.timestamp()) / (5*60))
         self.assertEqual(ixtime, ixtime_expected)
 
         # print("tsd['data']['w_1m'][ixtime]=",tsd['data']['w_1m'][ixtime])
-        ntp.assert_almost_equal(tsd['data']['w_1m'][ixtime], -0.02494044)
-        ntp.assert_almost_equal(tsd['data']['counts_2m_C'][ixtime], 6000)
+        ntp.assert_almost_equal(tsd['data']['']['w_1m'][ixtime], -0.02494044)
+        ntp.assert_almost_equal(tsd['data']['']['counts_2m_C'][ixtime], 6000)
 
-        ntp.assert_allclose(tsd['data']['w_1m'][ixtime], -0.02494044)
-        ntp.assert_allclose(tsd['data']['counts_2m_C'][ixtime], 6000)
+        ntp.assert_allclose(tsd['data']['']['w_1m'][ixtime], -0.02494044)
+        ntp.assert_allclose(tsd['data']['']['counts_2m_C'][ixtime], 6000)
 
