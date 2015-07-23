@@ -651,7 +651,7 @@
                 }
             });
 
-	    $("ul.tabrow li").click(function(e) {
+	    $("ul.tabrow li").on("click", function(e) {
 		e.preventDefault();
 		$("li").removeClass("selected");
 		$(this).addClass("selected");
