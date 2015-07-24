@@ -17,193 +17,205 @@
 <p>Status: {{ dataset.status }}</p>
 
 <div class="row">
-{% if messages %}
-<strong>
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-</strong>
-{% endif %}
-{{ form.non_field_errors }}
+    {% if messages %}
+    <strong>
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </strong>
+    {% endif %}
+    {{ form.non_field_errors }}
 </div>
 
 {% if form %}
-    <form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
-        {% csrf_token %}
+<form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
+    {% csrf_token %}
 
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Time</h3>
-                    </div>
-                    <div class="panel panel-body">
-                        <strong>{{ form.start_time.errors }} {{ form.time_length.errors }} {{ form.time_length_units.errors }}</strong>
-                        <div class="col-md-3">
-                            <span class="label label-default">Choose Start Time:</span>
-                            {{ form.start_time }}
-                        </div>
-                        <div class="col-md-3">
-                            <span class="label label-default">Or Track Real Time:</span>
-                            {{ form.track_real_time }}
-                        </div>
-                        <div class="col-md-3">
-                            <span class="label label-default">Time Zone:</span>
-                            {{ form.timezone }}
-                        </div>
-                        <div class="col-md-3">
-                            <span class="label label-default">Length:</span>
-                            {{ form.time_length }} {{ form.time_length_units }}
-                        </div>
-                    </div>
-                </div>
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Time</h3>
             </div>
-        {% if dataset.dset_type == 'sounding' %}
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Soundings</h3>
-                    </div>
-                    <div class="panel panel-body">
-                        <strong>{{ form.soundings.errors }}</strong>
-                        <div class="input-group">
-                            {% if form.soundings|length < 10 %}
-                            <label>set all<input id="soundings_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
-                            {% endif %}
-                            <label>clear all<input id="soundings_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
-                        </div>
-                        <div id="sounding-checkbox">
-                        {% for sndg in form.soundings %}
-                            <label>{{ sndg.choice_label }}{{ sndg.tag }}&nbsp;&nbsp;</label>
-                        {% endfor %}
-                        </div>
-                    </div>
+            <div class="panel panel-body">
+                <strong>{{ form.start_time.errors }} {{ form.time_length.errors }} {{ form.time_length_units.errors }}</strong>
+                <div class="col-md-3">
+                    <span class="label label-default">Choose Start Time:</span>
+                    {{ form.start_time }}
                 </div>
-            </div>
-        {% endif %}
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Variables</h3>
-                    </div>
-                    <div class="panel panel-body">
-                        <strong>{{ form.variables.errors }}</strong>
-                        <div class="input-group">
-                            {% if form.variables|length < 20%}
-                            <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
-                            {% endif %}
-                            <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
-                        </div>
-			<div class="container" id="variable-checkbox">
-			  <ul class="tabrow">
-			    {% for var in form.variables %}
-			    {% ifchanged var.choice_label|slice:"1"|lower %}
-			    {% ifequal var.choice_label form.variables.0.choice_label %}
-			    <li class="selected"><a data-toggle="tab" href="#{{ var.choice_label|slice:"1"|upper }}"> {{ var.choice_label|slice:"1"|upper }}</a></li> 
-			    {% else %}
-			    <li><a data-toggle="tab" href="#{{ var.choice_label|slice:"1"|upper }}"> {{ var.choice_label|slice:"1"|upper }}</a></li>
-			    {% endifequal %}
-			    {% endifchanged %}
-		            {% endfor %}
-			  </ul>
-			  <div class="tab-content">
-			    {% for var in form.variables %}
-			    {% ifequal var.choice_label form.variables.0.choice_label %}
-			    <div id="{{ var.choice_label|slice:"1"|upper }}" class="tab-pane fade in active">
-			      <h1> {{ var.choice_label|slice:"1"|upper }}</h1> 
-			      {% else %}
-			      {% ifchanged var.choice_label|slice:"1"|lower %}
-			    </div>
-			    <div id="{{ var.choice_label|slice:"1"|upper }}" class="tab-pane fade">
-			      <h1> {{ var.choice_label|slice:"1"|upper }}</h1>  
-			      {% endifchanged %}
-			      {% endifequal %}
-			      <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
-					 title="{{ variables|get_long_name:var.choice_label }}">
-				  {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
-			      {% ifequal var.choice_label form.variables.last.choice_label %}
-			    </div>
-			    {% endifequal %}
-		            {% endfor %}
-			  </div>
-			</div>  
-                    </div>
+                <div class="col-md-3">
+                    <span class="label label-default">Or Track Real Time:</span>
+                    {{ form.track_real_time }}
                 </div>
-            </div>
-	    {% if dataset.dset_type == 'sounding' %}
-	    <div class="col-md-12">
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                  <h3 class="panel-title">Y axis</h3>
+                <div class="col-md-3">
+                    <span class="label label-default">Time Zone:</span>
+                    {{ form.timezone }}
                 </div>
-                <div class="panel panel-body">
-                  <div id="variable-checkbox">
-                    {% for var in form.yvariable %}
-                      {{ var }}
-                    {% endfor %}
-                  </div>
-                </div>
-              </div>
-            </div>
-	    {% endif %}
-        <div class="row">
-            <div class="col-md-6">
-                <div class="btn-group">
-                    <button type="submit" name="submit" class="btn btn-default"
-                        value="plot" id="plot_button">Plot</button>
-                </div>
-                <div class="btn-group">
-                    <button type="submit" name="submit" class="btn btn-default"
-                        value="page-backward">Back</button>
-                    <button type="submit" name="submit" class="btn btn-default"
-                        value="page-forward">Forward</button>
+                <div class="col-md-3">
+                    <span class="label label-default">Length:</span>
+                    {{ form.time_length }} {{ form.time_length_units }}
                 </div>
             </div>
         </div>
-    </form>
+    </div>
+    {% if dataset.dset_type == 'sounding' %}
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Soundings</h3>
+            </div>
+            <div class="panel panel-body">
+                <strong>{{ form.soundings.errors }}</strong>
+                <div class="input-group">
+                    {% if form.soundings|length < 10 %}
+                    <label>set all<input id="soundings_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                    {% endif %}
+                    <label>clear all<input id="soundings_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
+                </div>
+                <div id="sounding-checkbox">
+                    {% for sndg in form.soundings %}
+                    <label>{{ sndg.choice_label }}{{ sndg.tag }}&nbsp;&nbsp;</label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Variables</h3>
+            </div>
+            <div class="panel panel-body">
+                <strong>{{ form.variables.errors }}</strong>
+                <div class="input-group">
+                    {% if form.variables|length < 20%}
+                    <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                    {% endif %}
+                    <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
+                </div>
+                <div class="container" id="variable-checkbox">
+                    {% if form.variables|length > 20 %}
+                    <ul class="tabrow">
+                        {% for var in form.variables %}
+                        {% with var.choice_label|slice:"1"|upper as first_letter %}
+                        {% ifchanged first_letter %}
+                        {% ifequal var.choice_label form.variables.0.choice_label %}
+                        <li class="selected"><a data-toggle="tab" href="#{{ first_letter }}"> {{ first_letter }}</a></li> 
+                        {% else %}
+                        <li><a data-toggle="tab" href="#{{ first_letter }}"> {{ first_letter }}</a></li>
+                        {% endifequal %}
+                        {% endifchanged %}
+                        {% endwith %}
+                        {% endfor %}
+                    </ul>
+                    <div class="tab-content">
+                        {% for var in form.variables %} 
+                        {% with var.choice_label|slice:"1"|upper as first_letter %}
+                        {% if forloop.first %}
+                        <div id="{{ first_letter }}" class="tab-pane fade in active">
+                            <h1> {{ first_letter }}</h1> 
+                            {% else %}
+                            {% ifchanged first_letter %}
+                        </div>
+                        <div id="{{ first_letter }}" class="tab-pane fade">
+                            <h1> {{ first_letter }}</h1>  
+                            {% endifchanged %}
+                            {% endif %}
+                            <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
+                                title="{{ variables|get_long_name:var.choice_label }}">
+                                {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
+                            {% if forloop.last %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {% for var in form.variables %} 
+                    <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
+                        title="{{ variables|get_long_name:var.choice_label }}">
+                        {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
+                    {% endfor %}
+                    {% endif %}
+                </div>  
+            </div>
+        </div>
+    </div>
+    {% if dataset.dset_type == 'sounding' %}
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Y axis</h3>
+            </div>
+            <div class="panel panel-body">
+                <div id="variable-checkbox">
+                    {% for var in form.yvariable %}
+                    {{ var }}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="btn-group">
+                <button type="submit" name="submit" class="btn btn-default"
+                    value="plot" id="plot_button">Plot</button>
+            </div>
+            <div class="btn-group">
+                <button type="submit" name="submit" class="btn btn-default"
+                    value="page-backward">Back</button>
+                <button type="submit" name="submit" class="btn btn-default"
+                    value="page-forward">Forward</button>
+            </div>
+        </div>
+    </div>
+</form>
 {% endif %}
 
 {% if dataset.dset_type == 'sounding' %}
-    <script>
-        var soundings = jQuery.parseJSON('{{ soundings }}');
-    </script>
+<script>
+var soundings = jQuery.parseJSON('{{ soundings }}');
+</script>
 {% endif %}
 
 {% if data %}
-    <script>
-        var plot_time0 = jQuery.parseJSON('{{ time0 }}');
-        var plot_times = jQuery.parseJSON('{{ time }}');
-        var plot_data = jQuery.parseJSON('{{ data }}');
-        // dim2 are values for 2nd dimension for heatmap plots
-        var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
-        // url to use with ajax to get real time data
+<script>
+var plot_time0 = jQuery.parseJSON('{{ time0 }}');
+var plot_times = jQuery.parseJSON('{{ time }}');
+var plot_data = jQuery.parseJSON('{{ data }}');
+// dim2 are values for 2nd dimension for heatmap plots
+var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
+// url to use with ajax to get real time data
 {% if form.track_real_time.value %}
-        var ajaxurl = "{% url 'ncharts:ajax-data' dataset.project.name dataset.name %}";
+var ajaxurl = "{% url 'ncharts:ajax-data' dataset.project.name dataset.name %}";
 {% endif %}
-        var soundings = jQuery.parseJSON('{{ soundings }}');
-        var sounding_yvar = '{{ yvariable }}';
-    </script>
+var soundings = jQuery.parseJSON('{{ soundings }}');
+var sounding_yvar = '{{ yvariable }}';
+</script>
 
-    {% for group,val in plot_groups.items %}
-        {% if val.plot_type == 'sounding-profile' %}
-        <div class="sounding-chart-wrapper">
-        {% else %}
-        <div class="time-series-chart-wrapper">
+{% for group,val in plot_groups.items %}
+{% if val.plot_type == 'sounding-profile' %}
+<div class="sounding-chart-wrapper">
+    {% else %}
+    <div class="time-series-chart-wrapper">
         {% endif %}
-          <div class="chart-inner">
+        <div class="chart-inner">
             <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
-          </div>
-        </div>    
+        </div>
+    </div>    
 
-        <script>
-            var div = $("#{{ val.plot_type }}_{{ group }}")[0];
-            jQuery.data(div,"series",'{{ val.series }}');
-            jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
-            jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
-            jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
-            jQuery.data(div,"dim2_name","{{ dim2.name }}");
-        </script>
+    <script>
+var div = $("#{{ val.plot_type }}_{{ group }}")[0];
+jQuery.data(div,"series",'{{ val.series }}');
+jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
+jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
+jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
+jQuery.data(div,"dim2_name","{{ dim2.name }}");
+    </script>
     {% endfor %}
-{% endif %}
-{% endblock %}
+    {% endif %}
+    {% endblock %}
