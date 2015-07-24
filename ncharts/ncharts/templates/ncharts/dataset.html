@@ -13,10 +13,10 @@
 {% block content %}
 <p><b>Project: </b><a href="{% url 'ncharts:project' dataset.project.name %}">{{ dataset.project.name }}</a></p>
 <p><b>Location: </b>{{ dataset.location }}</p>
-<p><b>More Information: </b><a href={{ dataset.url }}>{{ dataset.name }} Dataset</a></p>
-<p><b>Status: </b>{{ dataset.status }}</p>
 <p><b>Start Date:</b> {{ dataset.start_time }}</p>
 <p><b>End Date:</b> {{ dataset.end_time }}</p>
+<p><b>Status: </b>{{ dataset.status }}</p>
+<p><b>More Information: </b><a href={{ dataset.url }}>{{ dataset.name }} Dataset</a></p>
 
 <div class="row">
     {% if messages %}
