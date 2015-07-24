@@ -92,9 +92,7 @@
             <div class="panel panel-body">
                 <strong>{{ form.variables.errors }}</strong>
                 <div class="input-group">
-                    {% if form.variables|length < 20%}
                     <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
-                    {% endif %}
                     <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                 </div>
                 <div class="container" id="variable-checkbox">
