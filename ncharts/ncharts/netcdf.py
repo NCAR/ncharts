@@ -205,7 +205,7 @@ class NetCDFDataset(object):
 
         Returns:
             A dict of variables, keyed by the exported variable name.
-            Each variable value is a dict, containing the following keys:
+            Each value is a dict, containing the following keys:
                 shape: tuple containing the shape of the variable
                 dimnames: list of dimension names
                 dtype: NetCDF data type
@@ -1010,6 +1010,17 @@ class NetCDFDataset(object):
             exc = nc_exc.NoDataException(
                 "No data found between {} and {}".
                 format(
+                    start_time.isoformat(),
+                    end_time.isoformat()))
+            # _logger.warning("%s: %s", str(self), repr(exc))
+            raise exc
+
+        ncol_read = sum([len(cdata) for (i,cdata) in res_data.items()])
+        if ncol_read == 0:
+            exc = nc_exc.NoDataException(
+                "No variables named {} found between {} and {}".
+                format(
+                    repr(variables),
                     start_time.isoformat(),
                     end_time.isoformat()))
             # _logger.warning("%s: %s", str(self), repr(exc))
