@@ -17,9 +17,6 @@ from datetimewidget import widgets as dt_widgets
 
 import pytz
 
-# from django.utils.encoding import force_text
-# from django.utils.safestring import mark_safe
-
 import datetime
 
 import sys, logging
@@ -220,9 +217,10 @@ class DataSelectionForm(forms.Form):
         Args:
             variables: list of variable names.
         """
-        variables = sorted(variables, key = str.lower)
         # choices: (value, label)
-        self.fields['variables'].choices = [(v, v) for v in variables]
+        self.fields['variables'].choices = \
+                sorted([(n, n) for n in variables],key=lambda x: str.lower(x[0]))
+        # print("choices=%s" % repr(self.fields['variables'].choices))
 
     def set_yvariable_choices(self, variables):
         """Set the available Y axis variables in this form.
@@ -231,8 +229,8 @@ class DataSelectionForm(forms.Form):
             variables: list of variable names.
         """
         # choices: (value, label)
-        self.fields['yvariable'].choices = [(v, v) for v in variables]
-
+        self.fields['yvariable'].choices = \
+                sorted([(n, n) for n in variables],key=lambda x: str.lower(x[0]))
 
     def clean(self):
         """Check the user's selections for correctness.
@@ -330,10 +328,12 @@ class DataSelectionForm(forms.Form):
             a datetime.timedelta.
         """
 
+        if not 'time_length' in self.cleaned_data or \
+                not 'time_length_units' in self.cleaned_data:
+            return None
+
         tlen = self.cleaned_data['time_length']   # normalized to float
-
         tunits = self.cleaned_data['time_length_units']     # string
-
         return get_time_length(tlen, tunits)
 
     def get_cleaned_start_time(self):
@@ -343,6 +343,10 @@ class DataSelectionForm(forms.Form):
             A datetime.datetime, within the timezone of cleaned_data['timezone'].
 
         """
+        if not 'start_time' in self.cleaned_data or \
+                not 'timezone' in self.cleaned_data:
+            return None
+
         start_time = self.cleaned_data['start_time']
         timezone = self.cleaned_data['timezone']
 
