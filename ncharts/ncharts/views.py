@@ -991,11 +991,13 @@ class DataView(View):
                 else:
                     ncdata = dbcon.read_time_series(
                         [vname], start_time=stime, end_time=etime)
+
+                # one series
+                ser_data = ncdata['']
+                vindex = ser_data['vmap'][vname]
+
                 try:
-                    # one series
-                    ser_data = ncdata['']
-                    lastok = np.where(
-                        ~np.isnan(ser_data['data'][0]))[0][-1]
+                    lastok = np.where(~np.isnan(ser_data['data'][vindex]))[0][-1]
                     time_last_ok = ser_data['time'][lastok]
                     if debug:
                         _logger.debug(
@@ -1019,7 +1021,7 @@ class DataView(View):
                         if t > time_last), -1)
                     if idx >= 0:
                         ser_data['time'] = ser_data['time'][idx:]
-                        ser_data['data'][0] = ser_data['data'][0][idx:]
+                        ser_data['data'][vindex] = ser_data['data'][vindex][idx:]
                         time_last = ser_data['time'][-1]
                     else:
                         if debug:
@@ -1031,7 +1033,7 @@ class DataView(View):
                                 datetime.datetime.fromtimestamp(
                                     time_last, tz=timezone).isoformat())
                         ser_data['time'] = []
-                        ser_data['data'][0] = []
+                        ser_data['data'][vindex] = []
             except OSError as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 continue
@@ -1070,7 +1072,7 @@ class DataView(View):
                 'time': mark_safe(json.dumps(
                     [x - time0 for x in ser_data['time']])),
                 'data': mark_safe(json.dumps(
-                    ser_data['data'][0], cls=NChartsJSONEncoder)),
+                    ser_data['data'][vindex], cls=NChartsJSONEncoder)),
                 'dim2': dim2
             })
 
