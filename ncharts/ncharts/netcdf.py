@@ -17,7 +17,10 @@ from datetime import datetime
 import pytz
 import numpy as np
 import logging
+import threading
 import operator
+
+from django.utils import html
 
 from functools import reduce as reduce_
 
@@ -26,6 +29,20 @@ from ncharts import fileset as nc_fileset
 
 # __name__ is ncharts.netcdf
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
+
+def get_file_modtime(path):
+    """ Utility to get the modification time of a file. """
+    try:
+        pstat = os.stat(path)
+    except FileNotFoundError as exc:
+        _logger.error(exc)
+        raise
+    except PermissionError as exc:
+        _logger.error(exc)
+        raise
+
+    return datetime.fromtimestamp(
+        pstat.st_mtime, tz=pytz.utc)
 
 class NetCDFDataset(object):
     """A dataset consisting of NetCDF files.
@@ -49,7 +66,7 @@ class NetCDFDataset(object):
     Attributes:
         fileset: The nc_fileset.FileSet encapsulating a set of files.
         variables: Dict of dicts for all time-series variables found in
-            dataset by variable name:
+            dataset by their "exported" variable name:
                 { 'shape': tuple of integer dimensions of the variable,
                   'dimnames': tuple of str dimension names for variable,
                   'units': str value of "units" attribute if found,
@@ -72,68 +89,111 @@ class NetCDFDataset(object):
 
     MAX_NUM_FILES_TO_PRESCAN = 50
 
+    __cache_lock = threading.Lock()
+
+    # dictionary, by file path, of attributes of a NetCDFDataset.
+    __cached_dataset_info = {}
+
     def __init__(self, path):
         """Constructs NetCDFDataset with a path to a filesetFileset.
 
         Raises:
             none
         """
+        self.path = path
 
-        self.fileset = nc_fileset.Fileset.get(path)
-        self.variables = {}
-        self.base_time = None
-        self.time_dim = None
-        self.time_name = None
-        self.nstations = None
-        self.station_dim = None
-        self.station_names = None
+    @staticmethod
+    def get_dataset_info(path):
+        """Fetch the cache of info for this dataset.
+        """
+        with NetCDFDataset.__cache_lock:
+            if path in NetCDFDataset.__cached_dataset_info:
+                return NetCDFDataset.__cached_dataset_info[path].copy()
+        dsinfo = {
+            'fileset': nc_fileset.Fileset.get(path),
+            'file_mod_times': {},
+            'base_time': None,
+            'time_dim_name': None,
+            'time_name': None,
+            'nstations': None,
+            'station_dim': None,
+            'station_names': None,
+            'variables': {},
+        }
+        return dsinfo
+
+    @staticmethod
+    def save_dataset_info(path, dsinfo):
+        """Cache the info for this dataset.
+        """
+        with NetCDFDataset.__cache_lock:
+            NetCDFDataset.__cached_dataset_info[path] = dsinfo
 
     def __str__(self):
-        return "NetCDFDataset, path=" + str(self.fileset)
+        return "NetCDFDataset, path=" + str(self.path)
 
-    def get_files(self, start_time, end_time):
-        """Return the file path names matching the time period.
-        Args:
-            start_time: datetime.datetime of start of fileset scan.
-            end_time: end of fileset scan.
-
-        Returns:
-            List of file path names matching the time period.
-
-        Raises:
-            FileNotFoundError, PermissionError
-        """
-        return self.fileset.scan(start_time, end_time)
-
-    def get_filepaths(self, start_time, end_time):
-        """Return the file path names matching the time period.
-        Args:
-            start_time: datetime.datetime of start of fileset scan.
-            end_time: end of fileset scan.
-
-        Returns:
-            List of file path names matching the time period.
-
-        Raises:
-            FileNotFoundError, PermissionError
-        """
-        return [f.path for f in self.fileset.scan(start_time, end_time)]
-
-    def get_variables(
+    def get_files(
             self,
             start_time=pytz.utc.localize(datetime.min),
             end_time=pytz.utc.localize(datetime.max),
-            time_names=('time', 'Time', 'time_offset')):
-        """ Scan the set of files for time series variables.
+            dataset_info=None):
+        """Return the fileset.File objects matching a time period.
 
         Args:
             start_time: datetime.datetime of start of fileset scan.
             end_time: end of fileset scan.
+
+        Returns:
+            List of file path names matching the time period.
+
+        Raises:
+            FileNotFoundError, PermissionError
+        """
+        if not dataset_info:
+            dataset_info = NetCDFDataset.get_dataset_info(self.path)
+        return dataset_info['fileset'].scan(start_time, end_time)
+
+    def get_filepaths(
+            self,
+            start_time=pytz.utc.localize(datetime.min),
+            end_time=pytz.utc.localize(datetime.max),
+            dataset_info=None):
+        """Return the file path names matching the time period.
+        Args:
+            start_time: datetime.datetime of start of fileset scan.
+            end_time: end of fileset scan.
+
+        Returns:
+            List of file path names matching the time period.
+
+        Raises:
+            FileNotFoundError, PermissionError
+        """
+        return [f.path for f in self.get_files(start_time, end_time, dataset_info=dataset_info)]
+
+    def get_variables(
+            self,
+            time_names=('time', 'Time', 'time_offset')):
+        """ Scan the set of files for time series variables, returning a dict
+        for information about the variables.
+
+        The names of the variables in the dataset are converted to an exported
+        form. If a variable has a 'short_name' attribute, it is used for the
+        variable name, otherwise the exported name is set to the NetCDF variable
+        name. Finally, the variable name is escaped for use in html.
+
+        Note, we don't read every file.  May want to have
+        MAX_NUM_FILES_TO_PRESCAN be an attribute of the dataset.
+
+        Even better, would be nice to know that one only
+        needs to read a reduced set of files, perhaps just one!
+
+        Args:
             time_names: List of allowed names for time variable.
 
         Returns:
-            A dict of variables, keyed by name. Each variable value is
-            a dict, containing the following keys:
+            A dict of variables, keyed by the exported variable name.
+            Each variable value is a dict, containing the following keys:
                 shape: tuple containing the shape of the variable
                 dimnames: list of dimension names
                 dtype: NetCDF data type
@@ -145,7 +205,13 @@ class NetCDFDataset(object):
             nc_exc.NoDataFoundException
         """
 
-        filepaths = self.get_filepaths(start_time, end_time)
+        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+
+        # Note: dsinfo_vars is a reference. Modificatons to it
+        # are also modifications to dsinfo.
+        dsinfo_vars = dsinfo['variables']
+
+        filepaths = self.get_filepaths(dataset_info=dsinfo)
 
         skip = 1
         if len(filepaths) > NetCDFDataset.MAX_NUM_FILES_TO_PRESCAN:
@@ -185,8 +251,18 @@ class NetCDFDataset(object):
             # but perhaps the python server would.  Complicated.
 
             fileok = False
+            skip_file = False
+
             for itry in range(0, 3):
                 try:
+                    curr_mod_time = get_file_modtime(ncpath)
+                    if ncpath in dsinfo['file_mod_times']:
+                        prev_mod_time = dsinfo['file_mod_times'][ncpath]
+                        if curr_mod_time <= prev_mod_time:
+                            skip_file = True
+                            fileok = True
+                            break
+                    dsinfo['file_mod_times'][ncpath] = curr_mod_time
                     # _logger.debug("ncpath=%s",ncpath)
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
@@ -202,10 +278,13 @@ class NetCDFDataset(object):
                 continue
 
             n_files_read += 1
+
+            if skip_file:
+                continue
+
             try:
-                if not self.base_time and \
-                    "base_time" in ncfile.variables:
-                    self.base_time = "base_time"
+                if not dsinfo['base_time'] and 'base_time' in ncfile.variables:
+                    dsinfo['base_time'] = 'base_time'
 
                 tdim = None
                 # look for a time dimension
@@ -217,134 +296,142 @@ class NetCDFDataset(object):
                     continue
 
                 # check for tdim.is_unlimited?
-                if not self.time_dim:
-                    self.time_dim = tdim.name
+                if not dsinfo['time_dim_name']:
+                    dsinfo['time_dim_name'] = tdim.name
 
-                if "station" in ncfile.dimensions:
-                    if not self.nstations:
-                        self.nstations = len(ncfile.dimensions["station"])
-                        self.station_dim = "station"
-                    elif not self.nstations == \
+                if 'station' in ncfile.dimensions:
+                    if not dsinfo['nstations']:
+                        dsinfo['nstations'] = len(ncfile.dimensions["station"])
+                        dsinfo['station_dim'] = "station"
+                    elif not dsinfo['nstations'] == \
                             len(ncfile.dimensions["station"]):
                         _logger.warning(
                             "%s: station dimension (%d) is "
                             "different than that of other files (%d)",
                             ncpath,
                             len(ncfile.dimensions["station"]),
-                            self.nstations)
+                            dsinfo['nstations'])
 
-                    if not self.station_names and "station" in ncfile.variables:
+                    if not dsinfo['station_names'] and 'station' in ncfile.variables:
                         var = ncfile.variables["station"]
                         if var.datatype == np.dtype('S1'):
-                            self.station_names = [str(netCDF4.chartostring(v))
-                                                  for v in var]
+                            dsinfo['station_names'] = \
+                                [str(netCDF4.chartostring(v)) for v in var]
 
                 # look for a time variable
-                if not self.time_name:
+                if not dsinfo['time_name']:
                     for tname in time_names:
                         if tname in ncfile.variables:
                             if tdim.name in ncfile.variables[tname].dimensions:
-                                self.time_name = tname
+                                dsinfo['time_name'] = tname
                                 break
 
-                if not self.time_name or not self.time_name in ncfile.variables:
+                if not dsinfo['time_name'] or \
+                    not dsinfo['time_name'] in ncfile.variables:
                     # time variable not yet found or not in this file
                     continue
 
-                if not tdim.name in ncfile.variables[self.time_name].dimensions:
+                if not tdim.name in ncfile.variables[dsinfo['time_name']].dimensions:
                     # time variable in this file doesn't have a time dimension
                     continue
 
                 # pylint: disable=no-member
-                for (vname, var) in ncfile.variables.items():
+                for (nc_vname, var) in ncfile.variables.items():
 
                     # looking for time series variables
-                    if not self.time_dim in var.dimensions:
+                    if not dsinfo['time_dim_name'] in var.dimensions:
                         continue
 
                     # time variable
-                    if vname == self.time_name:
+                    if nc_vname == dsinfo['time_name']:
                         continue
 
+                    # exported variable name
+                    if hasattr(var, 'short_name'):
+                        exp_vname = getattr(var, 'short_name')
+                    else:
+                        exp_vname = nc_vname
+
                     # var.dimensions is a tuple of dimension names
-                    time_index = var.dimensions.index(self.time_dim)
+                    time_index = var.dimensions.index(dsinfo['time_dim_name'])
 
                     # Check if we have found this variable in a earlier file
-                    if not vname in self.variables:
-                        self.variables[vname] = {}
-                        self.variables[vname]["shape"] = var.shape
-                        self.variables[
-                            vname]["dimnames"] = var.dimensions
-                        self.variables[vname]["dtype"] = var.dtype
-                        self.variables[vname]["time_index"] = time_index
+                    if not exp_vname in dsinfo_vars:
+                        dsinfo_vars[exp_vname] = {}
+                        dsinfo_vars[exp_vname]['netcdf_name'] = nc_vname
+                        dsinfo_vars[exp_vname]['shape'] = var.shape
+                        dsinfo_vars[
+                            exp_vname]['dimnames'] = var.dimensions
+                        dsinfo_vars[exp_vname]['dtype'] = var.dtype
+                        dsinfo_vars[exp_vname]['time_index'] = time_index
                         # Grab certain attributes
-                        for att in ["units", "long_name", "short_name"]:
+                        for att in ['units', 'long_name', 'short_name']:
                             if hasattr(var, att):
-                                self.variables[vname][att] = getattr(var, att)
-                            else:
-                                self.variables[vname][att] = ""
+                                dsinfo_vars[exp_vname][att] = getattr(var, att)
+                            # else:
+                            #     dsinfo_vars[exp_vname][att] = ''
                         continue
 
                     # variable has been found in an earlier ncfile
                     # check for consistancy across files
-                    if self.variables[vname]["shape"][1:] != var.shape[1:]:
+                    if dsinfo_vars[exp_vname]['shape'][1:] != var.shape[1:]:
                         # the above check works even if either shape
                         # has length 1
-                        if len(self.variables[vname]["shape"]) != \
+                        if len(dsinfo_vars[exp_vname]['shape']) != \
                                 len(var.shape):
                             # changing number of dimensions, punt
                             _logger.error(
                                 "%s: %s: number of "
                                 "dimensions: %d and %d changes. "
                                 "Skipping this variable.",
-                                ncpath, vname, len(var.shape),
-                                len(self.variables[vname]["shape"]))
-                            del self.variables[vname]
+                                ncpath, nc_vname, len(var.shape),
+                                len(dsinfo_vars[exp_vname]['shape']))
+                            del dsinfo_vars[exp_vname]
                             continue
                         # here we know that shapes have same length and
                         # they must have len > 1. Allow final dimension
                         # to change.
                         ndim = len(var.shape)
-                        if (self.variables[vname]["shape"][1:(ndim-1)] !=
+                        if (dsinfo_vars[exp_vname]['shape'][1:(ndim-1)] !=
                                 var.shape[1:(ndim-1)]):
                             _logger.error(
                                 "%s: %s: incompatible shapes: "
                                 "%s and %s. Skipping this variable.",
-                                ncpath, vname, repr(var.shape),
-                                repr(self.variables[vname]["shape"]))
-                            del self.variables[vname]
+                                ncpath, nc_vname, repr(var.shape),
+                                repr(dsinfo_vars[exp_vname]['shape']))
+                            del dsinfo_vars[exp_vname]
                             continue
                         # set shape to max shape (leaving the problem
                         # for later...)
-                        self.variables[vname]["shape"] = tuple(
+                        dsinfo_vars[exp_vname]['shape'] = tuple(
                             [max(i, j) for (i, j) in zip(
-                                self.variables[vname]["shape"], var.shape)])
+                                dsinfo_vars[exp_vname]['shape'], var.shape)])
 
-                    if self.variables[vname]["dtype"] != var.dtype:
+                    if dsinfo_vars[exp_vname]['dtype'] != var.dtype:
                         _logger.error(
                             "%s: %s: type=%s is different than "
                             "in other files",
-                            ncpath, vname, repr(var.dtype))
+                            ncpath, nc_vname, repr(var.dtype))
 
-                    if self.variables[vname]["time_index"] != time_index:
+                    if dsinfo_vars[exp_vname]['time_index'] != time_index:
                         _logger.error(
                             "%s: %s: time_index=%d is different than "
                             "in other files. Skipping this variable.",
-                            ncpath, vname, time_index)
-                        del self.variables[vname]
+                            ncpath, nc_vname, time_index)
+                        del dsinfo_vars[exp_vname]
 
             finally:
                 ncfile.close()
 
         if not n_files_read:
-            if start_time == pytz.utc.localize(datetime.min):
-                msg = "No variables found"
-            else:
-                msg = "No variables found between {} and {}".format(
-                    start_time.isoformat(), end_time.isoformat())
+            msg = "No variables found"
             raise nc_exc.NoDataFoundException(msg)
 
-        return self.variables
+        # cache dsinfo
+        dsvars = dsinfo_vars.copy()
+        NetCDFDataset.save_dataset_info(self.path, dsinfo)
+
+        return dsvars
 
     def resolve_variable_shapes(self, variables, selectdim):
         """Determine the shape of variables in this dataset.
@@ -364,13 +451,16 @@ class NetCDFDataset(object):
             the user has specified selectdim to sub-select over a dimension.
         """
         vshapes = {}
-        for vname in variables:
-            if vname in self.variables:
+        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo_vars = dsinfo['variables']
+
+        for exp_vname in variables:
+            if exp_vname in dsinfo_vars:
                 # maximum shape of this variable in all files
 
-                vshape = list(self.variables[vname]["shape"])
-                time_index = self.variables[vname]["time_index"]
-                vdims = self.variables[vname]["dimnames"]
+                vshape = list(dsinfo_vars[exp_vname]["shape"])
+                time_index = dsinfo_vars[exp_vname]["time_index"]
+                vdims = dsinfo_vars[exp_vname]["dimnames"]
 
                 dmatch = True
                 for dim in selectdim:
@@ -392,7 +482,7 @@ class NetCDFDataset(object):
 
                 # determine selected shape for variable
                 for idim, dim in enumerate(vdims):
-                    if dim == self.time_dim:
+                    if dim == dsinfo['time_dim_name']:
                         pass
                     elif dim == "sample":
                         # high rate files with a sample dimension
@@ -412,7 +502,7 @@ class NetCDFDataset(object):
                 # remove non-time shape values of 1
                 vshape = [dim for (idim, dim) in enumerate(vshape) \
                         if idim != time_index or dim > 1]
-                vshapes[vname] = vshape
+                vshapes[exp_vname] = vshape
 
         return vshapes
 
@@ -444,16 +534,18 @@ class NetCDFDataset(object):
 
         debug = False
 
+        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+
         base_time = None
 
-        if self.base_time and \
-                self.base_time in ncfile.variables and \
-                len(ncfile.variables[self.base_time].dimensions) == 0:
-            base_time = ncfile.variables[self.base_time].getValue()
+        if dsinfo['base_time'] and \
+                dsinfo['base_time'] in ncfile.variables and \
+                len(ncfile.variables[dsinfo['base_time']].dimensions) == 0:
+            base_time = ncfile.variables[dsinfo['base_time']].getValue()
             # _logger.debug("base_time=%d",base_time)
 
-        if self.time_name in ncfile.variables:
-            var = ncfile.variables[self.time_name]
+        if dsinfo['time_name'] in ncfile.variables:
+            var = ncfile.variables[dsinfo['time_name']]
 
             if len(var) == 0:
                 return slice(0)
@@ -471,7 +563,7 @@ class NetCDFDataset(object):
                     _logger.error(
                         "%s: %s: cannot index variable %s",
                         os.path.split(ncpath)[1],
-                        exc, self.time_name)
+                        exc, dsinfo['time_name'])
                     return slice(0)
                 except TypeError:
                     if base_time:
@@ -479,13 +571,13 @@ class NetCDFDataset(object):
                             "%s: %s: cannot parse units: %s. "
                             "Using base_time instead",
                             os.path.split(ncpath)[1],
-                            self.time_name, var.units)
+                            dsinfo['time_name'], var.units)
                         tvals = [base_time + val for val in var[:]]
                     else:
                         _logger.error(
                             "%s: %s: cannot parse units: %s",
                             os.path.split(ncpath)[1],
-                            self.time_name, var.units)
+                            dsinfo['time_name'], var.units)
                         tvals = [val for val in var[:]]
             else:
                 try:
@@ -495,7 +587,7 @@ class NetCDFDataset(object):
                     _logger.error(
                         "%s: %s: cannot index variable %s",
                         os.path.split(ncpath)[1],
-                        exc, self.time_name)
+                        exc, dsinfo['time_name'])
                     return slice(0)
 
             # pylint: disable=pointless-string-statement
@@ -560,7 +652,7 @@ class NetCDFDataset(object):
             return time_slice
 
     def read_time_series_data(
-            self, ncfile, ncpath, vname, time_slice, vshape,
+            self, ncfile, ncpath, exp_vname, time_slice, vshape,
             selectdim, dim2):
         """ Read values of a time-series variable from a netCDF4 dataset.
 
@@ -568,7 +660,7 @@ class NetCDFDataset(object):
             ncfile: An opened netCFD4.Dataset.
             ncpath: Path to the dataset. netCDF4.Dataset.filepath() is only
                 supported in netcdf version >= 4.1.2.
-            vname: Name of variable to read.
+            exp_vname: Exported name of variable to read.
             time_slice: The slice() of time indices to read.
             vshape: Shape of the variable in case it isn't in the file
                 an a filled array should be returned.
@@ -583,21 +675,26 @@ class NetCDFDataset(object):
             A numpy.ma.array containing the data read.
         """
 
+        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo_vars = dsinfo['variables']
+
         debug = False
 
         # which dimension is time?
-        time_index = self.variables[vname]["time_index"]
+        time_index = dsinfo_vars[exp_vname]["time_index"]
 
-        vdtype = self.variables[vname]["dtype"]
+        vdtype = dsinfo_vars[exp_vname]["dtype"]
 
-        if vname in ncfile.variables:
+        nc_vname = dsinfo_vars[exp_vname]['netcdf_name']
 
-            var = ncfile.variables[vname]
+        if nc_vname in ncfile.variables:
+
+            var = ncfile.variables[nc_vname]
 
             # indices of variable to be read
             idx = ()
             for idim, dim in enumerate(var.dimensions):
-                if dim == self.time_dim:
+                if dim == dsinfo['time_dim_name']:
                     idx += (time_slice,)
                 elif dim == "sample":
                     # high rate files with a sample dimension
@@ -623,10 +720,10 @@ class NetCDFDataset(object):
                     sized = len(ncfile.dimensions[dim])
                     idx += (slice(0, sized), )
                     if not dim2:
-                        # self.variables[vname]['shape'][idim] will
+                        # dsinfo_vars[exp_vname]['shape'][idim] will
                         # be the largest value for this dimension
                         # in the set of files.
-                        sized = self.variables[vname]['shape'][idim]
+                        sized = dsinfo_vars[exp_vname]['shape'][idim]
                         dim2['data'] = [i for i in range(sized)]
                         dim2['name'] = dim
                         dim2['units'] = ''
@@ -635,7 +732,7 @@ class NetCDFDataset(object):
                 _logger.debug(
                     "%s: %s: time_slice.start,"
                     "time_slice.stop=%d,%d, idx[1:]=%s",
-                    os.path.split(ncpath)[1], vname,
+                    os.path.split(ncpath)[1], nc_vname,
                     time_slice.start, time_slice.stop,
                     repr(idx[1:]))
 
@@ -670,13 +767,13 @@ class NetCDFDataset(object):
             # variable is not in file, create NaN filled array
             # Determine shape of variable. Change the first, time dimension
             # to match the selected period.  The remaininng dimension
-            # in self.variables[vname]['shape'] is the largest of those
+            # in dsinfo_vars[exp_vname]['shape'] is the largest of those
             # seen in the selected files.
             shape = vshape
             shape[time_index] = time_slice.stop - time_slice.start
             shape = tuple(shape)
 
-            vdtype = self.variables[vname]["dtype"]
+            vdtype = dsinfo_vars[exp_vname]["dtype"]
             fill_val = (
                 0 if vdtype.kind == 'i' or
                 vdtype.kind == 'u' else float('nan'))
@@ -720,36 +817,57 @@ class NetCDFDataset(object):
                 element named ''.
 
         Returns:
-            A dict containing:
-                'time' : dict, by series name, of lists of
-                    UTC timestamps,
-                'data': dict, by series name, of dicts by variable name,
-                    of numpy.ndarray containing the data for each variable,
-                'dim2': dict, by series name, of a dict by variable name,
-                    of values for second dimension of the data, such as height,
+            A dict containing, by series name:
+                'time' : list of UTC timestamps,
+                'data': list of numpy.ndarray containing the data for
+                    each variable,
+                'vmap': dict by variable name,
+                    containing the index into the series data for the variable,
+                'dim2': dict by variable name, of values for second dimension
+                    of the data, such as height,
             }
 
         Raises:
             nc_exc.NoDataFoundException
             nc_exc.NoDataException
 
+        The 'data' element in the returned dict is a list of numpy arrays,
+        and not a dict by variable name. The 'vmap' element provides the
+        mapping from a variable name to an index into 'data'. The data object
+        is typically JSON-ified and sent to a browser. If it were a dict,
+        the variable names may contain characters which cause headaches with
+        JSON and javascript in django templates. For example, the JSON-ified
+        string is typically passed to javascript in a django template by
+        surrounding it with single quotes:
+            var data = jQuery.parseJSON('{{ data }}');
+        A single quote within the data JSON string causes grief, and we want
+        to support single quotes in variable names. The only work around I
+        know of is to convert the single quotes within the string to '\u0027'.
+        This is, of course, a time-consuming step we want to avoid when
+        JSON-ifying a large chunk of data.  It is less time-consuming to
+        replace the quotes in the smaller vmap.
+
+        The series names will not contain single quotes.
+
         """
 
         debug = False
 
-        if not self.time_name:
-            self.get_variables(start_time, end_time)
+        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo_vars = dsinfo['variables']
+
+        if not dsinfo['time_name']:
+            self.get_variables()
 
         if not selectdim:
             selectdim = {}
 
         vshapes = self.resolve_variable_shapes(variables, selectdim)
 
-        res_times = {}
         res_data = {}
-        res_dim2 = {}
 
         total_size = 0
+        ntimes = 0
 
         files = self.get_files(start_time, end_time)
         if debug:
@@ -789,20 +907,25 @@ class NetCDFDataset(object):
             if not fileok:
                 continue
 
-            if series_name in res_times:
-                otimes = res_times[series_name]
-                odata = res_data[series_name]
-                odim2 = res_dim2[series_name]
-            else:
-                otimes = []
-                odata = {}
-                odim2 = {}
+            if not series_name in res_data:
+                res_data[series_name] = {
+                    'time': [],
+                    'data': [],
+                    'vmap': {},
+                    'dim2': {},
+                }
+
+            otime = res_data[series_name]['time']
+            odata = res_data[series_name]['data']
+            ovmap = res_data[series_name]['vmap']
+            odim2 = res_data[series_name]['dim2']
 
             try:
-                size1 = sys.getsizeof(otimes)
+                size1 = sys.getsizeof(otime)
 
+                # times are apended to otime
                 time_slice = self.read_times(
-                    ncfile, ncpath, start_time, end_time, otimes,
+                    ncfile, ncpath, start_time, end_time, otime,
                     size_limit - total_size)
 
                 # time_slice.start is None if nothing to read
@@ -810,20 +933,20 @@ class NetCDFDataset(object):
                     time_slice.stop <= time_slice.start:
                     continue
 
-                total_size += sys.getsizeof(otimes) - size1
+                total_size += sys.getsizeof(otime) - size1
 
-                for vname in variables:
+                for exp_vname in variables:
 
                     # skip if variable is not a time series or
                     # doesn't have a selected dimension
-                    if not vname in self.variables or not vname in vshapes:
+                    if not exp_vname in dsinfo_vars or not exp_vname in vshapes:
                         continue
 
                     # selected shape of this variable
-                    vshape = vshapes[vname]
+                    vshape = vshapes[exp_vname]
                     vsize = reduce_(
                         operator.mul, vshape, 1) * \
-                        self.variables[vname]["dtype"].itemsize
+                        dsinfo_vars[exp_vname]["dtype"].itemsize
 
                     if total_size + vsize > size_limit:
                         raise nc_exc.TooMuchDataException(
@@ -832,40 +955,36 @@ class NetCDFDataset(object):
 
                     dim2 = {}
                     vdata = self.read_time_series_data(
-                        ncfile, ncpath, vname, time_slice, vshape,
+                        ncfile, ncpath, exp_vname, time_slice, vshape,
                         selectdim, dim2)
 
-                    if not vname in odim2:
-                        odim2[vname] = dim2
+                    if not exp_vname in odim2:
+                        odim2[exp_vname] = dim2
 
-                    if not vname in odata:
+                    if not exp_vname in ovmap:
                         size1 = 0
-                        odata[vname] = vdata
+                        vindex = len(odata)
+                        odata.append(vdata)
+                        ovmap[exp_vname] = vindex
                     else:
                         if debug:
                             _logger.debug(
                                 "odata[%s].shape=%s, vdata.shape=%s",
-                                vname, odata[vname].shape, vdata.shape)
+                                exp_vname, odata[exp_vname].shape, vdata.shape)
 
-                        size1 = sys.getsizeof(odata[vname])
+                        vindex = ovmap[exp_vname]
+                        size1 = sys.getsizeof(odata[vindex])
 
-                        time_index = self.variables[vname]["time_index"]
-                        odata[vname] = np.append(
-                            odata[vname], vdata, axis=time_index)
+                        time_index = dsinfo_vars[exp_vname]["time_index"]
+                        odata[vindex] = np.append(
+                            odata[vindex], vdata, axis=time_index)
 
-                    total_size += sys.getsizeof(odata[vname]) - size1
+                    total_size += sys.getsizeof(odata[vindex]) - size1
 
             finally:
                 ncfile.close()
 
-            if not series_name in res_times:
-                if debug:
-                    _logger.debug("len(otimes)=%d", len(otimes))
-                res_times[series_name] = otimes
-                res_data[series_name] = odata
-                res_dim2[series_name] = odim2
-
-        ntimes = sum([len(x) for x in res_times.values()])
+            ntimes += len(otime)
 
         if ntimes == 0:
             exc = nc_exc.NoDataException(
@@ -878,12 +997,15 @@ class NetCDFDataset(object):
 
         if debug:
             for series_name in res_data.keys():
-                for vname in res_data[series_name].keys():
+                for exp_vname in res_data[series_name]['vmap']:
+                    var_index = res_data[series_name]['vmap'][exp_name]
                     _logger.debug(
-                        "res_data[%s][%s].shape=%s",
-                        series_name, vname, repr(res_data[series_name][vname].shape))
+                        "res_data[%s][%d].shape=%s, exp_vname=%s",
+                        series_name, var_index,
+                        repr(res_data[series_name][var_index].shape),
+                        exp_vname)
             _logger.debug(
                 "total_size=%d", total_size)
 
-        return {"time" : res_times, "data": res_data, "dim2": res_dim2}
+        return res_data
 

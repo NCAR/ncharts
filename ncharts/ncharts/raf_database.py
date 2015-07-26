@@ -249,15 +249,16 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
             size_limit: attempt to screen outrageous requests.
 
         Returns:
-            A dict, compatible with that returned by netcdf.read_time_series(),
-            containing the following, where series name is an empty string:
+            A one element dict, compatible with that returned by
+            netcdf.read_time_series(), containing for a series_name of '':
             {
-                'time' : dict, by series name, of lists of
-                    UTC timestamps,
-                'data': dict, by series name, of dicts by variable name,
-                    of numpy.ndarray containing the data for each variable,
-                'dim2': dict, by series name, of a dict by variable name,
-                    of values for second dimension of the data, such as height,
+                'time' : list of UTC timestamps,
+                'data': lists of numpy.ndarray containing
+                    the data for each variable,
+                'vmap': dict by variable name,
+                    containing the index into the series data for the variable,
+                'dim2': dict by variable name, of values for second
+                    dimension of the data, such as height,
             }
         Raises:
             nc_exc.NoDataFoundException
@@ -268,15 +269,17 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
         start_time = start_time.replace(tzinfo=None)
         end_time = end_time.replace(tzinfo=None)
 
-        times = self.read_times(start_time=start_time, end_time=end_time)
-        # _logger.debug("read_times, len=%d", len(times))
+        vtime = self.read_times(start_time=start_time, end_time=end_time)
+        # _logger.debug("read_times, len=%d", len(vtime))
 
-        total_size += sys.getsizeof(times)
+        total_size += sys.getsizeof(vtime)
         if total_size > size_limit:
             raise nc_exc.TooMuchDataException(
                 "too many time values requested, size={0} MB".\
                 format(total_size/(1000 * 1000)))
-        vdata = {}
+
+        vdata = []
+        vmap = {}
         vdim2 = {}
 
         try:
@@ -291,7 +294,7 @@ SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
                     vinfo = cur.fetchall()
                     # _logger.debug("vinfo=%s",vinfo)
                     dims = vinfo[0][0]
-                    dims[0] = len(times)
+                    dims[0] = len(vtime)
                     missval = vinfo[0][1]
 
                     if len(dims) > 1:
@@ -325,7 +328,9 @@ SELECT {} FROM {} WHERE datetime >= %s AND datetime < %s;\
                         raise nc_exc.TooMuchDataException(
                             "too many values requested, size={0} MB".\
                             format(total_size/(1000 * 1000)))
-                    vdata[vname] = cdata
+                    vindex = len(vdata)
+                    vdata.append(cdata)
+                    vmap[vname] = vindex
                     if len(dims) > 1:
                         vdim2[vname] = {
                             "data": [i for i in range(dims[1])],
@@ -334,9 +339,12 @@ SELECT {} FROM {} WHERE datetime >= %s AND datetime < %s;\
                         }
 
                 return {
-                    "time": {"": times},
-                    "data": {"": vdata},
-                    "dim2": {"": vdim2},
+                    '': {
+                        'time': vtime,
+                        'data': vdata,
+                        'vmap': vmap,
+                        'dim2': vdim2,
+                    }
                 }
 
         except psycopg2.Error as exc:

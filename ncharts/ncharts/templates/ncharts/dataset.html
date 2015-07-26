@@ -16,7 +16,7 @@
 <p><b>Start Date:</b> {{ dataset.start_time }}</p>
 <p><b>End Date:</b> {{ dataset.end_time }}</p>
 <p><b>Status: </b>{{ dataset.status }}</p>
-<p><b>More Information: </b><a href={{ dataset.url }}>{{ dataset.name }} Dataset</a></p>
+<p><a href="{{ dataset.url }}"><b>More Information</b></a></p>
 
 <div class="row">
     {% if messages %}
@@ -113,21 +113,19 @@
                     <div class="tab-content">
                         {% for var in form.variables %} 
                         {% with var.choice_label|slice:"1"|upper as first_letter %}
-                        {% if forloop.first %}
-                        <div id="{{ first_letter }}" class="tab-pane fade in active">
-                            <h1> {{ first_letter }}</h1> 
+                        {% ifchanged first_letter %}
+                            {% if forloop.first %}
+                                <div id="{{ first_letter }}" class="tab-pane fade">
                             {% else %}
-                            {% ifchanged first_letter %}
-                        </div>
-                        <div id="{{ first_letter }}" class="tab-pane fade">
-                            <h1> {{ first_letter }}</h1>  
-                            {% endifchanged %}
+                                </div>
+                                <div id="{{ first_letter }}" class="tab-pane fade">
                             {% endif %}
-                            <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
-                                title="{{ variables|get_long_name:var.choice_label }}">
-                                {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
-                            {% if forloop.last %}
-                        </div>
+                        {% endifchanged %}
+                        <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
+                            title="{{ variables|get_long_name:var.choice_label }}">
+                            {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
+                        {% if forloop.last %}
+                            </div>
                         {% endif %}
                         {% endwith %}
                         {% endfor %}
@@ -187,22 +185,22 @@ var soundings = jQuery.parseJSON('{{ soundings }}');
 var plot_time0 = jQuery.parseJSON('{{ time0 }}');
 var plot_times = jQuery.parseJSON('{{ time }}');
 var plot_data = jQuery.parseJSON('{{ data }}');
+var plot_vmap = jQuery.parseJSON('{{ vmap }}');
 // dim2 are values for 2nd dimension for heatmap plots
 var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
 // url to use with ajax to get real time data
 {% if form.track_real_time.value %}
 var ajaxurl = "{% url 'ncharts:ajax-data' dataset.project.name dataset.name %}";
 {% endif %}
-var soundings = jQuery.parseJSON('{{ soundings }}');
 var sounding_yvar = '{{ yvariable }}';
 </script>
 
 {% for group,val in plot_groups.items %}
-{% if val.plot_type == 'sounding-profile' %}
-<div class="sounding-chart-wrapper">
+    {% if val.plot_type == 'sounding-profile' %}
+    <div class="sounding-chart-wrapper">
     {% else %}
     <div class="time-series-chart-wrapper">
-        {% endif %}
+    {% endif %}
         <div class="chart-inner">
             <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
         </div>
@@ -216,6 +214,6 @@ jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
 jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
 jQuery.data(div,"dim2_name","{{ dim2.name }}");
     </script>
-    {% endfor %}
-    {% endif %}
-    {% endblock %}
+{% endfor %}
+{% endif %}
+{% endblock %}

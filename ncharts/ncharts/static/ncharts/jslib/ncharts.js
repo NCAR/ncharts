@@ -165,16 +165,17 @@
                  * When an HTTP error occurs, errorThrown receives the textual
                  * portion of the HTTP status, such as "Not Found" or "Internal Server Error." 
                  */
+                /* TODO: make this an alert, when sure it is very rare */
                 console.log("ajax error_type=",error_type);
                 console.log("ajax errorThrown=",errorThrown);
                 // schedule again
                 setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
             },
-            success: function(indata) {
+            success: function(ajaxin) {
 
-                if (indata.redirect) {
-                    alert("AJAX request failed: " + indata.message);
-                    window.location.replace(indata.redirect);
+                if (ajaxin.redirect) {
+                    alert("AJAX request failed: " + ajaxin.message);
+                    window.location.replace(ajaxin.redirect);
                 }
 
                 // console.log("ajax success!, now=",new Date(),",
@@ -192,19 +193,37 @@
 
                         if (vname == 'Navigator') continue;
 
-                        if (!(vname in indata)) {
-                            continue;
+                        // console.log("ajaxin.data.length=",ajaxin.data.length)
+                        var var_index;
+                        for (var_index = 0; var_index < ajaxin.data.length; var_index++) {
+                            /*
+                            console.log("var_index=",var_index,", vname=",vname,
+                                    ",ajaxin.data[var_index].variable=",
+                                    ajaxin.data[var_index].variable)
+                            */
+                            if (ajaxin.data[var_index].variable == vname) break;
                         }
+
+                        if (var_index == ajaxin.data.length) continue;
+
+                        var_data = ajaxin.data[var_index];
 
                         if (series.data.length > 0) {
                             first_time = series.data[0].x;
                         }
 
-                        var itimes = $.parseJSON(indata[vname]['time'])
+                        var itimes = $.parseJSON(var_data.time)
 
-                            if (itimes.length == 0) {
-                                continue;
-                            }
+                        /*
+                        console.log("var_index=",var_index,", vname=",vname,
+                                ",ajaxin.data[var_index].variable=",
+                                ajaxin.data[var_index].variable,
+                                ", itimes.length=",itimes.length)
+                        */
+
+                        if (itimes.length == 0) {
+                            continue;
+                        }
 
                         // shouldn't often happen in this ajax function
                         if (series.data.length == 0 && local_ns.debug_level) {
@@ -214,8 +233,14 @@
 
                         // console.log("first_time=",local_ns.format_time(first_time));
 
-                        var itime0 = indata[vname]['time0'];
-                        var vdata = $.parseJSON(indata[vname]['data']);
+                        var itime0 = var_data.time0;
+                        var vdata = $.parseJSON(var_data.data);
+                        /*
+                        console.log("var_index=",var_index,", vname=",vname,
+                                ",ajaxin.data[var_index].variable=",
+                                ajaxin.data[var_index].variable,
+                                ", vdata.length=",vdata.length)
+                        */
 
                         var ix = 0;
                         var tx;
@@ -358,19 +383,23 @@
                             first_time = series.data[0].x;
                         }
 
-                        if (!(vname in indata)) {
-                            continue;
-                        }
+                        var var_index;
+                        for (var_index = 0; var_index < ajaxin.data.length; var_index++)
+                            if (ajaxin.data[var_index].variable == vname) break;
 
-                        var itimes = $.parseJSON(indata[vname]['time']);
+                        if (var_index == ajaxin.data.length) continue;
+
+                        var_data = ajaxin.data[var_index];
+
+                        var itimes = $.parseJSON(var_data.time);
 
                         if (itimes.length == 0) {
                             continue;
                         }
 
-                        var itime0 = indata[vname]['time0'];
-                        var vdata = $.parseJSON(indata[vname]['data']);
-                        var dim2 = $.parseJSON(indata[vname]['dim2']);
+                        var itime0 = var_data.time0;
+                        var vdata = $.parseJSON(var_data.data);
+                        var dim2 = $.parseJSON(var_data.dim2);
 
                         if (local_ns.debug_level > 1) {
                             t0 = new Date();
@@ -630,7 +659,7 @@
                 else {
                     $('#variable-checkbox :checked').prop('checked',false);
                 }
-        $(this).prop('checked',false);
+                $(this).prop('checked',false);
             }
         });
 
@@ -643,7 +672,7 @@
                 else {
                     $('#variable-checkbox :not(:checked)').prop('checked',true);
                 }
-        $(this).prop('checked',false);
+                $(this).prop('checked',false);
             }
         });
 
@@ -716,8 +745,9 @@
         // being passed.
         if (window.plot_times === undefined) return
 
-            var first_time = null;
+        var first_time = null;
 
+        // Plot time series
         var $plots = $("div[id^='time-series']");
         var nplots = $plots.length;
 
@@ -790,8 +820,15 @@
             else {
                 ptitle = vnames[0];
             }
+            var ser_time0 = plot_time0[sname];
+            var ser_times = plot_times[sname];
+            var ser_data = plot_data[sname];
+
             for (var iv = 0; iv < vnames.length; iv++ ) {
                 var vname = vnames[iv];
+                var var_index = plot_vmap[sname][vname];
+                var var_data = ser_data[var_index];
+
                 var vunit = vunits[iv];
                 if (long_names.length > iv) {
                     local_ns.long_name_dict[vname] = long_names[iv];
@@ -799,14 +836,16 @@
                 else {
                     local_ns.long_name_dict[vname] = '';
                 }
+
+            
                 var vseries = {};
                 var vdata = [];
-                for (var idata = 0; idata < plot_times[sname].length; idata++) {
-                    vdata.push([(plot_time0[sname] + plot_times[sname][idata])*1000,
-                            plot_data[sname][vname][idata]]);
+                for (var idata = 0; idata < ser_times.length; idata++) {
+                    vdata.push([(ser_time0 + ser_times[idata])*1000,
+                            var_data[idata]]);
                 }
-                if (plot_times[sname].length) {
-                    first_time = (plot_time0[sname] + plot_times[sname][0]) * 1000;
+                if (ser_times.length) {
+                    first_time = (ser_time0 + ser_times[0]) * 1000;
                 }
 
                 vseries['data'] = vdata;
@@ -837,109 +876,110 @@
             $( this ).highcharts({
                 chart: {
                     borderWidth: 1,
-            type: 'line',
-            zoomType: 'xy',
-            panning: true,
-            panKey: 'shift',
-            spacing: [10, 10, 5, 5],    // top,right,bot,left
+                    type: 'line',
+                    zoomType: 'xy',
+                    panning: true,
+                    panKey: 'shift',
+                    spacing: [10, 10, 5, 5],    // top,right,bot,left
                 },
-            credits: {  // highcharts.com link
-                enabled: (plotindex == nplots-1),
-            },
-            plotOptions: {
-                series: {
-                    dataGrouping: {
-                        dateTimeLabelFormats: {
-                            millisecond:
-                ['%Y-%m-%d %H:%M:%S.%L %Z', '%Y-%m-%d %H:%M:%S.%L', '-%H:%M:%S.%L %Z'],
-            second:
-                ['%Y-%m-%d %H:%M:%S %Z', '%Y-%m-%d %H:%M:%S', '-%H:%M:%S %Z'],
-            minute:
-                ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
-            hour:
-                ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
-            day:
-                ['%Y-%m-%d %Z', '%Y-%m-%d', '-%m-%d %Z'],
-            week:
-                ['Week from %Y-%m-%d', '%Y-%m-%d', '-%Y-%m-%d'],
-            month:
-                ['%Y-%m', '%Y-%m', '-%Y-%m'],
-            year: ['%Y', '%Y', '-%Y']
-                ['%Y', '%Y', '-%Y'],
-                        }
+                credits: {  // highcharts.com link
+                    enabled: (plotindex == nplots-1),
+                },
+                plotOptions: {
+                    series: {
+                        dataGrouping: {
+                            dateTimeLabelFormats: {
+                                millisecond:
+                                    ['%Y-%m-%d %H:%M:%S.%L %Z', '%Y-%m-%d %H:%M:%S.%L', '-%H:%M:%S.%L %Z'],
+                                second:
+                                    ['%Y-%m-%d %H:%M:%S %Z', '%Y-%m-%d %H:%M:%S', '-%H:%M:%S %Z'],
+                                minute:
+                                    ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                hour:
+                                    ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                day:
+                                    ['%Y-%m-%d %Z', '%Y-%m-%d', '-%m-%d %Z'],
+                                week:
+                                    ['Week from %Y-%m-%d', '%Y-%m-%d', '-%Y-%m-%d'],
+                                month:
+                                    ['%Y-%m', '%Y-%m', '-%Y-%m'],
+                                year: ['%Y', '%Y', '-%Y']
+                                    ['%Y', '%Y', '-%Y'],
+                            }
+                        },
+                        gapSize: 2,
                     },
-                    gapSize: 2,
                 },
-            },
-            xAxis: {
-                type: 'datetime',
-                // opted not to add %Z to these formats.
-                // The timezone is in the xAxis label, and in
-                // the tooltip popups.
-                dateTimeLabelFormats: {
-                    millisecond: '%H:%M:%S.%L',
-                    second: '%H:%M:%S',
-                    minute: '%H:%M',
-                    hour: '%H:%M',
-                    day: '%Y<br/>%m-%d',
-                    month: '%Y<br/>%m',
-                    year: '%Y'
+                xAxis: {
+                    type: 'datetime',
+                    // opted not to add %Z to these formats.
+                    // The timezone is in the xAxis label, and in
+                    // the tooltip popups.
+                    dateTimeLabelFormats: {
+                        millisecond: '%H:%M:%S.%L',
+                        second: '%H:%M:%S',
+                        minute: '%H:%M',
+                        hour: '%H:%M',
+                        day: '%Y<br/>%m-%d',
+                        month: '%Y<br/>%m',
+                        year: '%Y'
+                    },
+                    startOnTick: false,
+                    endOnTick: false,
+                    title: {
+                        text: "time (" + local_ns.plotTimezone + ")"
+                    },
+                    ordinal: false,
                 },
-                startOnTick: false,
-                endOnTick: false,
+                yAxis: yAxis,
+                series: series,
+                legend: {
+                    enabled: true,
+                    margin: 0,
+                    verticalAlign: 'top',
+                    useHTML: true,
+                    // floating: true,
+                },
+                rangeSelector: {
+                    enabled: false,
+                },
+                scrollbar: {
+                    enabled: false,
+                },
+                tooltip: {
+                    shared: true,       // show all points in the tooltip
+                    /* define a formatter function to prefix the long_name
+                     * to the variable name in the tooltip. Adding a
+                     * tooltip.valuePrefix to the series almost works,
+                     * but it is placed before the value, in bold.
+                     * Tried using point.series.symbol, but it is a string,
+                     * such as "circle"
+                     */
+                    formatter: function() {
+                        s = '<span style="font-size: 10px"><b>' + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S.%L %Z',this.x) + '</b></span><br/>';
+                        $.each(this.points, function(i, point) {
+                            s += '<span style="color:' + point.series.color + '">\u25CF</span>' + local_ns.long_name_dict[point.series.name] + ',' + point.series.name + ': <b>' + point.y + '</b><br/>';
+                        });
+                        return s;
+                    },
+                    // If no formatter, use these settings.
+                    /*
+                    headerFormat: '<span style="font-size: 10px"><b>{point.key}</b></span><br/>',
+                    pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + ',{series.name}: <b>{point.y}</b><br/>',
+                    xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
+                    valueDecimals: 6,
+                    */
+                },
+                navigator: nav,
                 title: {
-                    text: "time (" + local_ns.plotTimezone + ")"
-                },
-                ordinal: false,
-            },
-            yAxis: yAxis,
-            series: series,
-            legend: {
-                enabled: true,
-                margin: 0,
-                verticalAlign: 'top',
-                // floating: true,
-            },
-            rangeSelector: {
-                enabled: false,
-            },
-            scrollbar: {
-                enabled: false,
-            },
-            tooltip: {
-                shared: true,       // show all points in the tooltip
-                /* define a formatter function to prefix the long_name
-                 * to the variable name in the tooltip. Adding a
-                 * tooltip.valuePrefix to the series almost works,
-                 * but it is placed before the value, in bold.
-                 * Tried using point.series.symbol, but it is a string,
-                 * such as "circle"
-                 */
-                formatter: function() {
-                    s = '<span style="font-size: 10px"><b>' + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S.%L %Z',this.x) + '</b></span><br/>';
-                    $.each(this.points, function(i, point) {
-                        s += '<span style="color:' + point.series.color + '">\u25CF</span>' + local_ns.long_name_dict[point.series.name] + ',' + point.series.name + ': <b>' + point.y + '</b><br/>';
-                    });
-                    return s;
-                },
-                // If no formatter, use these settings.
-                /*
-                   headerFormat: '<span style="font-size: 10px"><b>{point.key}</b></span><br/>',
-                   pointFormat: '<span style="color:{series.color}">\u25CF</span> ' + ',{series.name}: <b>{point.y}</b><br/>',
-                   xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
-                   valueDecimals: 6,
-                   */
-            },
-            navigator: nav,
-            title: {
-                // disable title, legend is good enough
-                // May want to put dataset name in title at some point
-                text: '',
-                // text: ptitle,
-                // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
-                style: {"color": "#333333", "fontSize": "14px"},
-                margin: 5,
-            }
+                    // disable title, legend is good enough
+                    // May want to put dataset name in title at some point
+                    text: '',
+                    // text: ptitle,
+                    // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
+                    style: {"color": "#333333", "fontSize": "14px"},
+                    margin: 5,
+                }
             });
         });
 
@@ -956,9 +996,16 @@
 
             local_ns.colorAxisRecomputeCntr = 0;
 
+            var ser_time0 = plot_time0[sname];
+            var ser_times = plot_times[sname];
+            var ser_data = plot_data[sname];
+            var ser_dim2 = plot_dim2[sname];
+
             // console.log("vnames=",vnames);
             for (var iv = 0; iv < vnames.length; iv++) {
                 var vname = vnames[iv];
+                var var_index = plot_vmap[sname][vname];
+                var var_data = ser_data[var_index];
                 // console.log("vname=", vname);
                 if (long_names.length > iv) {
                     long_name = long_names[iv];
@@ -970,33 +1017,33 @@
                 var minval = Number.POSITIVE_INFINITY;
                 var maxval = Number.NEGATIVE_INFINITY;
 
-                var mintime = (plot_time0[sname] + plot_times[sname][0]) * 1000;
-                var maxtime = (plot_time0[sname] + plot_times[sname][plot_times[sname].length-1]) * 1000;
-                var dim2_name = plot_dim2[sname][vname]['name'];
-                var dim2_units = plot_dim2[sname][vname]['units'];
+                var mintime = (ser_time0 + ser_times[0]) * 1000;
+                var maxtime = (ser_time0 + ser_times[ser_times.length-1]) * 1000;
+                var dim2_name = ser_dim2[vname]['name'];
+                var dim2_units = ser_dim2[vname]['units'];
 
-                var mindim2 = plot_dim2[sname][vname]['data'][0];
-                var maxdim2 = plot_dim2[sname][vname]['data'][plot_dim2[sname][vname]['data'].length-1];
+                var mindim2 = ser_dim2[vname]['data'][0];
+                var maxdim2 = ser_dim2[vname]['data'][ser_dim2[vname]['data'].length-1];
 
                 var chart_data = [];
-                for (var i = 0; i < plot_times[sname].length; i++) {
-                    var tx = (plot_time0[sname] + plot_times[sname][i]) * 1000;
-                    for (var j = 0; j < plot_dim2[sname][vname]['data'].length; j++) {
-                        dx = plot_data[sname][vname][i][j];
+                for (var i = 0; i < ser_times.length; i++) {
+                    var tx = (ser_time0 + ser_times[i]) * 1000;
+                    for (var j = 0; j < ser_dim2[vname]['data'].length; j++) {
+                        dx = var_data[i][j];
                         if (dx !== null) {
                             minval = Math.min(minval,dx);
                             maxval = Math.max(maxval,dx);
                         }
-                        chart_data.push([tx, plot_dim2[sname][vname]['data'][j],dx]);
+                        chart_data.push([tx, ser_dim2[vname]['data'][j],dx]);
                     }
                 } 
-                if (plot_times[sname].length) {
-                    first_time = (plot_time0[sname] + plot_times[sname][0]) * 1000;
+                if (ser_times.length) {
+                    first_time = (ser_time0 + ser_times[0]) * 1000;
                 }
 
                 // var colsize = 3600 * 1000;
-                var colsize = (maxtime - mintime) / (plot_times[sname].length - 1);
-                var rowsize = (maxdim2 - mindim2) / (plot_dim2[sname].length - 1);
+                var colsize = (maxtime - mintime) / (ser_times.length - 1);
+                var rowsize = (maxdim2 - mindim2) / (ser_dim2.length - 1);
 
                 $( this ).highcharts({
                     chart: {
@@ -1086,7 +1133,8 @@
                             align: 'right',
                             layout: 'vertical',
                             margin: 15,
-                            verticalAlign: 'bottom'
+                            verticalAlign: 'bottom',
+                            useHTML: true,
                         },
                         tooltip: {
                             enabled: true,
@@ -1148,7 +1196,9 @@
             ptitle = sname + ": "  + ptitle;
 
             // the altitude array
-            var altitudes = plot_data[sname][yvar];
+            var var_index = plot_vmap[sname][yvar];
+            var ser_data = plot_data[sname];
+            var altitudes = ser_data[var_index];
 
             var data_length = altitudes.length;
             var skip;
@@ -1198,13 +1248,14 @@
             for (var iv = 0; iv < vnames.length; iv++) {
                 var vname = vnames[iv];
                 if (vname == yvar) continue;
+                var var_index = plot_vmap[sname][vname];
                 var vunit = vunits[iv];
                 var vdata = [];
                 var last_val = last_val_init;
                 for (var idata = 0; idata < data_length; idata+=skip) {
                     var x = altitudes[idata];
                     if (alt_ok(x,last_val)) {
-                        var y = plot_data[sname][vname][idata];
+                        var y = ser_data[var_index][idata];
                         vdata.push([x,y])
                             last_val = x;
                     }
@@ -1242,57 +1293,58 @@
                     yAxis: unitIndex,
                     data: vdata,
                     name: vname + ' (' + vunit + ')',
-                            lineWidth: 1,
-                            };
+                    lineWidth: 1,
+                };
 
-                            series.push(vseries);		    
-                            }
+                series.push(vseries);		    
+            }
 
-                            $(this).highcharts({
-                                chart: {
-                                    borderWidth: 1,
-                            showAxes: true,
-                            inverted: true,
-                            type: 'line',
-                            zoomType: 'xy',
-                            spacing: [10, 10, 5, 5],    // top,right,bot,left
-                                },
-                            credits: {  // highcharts.com link
-                                enabled: (plotindex == nplots-1),
-                            },
-                            xAxis: {
-                                reversed: false,
-                            startOnTick: false,
-                            endOnTick: false,
-                            title: {
-                                text: yvar + ' (' + yvar_unit + ')',
-                                          // style: {"color": "black", "fontSize": "14px"},
-                                          },
-                                          gridLineWidth: 1,
-                                          },
-                                          yAxis: yAxes,
-                                          legend: {
-                                              enabled: true,
-                                margin: 0,
-                                          },
-                                          rangeSelector: {
-                                              enabled: false,
-                                          },
-                                          scrollbar: {
-                                              enabled: false,
-                                          },
-                                          series: series,
-                                          title: {
-                                              text: ptitle,
-                                // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
-                                style: {"color": "#333333", "fontSize": "14px"},
-                                margin: 0,
-                                          },
-                                          tooltip: {
-                                              shared: true,       // show all points in the tooltip
-                                              headerFormat: '<span style="font-size: 10px"><b>' + yvar + ': {point.key}</b></span><br/>',
-                                          },
-                            });
+            $(this).highcharts({
+                chart: {
+                    borderWidth: 1,
+                    showAxes: true,
+                    inverted: true,
+                    type: 'line',
+                    zoomType: 'xy',
+                    spacing: [10, 10, 5, 5],    // top,right,bot,left
+                },
+                credits: {  // highcharts.com link
+                    enabled: (plotindex == nplots-1),
+                },
+                xAxis: {
+                    reversed: false,
+                    startOnTick: false,
+                    endOnTick: false,
+                    title: {
+                        text: yvar + ' (' + yvar_unit + ')',
+                        // style: {"color": "black", "fontSize": "14px"},
+                    },
+                    gridLineWidth: 1,
+                },
+                yAxis: yAxes,
+                legend: {
+                    enabled: true,
+                    margin: 0,
+                    useHTML: true,
+                },
+                rangeSelector: {
+                    enabled: false,
+                },
+                scrollbar: {
+                    enabled: false,
+                },
+                series: series,
+                title: {
+                    text: ptitle,
+                    // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
+                    style: {"color": "#333333", "fontSize": "14px"},
+                    margin: 0,
+                },
+                tooltip: {
+                    shared: true,       // show all points in the tooltip
+                    headerFormat: '<span style="font-size: 10px"><b>' + yvar + ': {point.key}</b></span><br/>',
+                },
+            });
         });
         if (local_ns.track_real_time) {
             if (first_time) {
@@ -1302,12 +1354,11 @@
             local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
             if ('' in plot_times && plot_times[''].length > 1) {
                 // set ajax update period to 1/2 the data deltat
-                local_ns.ajaxTimeout =
-                    Math.max(
-                            local_ns.ajaxTimeout,
-                            Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
-                                (plot_times[''].length - 1) * 1000 / 2)
-                            );
+                local_ns.ajaxTimeout = Math.max(
+                    local_ns.ajaxTimeout,
+                    Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
+                        (plot_times[''].length - 1) * 1000 / 2)
+                );
             }
             if (local_ns.debug_level > 2) {
                 // update more frequently for debugging

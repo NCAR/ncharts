@@ -180,6 +180,8 @@ class NChartsJSONEncoder(json.JSONEncoder):
                 # _logger.debug("Encoder, default, len(obj.shape)=%d",
                 #   len(obj.shape))
                 return [roundcheck(v) for v in obj]
+        elif isinstance(obj, str):
+            return json.JSONEncoder.default(self, obj.replace("'", r"\u0027"))
         else:
             return json.JSONEncoder.default(self, obj)
 
@@ -392,7 +394,7 @@ class DatasetView(View):
 
         # variables selected previously by user
         if client_state.variables:
-            svars = json.loads(client_state.variables)
+            sel_vars = json.loads(client_state.variables)
             if debug:
                 _logger.debug(
                     "get, old session, same dataset, " \
@@ -404,7 +406,7 @@ class DatasetView(View):
                     "get, old session, same dataset, "
                     "project=%s, dataset=%s, no variables",
                     project_name, dataset_name)
-            svars = []
+            sel_vars = []
 
         post_real_time = datetime.datetime.now(timezone.tz) > dset.end_time
 
@@ -443,7 +445,7 @@ class DatasetView(View):
 
         form = nc_forms.DataSelectionForm(
             initial={
-                'variables': svars,
+                'variables': sel_vars,
                 'yvariable': client_state.yvariable,
                 'timezone': client_state.timezone,
                 'start_time': form_start_time,
@@ -460,9 +462,9 @@ class DatasetView(View):
         soundings = []
         try:
             dsetvars = dset.get_variables()
-            dvars = sorted(dsetvars.keys())
-            form.set_variable_choices(dvars)
-            form.set_yvariable_choices(dvars)
+            # dvars = sorted(dsetvars.keys())
+            form.set_variable_choices(dsetvars)
+            form.set_yvariable_choices(dsetvars)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
@@ -504,7 +506,7 @@ class DatasetView(View):
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404 as exc:
-            _logger.error(exc)
+            _logger.error("post: %s", exc)
             messages.warning(request, exc)
             return redirect(
                 'ncharts:dataset', project_name=project_name,
@@ -559,14 +561,12 @@ class DatasetView(View):
         # Have to set the choices for variables and soundings
         # before the form is validated.
         soundings = []
-        variable_choices = []
         sounding_choices = []
         dsetvars = {}
         try:
             dsetvars = dset.get_variables()
-            variable_choices = sorted(dsetvars.keys())
-            form.set_variable_choices(variable_choices)
-            form.set_yvariable_choices(variable_choices)
+            form.set_variable_choices(dsetvars)
+            form.set_yvariable_choices(dsetvars)
 
             if dset.dset_type == "sounding":
                 # all soundings in the dataset
@@ -585,14 +585,27 @@ class DatasetView(View):
 
         if not form.is_valid():
             _logger.error('User form is not valid!: %s', repr(form.errors))
+
+            if dset.dset_type == "sounding":
+                sounding_choices = []
+                start_time = form.get_cleaned_start_time()
+                tdelta = form.get_cleaned_time_length()
+
+                if start_time and tdelta:
+                    sounding_choices = dset.get_series_names(
+                        series_name_fmt=SOUNDING_NAME_FMT,
+                        start_time=start_time,
+                        end_time=start_time + tdelta)
+                    sounding_choices = [(s, s) for s in sounding_choices]
+
             if form.clean_method_altered_data:
                 post = request.POST.copy()
                 post['start_time'] = form.cleaned_data['start_time']
                 post['track_real_time'] = form.cleaned_data['track_real_time']
                 form = nc_forms.DataSelectionForm(post, dataset=dset)
 
-            form.set_variable_choices(variable_choices)
-            form.set_yvariable_choices(variable_choices)
+            form.set_variable_choices(dsetvars)
+            form.set_yvariable_choices(dsetvars)
             if dset.dset_type == "sounding":
                 form.fields['soundings'].choices = sounding_choices
             return render(
@@ -605,7 +618,7 @@ class DatasetView(View):
                 })
 
         # Save the client state from the form
-        svars = form.cleaned_data['variables']
+        sel_vars = form.cleaned_data['variables']
         sel_soundings = form.cleaned_data['soundings']
 
         yvar = form.cleaned_data['yvariable']
@@ -614,7 +627,7 @@ class DatasetView(View):
         start_time = form.get_cleaned_start_time()
 
         end_time = start_time + tdelta
-        client_state.variables = json.dumps(svars)
+        client_state.variables = json.dumps(sel_vars)
         client_state.start_time = start_time
         client_state.timezone = form.cleaned_data['timezone']
         client_state.time_length = tdelta.total_seconds()
@@ -630,63 +643,23 @@ class DatasetView(View):
             post['track_real_time'] = form.cleaned_data['track_real_time']
             form = nc_forms.DataSelectionForm(post, dataset=dset)
 
-        form.set_variable_choices(variable_choices)
-        form.set_yvariable_choices(variable_choices)
+        form.set_variable_choices(dsetvars)
+        form.set_yvariable_choices(dsetvars)
 
-        try:
-            if isinstance(dset, nc_models.FileDataset):
-                ncdset = dset.get_netcdf_dataset()
-                # a variable can be in a dataset, but not in a certain set of files.
-                dsvars = ncdset.get_variables(
-                    start_time=start_time, end_time=end_time)
+        if dset.dset_type == "sounding":
+            # set sounding choices for selected time period
+            # soundings between the start and end time
+            sounding_choices = dset.get_series_names(
+                series_name_fmt=SOUNDING_NAME_FMT,
+                start_time=client_state.start_time,
+                end_time=client_state.start_time + \
+                    datetime.timedelta(seconds=client_state.time_length))
 
-            elif isinstance(dset, nc_models.DBDataset):
-                dbcon = dset.get_connection()
-                dsvars = dbcon.get_variables()
-
-            if dset.dset_type == "sounding":
-                # set sounding choices for selected time period
-                # soundings between the start and end time
-                sounding_choices = dset.get_series_names(
-                    series_name_fmt=SOUNDING_NAME_FMT,
-                    start_time=client_state.start_time,
-                    end_time=client_state.start_time + \
-                        datetime.timedelta(seconds=client_state.time_length))
-
-                sounding_choices = [(s, s) for s in sounding_choices]
-                form.fields['soundings'].choices = sounding_choices
-
-        except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
-            _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
-            form.no_data(repr(exc))
-            return render(
-                request, self.template_name,
-                {
-                    'form': form,
-                    'dataset': dset,
-                    'variables': dsvars,
-                    'soundings': mark_safe(json.dumps(soundings))
-                })
-
-        # selected and available variables, using set intersection
-        savail = list(set(svars) & set(dsvars.keys()))
-
-        if len(savail) == 0:
-            exc = nc_exc.NoDataException(
-                "variables {} not found in {}".format(svars, dset))
-            _logger.warn(repr(exc))
-            form.no_data(repr(exc))
-            return render(
-                request, self.template_name,
-                {
-                    'form': form,
-                    'dataset': dset,
-                    'variables': dsvars,
-                    'soundings': mark_safe(json.dumps(soundings))
-                })
+            sounding_choices = [(s, s) for s in sounding_choices]
+            form.fields['soundings'].choices = sounding_choices
 
         if yvar != "":
-            if yvar not in dsvars.keys():
+            if yvar not in dsetvars.keys():
                 exc = nc_exc.NoDataException(
                     "variable {} not found in {}".format(yvar, dset))
                 _logger.warn(repr(exc))
@@ -696,12 +669,12 @@ class DatasetView(View):
                     {
                         'form': form,
                         'dataset': dset,
-                        'variables': dsvars,
+                        'variables': dsetvars,
                         'soundings': mark_safe(json.dumps(soundings))
                     })
 
-            svars.append(yvar)
-            savail = list(set(svars) & set(dsvars.keys()))
+            if yvar not in sel_vars:
+                sel_vars.append(yvar)
 
 
         series_name_fmt = None
@@ -716,31 +689,21 @@ class DatasetView(View):
             variables = {
                 k:{'units': dset.variables.get(name=k).units,
                    'long_name': dset.variables.get(name=k).long_name}
-                for k in savail}
+                for k in sel_vars}
         else:
-            variables = {k:dsvars[k] for k in savail}
+            variables = {k:dsetvars[k] for k in sel_vars}
 
         try:
             if isinstance(dset, nc_models.FileDataset):
+                ncdset = dset.get_netcdf_dataset()
                 ncdata = ncdset.read_time_series(
-                    savail, start_time=start_time, end_time=end_time,
+                    sel_vars, start_time=start_time, end_time=end_time,
                     series=sel_soundings,
                     series_name_fmt=series_name_fmt)
             else:
+                dbcon = dset.get_connection()
                 ncdata = dbcon.read_time_series(
-                    savail, start_time=start_time, end_time=end_time)
-
-        except OSError as exc:
-            _logger.error("%s, %s: %s", project_name, dataset_name, exc)
-            form.no_data(repr(exc))
-            return render(
-                request, self.template_name,
-                {
-                    'form': form,
-                    'dataset': dset,
-                    'variables': dsvars,
-                    'soundings': mark_safe(json.dumps(soundings))
-                })
+                    sel_vars, start_time=start_time, end_time=end_time)
 
         except nc_exc.TooMuchDataException as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
@@ -750,11 +713,11 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
-                    'variables': dsvars,
+                    'variables': dsetvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
-        except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
+        except (OSError, nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
             _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
             form.no_data(repr(exc))
             return render(
@@ -762,27 +725,30 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
-                    'variables': dsvars,
+                    'variables': dsetvars,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
         time0 = {}
-        for series_name in ncdata['time']:
-
+        for series_name in ncdata:
+            ser_data = ncdata[series_name]
             if series_name == "":
-                for vname in savail:
+                for vname in sel_vars:
                     try:
                         # works for any shape, as long as time is the
                         # first dimension
+                        vindex = ser_data['vmap'][vname]
                         lastok = np.where(~np.isnan(
-                            ncdata['data'][series_name][vname]))[0][-1]
-                        time_last_ok = ncdata['time'][series_name][lastok]
+                            ser_data['data'][vindex]))[0][-1]
+                        time_last_ok = ser_data['time'][lastok]
                     except IndexError:  # all data is nan
                         time_last_ok = (start_time - \
                             datetime.timedelta(seconds=0.001)).timestamp()
+                    except KeyError:  # variable not found
+                        continue
 
                     try:
-                        time_last = ncdata['time'][series_name][-1]
+                        time_last = ser_data['time'][-1]
                     except IndexError:  # no data
                         time_last = time_last_ok
 
@@ -791,19 +757,24 @@ class DatasetView(View):
             # As an easy compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0[series_name] = 0
-            if len(ncdata['time'][series_name]) > 0:
-                time0[series_name] = ncdata['time'][series_name][0]
+            if len(ser_data['time']) > 0:
+                time0[series_name] = ser_data['time'][0]
 
             # subtract off time0
-            ncdata['time'][series_name] = [x - time0[series_name] for \
-                    x in ncdata['time'][series_name]]
+            ser_data['time'] = [x - time0[series_name] for \
+                    x in ser_data['time']]
 
-        time0 = json.dumps(time0)
-        time = json.dumps({k: ncdata['time'][k] for k in ncdata['time']})
-        data = json.dumps(
-            {k: ncdata['data'][k] for k in ncdata['data']}, cls=NChartsJSONEncoder)
-        dim2 = json.dumps(
-            {k: ncdata['dim2'][k] for k in ncdata['dim2']}, cls=NChartsJSONEncoder)
+        json_time0 = mark_safe(json.dumps(time0))
+        json_time = mark_safe(json.dumps({k: ncdata[k]['time'] for k in ncdata}))
+        json_data = mark_safe(json.dumps(
+            {k: ncdata[k]['data'] for k in ncdata},
+            cls=NChartsJSONEncoder))
+        json_vmap = mark_safe(json.dumps(
+            {k: ncdata[k]['vmap'] for k in ncdata},
+            cls=NChartsJSONEncoder).replace("'", r"\u0027"))
+        json_dim2 = mark_safe(json.dumps(
+            {k: ncdata[k]['dim2'] for k in ncdata},
+            cls=NChartsJSONEncoder).replace("'", r"\u0027"))
 
         def type_by_shape(shape):
             """Crude function to return a plot type, given a dimension.
@@ -816,15 +787,15 @@ class DatasetView(View):
                 return 'none'
 
         plot_types = set()
-        if len(ncdata['time']) == 1 and '' in ncdata['time']:
+        if len(ncdata) == 1 and '' in ncdata:
             # one series, named ''
             for vname, var in variables.items():
-                ptype = type_by_shape(ncdata['data'][''][vname].shape)
+                vindex = ncdata['']['vmap'][vname]
+                ptype = type_by_shape(ncdata['']['data'][vindex].shape)
                 var['plot_type'] = ptype
                 plot_types.add(ptype)
         else:
             plot_types.add("sounding-profile")
-
 
         # Create plot groups dictionary, for each
         # group, the variables in the group, their units, long_names, plot_type
@@ -838,30 +809,35 @@ class DatasetView(View):
 
             # For a heatmap, one plot per variable.
             if ptype == 'heatmap':
-                for vname in sorted(variables):
+                for vname in sorted(variables): # returns sorted keys
                     var = variables[vname]
                     if var['plot_type'] == ptype:
                         plot_groups['g{}'.format(grpid)] = {
                             'series': "",
-                            'variables': mark_safe(json.dumps([vname])),
+                            'variables': mark_safe(
+                                json.dumps([vname]).replace("'", r"\u0027")),
                             'units':
-                                mark_safe(json.dumps([var['units']])),
+                                mark_safe(
+                                    json.dumps([var['units']]).replace("'", r"\u0027")),
                             'long_names':
-                                mark_safe(json.dumps([var['long_name']])),
+                                mark_safe(
+                                    json.dumps([var['long_name']]).replace("'", r"\u0027")),
                             'plot_type': mark_safe(ptype),
                         }
                         grpid += 1
             elif ptype == 'sounding-profile':
                 # one profile plot per series name
-                for series_name in ncdata['time']:
+                for series_name in sorted(ncdata.keys()):
                     vnames = sorted([v for v in variables])
                     units = [variables[v]['units'] for v in vnames]
-                    long_names = [variables[v]['long_name'] for v in vnames]
+                    long_names = [(variables[v]['long_name'] if 'long_name' in variables[v] else v) for v in vnames]
                     plot_groups['g{}'.format(grpid)] = {
                         'series': series_name,
-                        'variables': mark_safe(json.dumps(vnames)),
-                        'units': mark_safe(json.dumps(units)),
-                        'long_names': mark_safe(json.dumps(long_names)),
+                        'variables': mark_safe(
+                            json.dumps(vnames).replace("'", r"\u0027")),
+                        'units': mark_safe(json.dumps(units).replace("'", r"\u0027")),
+                        'long_names': mark_safe(
+                            json.dumps(long_names).replace("'", r"\u0027")),
                         'plot_type': mark_safe(ptype),
                     }
                     grpid += 1
@@ -885,11 +861,14 @@ class DatasetView(View):
                     if len(uvars) > 0:
                         plot_groups['g{}'.format(grpid)] = {
                             'series': "",
-                            'variables': mark_safe(json.dumps(uvars)),
+                            'variables': mark_safe(
+                                json.dumps(uvars).replace("'", r"\u0027")),
                             'units': mark_safe(json.dumps(
-                                [variables[v]['units'] for v in uvars])),
+                                [(variables[v]['units'] if 'units' in variables[v] else '') \
+                                    for v in uvars]).replace("'", r"\u0027")),
                             'long_names': mark_safe(json.dumps(
-                                [variables[v]['long_name'] for v in uvars])),
+                                [(variables[v]['long_name'] if 'long_name' in variables[v] else '') \
+                                    for v in uvars]).replace("'", r"\u0027")),
                             'plot_type': mark_safe(ptype),
                         }
                         grpid += 1
@@ -898,15 +877,16 @@ class DatasetView(View):
             request, self.template_name, {
                 'form': form,
                 'dataset': dset,
-                'variables': dsvars,
+                'variables': dsetvars,
                 'plot_groups': plot_groups,
-                'time0': mark_safe(time0),
-                'time': mark_safe(time),
-                'data': mark_safe(data),
-                'dim2': mark_safe(dim2),
+                'time0': json_time0,
+                'time': json_time,
+                'data': json_data,
+                'vmap': json_vmap,
+                'dim2': json_dim2,
                 'time_length': client_state.time_length,
                 'soundings': mark_safe(json.dumps(soundings)),
-                'yvariable': mark_safe(yvar),
+                'yvariable': yvar.replace("'", r"\u0027"),
                 })
 
 class DataView(View):
@@ -918,16 +898,16 @@ class DataView(View):
 
         """
 
-        debug = False
+        debug = True
 
-        ajax_data = {}
+        ajax_out = {'data': []}
 
         try:
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404 as exc:
-            _logger.error("AJAX DataView get: " + exc)
-            ajax_data['redirect'] = \
+            _logger.error("AJAX DataView get: %s", exc)
+            ajax_out['redirect'] = \
                 request.build_absolute_uri(
                     reverse(
                         'ncharts:dataset',
@@ -935,10 +915,10 @@ class DataView(View):
                             'project_name': project_name,
                             'dataset_name':dataset_name,
                         }))
-            ajax_data['message'] = exc
+            ajax_out['message'] = exc
 
             return HttpResponse(
-                json.dumps(ajax_data),
+                json.dumps(ajax_out),
                 content_type="application/json")
 
         dset = get_dataset(client_state)
@@ -952,7 +932,7 @@ class DataView(View):
                 _logger.warn(
                     "%s, %s, %d, database connection failed: %s",
                     project_name, dataset_name, client_state.id, exc)
-                ajax_data['redirect'] = \
+                ajax_out['redirect'] = \
                     request.build_absolute_uri(
                         reverse(
                             'ncharts:dataset',
@@ -960,19 +940,19 @@ class DataView(View):
                                 'project_name': project_name,
                                 'dataset_name':dataset_name,
                             }))
-                ajax_data['message'] = exc
+                ajax_out['message'] = exc
                 return HttpResponse(
-                    json.dumps(ajax_data),
+                    json.dumps(ajax_out),
                     content_type="application/json")
 
         # selected variables
-        svars = json.loads(client_state.variables)
+        sel_vars = json.loads(client_state.variables)
 
-        if not len(svars):
+        if not len(sel_vars):
             _logger.warn(
                 "%s, %s: variables not found for id=%d",
                 project_name, dataset_name, client_state.id)
-            ajax_data['redirect'] = \
+            ajax_out['redirect'] = \
                 request.build_absolute_uri(
                     reverse(
                         'ncharts:dataset',
@@ -980,14 +960,14 @@ class DataView(View):
                             'project_name': project_name,
                             'dataset_name':dataset_name,
                         }))
-            ajax_data['message'] = "No selected variables"
+            ajax_out['message'] = "No selected variables"
             return HttpResponse(
-                json.dumps(ajax_data),
+                json.dumps(ajax_out),
                 content_type="application/json")
 
         timezone = client_state.timezone
 
-        for vname in svars:
+        for vname in sel_vars:
 
             # timetag of last non-nan sample for this variable sent to client
             # timetag of last sample for this variable sent to client
@@ -1002,10 +982,7 @@ class DataView(View):
             stime = datetime.datetime.fromtimestamp(
                 time_last_ok + 0.001, tz=timezone)
 
-            if not debug:
-                etime = datetime.datetime.now(timezone)
-            else:
-                etime = stime + datetime.timedelta(seconds=3600)
+            etime = datetime.datetime.now(timezone)
 
             try:
                 if isinstance(dset, nc_models.FileDataset):
@@ -1015,9 +992,11 @@ class DataView(View):
                     ncdata = dbcon.read_time_series(
                         [vname], start_time=stime, end_time=etime)
                 try:
+                    # one series
+                    ser_data = ncdata['']
                     lastok = np.where(
-                        ~np.isnan(ncdata['data'][''][vname]))[0][-1]
-                    time_last_ok = ncdata['time'][''][lastok]
+                        ~np.isnan(ser_data['data'][0]))[0][-1]
+                    time_last_ok = ser_data['time'][lastok]
                     if debug:
                         _logger.debug(
                             "Dataview Get, %s, %s: variable=%s, last_time_ok=%s"
@@ -1036,12 +1015,12 @@ class DataView(View):
                             stime.isoformat(), etime.isoformat())
 
                     # index of first time > time_last
-                    idx = next((i for i, t in enumerate(ncdata['time']['']) \
+                    idx = next((i for i, t in enumerate(ser_data['time']) \
                         if t > time_last), -1)
                     if idx >= 0:
-                        ncdata['time'][''] = ncdata['time'][''][idx:]
-                        ncdata['data'][''][vname] = ncdata['data'][''][vname][idx:]
-                        time_last = ncdata['time'][''][-1]
+                        ser_data['time'] = ser_data['time'][idx:]
+                        ser_data['data'][0] = ser_data['data'][0][idx:]
+                        time_last = ser_data['time'][-1]
                     else:
                         if debug:
                             _logger.debug(
@@ -1051,8 +1030,8 @@ class DataView(View):
                                 stime.isoformat(), etime.isoformat(),
                                 datetime.datetime.fromtimestamp(
                                     time_last, tz=timezone).isoformat())
-                        ncdata['time'][''] = []
-                        ncdata['data'][''][vname] = []
+                        ser_data['time'] = []
+                        ser_data['data'][0] = []
             except OSError as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 continue
@@ -1064,10 +1043,11 @@ class DataView(View):
                 if debug:
                     _logger.debug(
                         "Dataview Get: %s, %s ,%s: variable=%s, "
-                        ", time_last=%s",
+                        ", time_last=%s, exc=%s",
                         project_name, dataset_name, exc, vname,
                         datetime.datetime.fromtimestamp(
-                            time_last, tz=timezone).isoformat())
+                            time_last, tz=timezone).isoformat(),
+                        exc)
                 continue
 
             client_state.save_data_times(vname, time_last_ok, time_last)
@@ -1075,30 +1055,30 @@ class DataView(View):
             # As an easy compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0 = 0
-            if len(ncdata['time']['']) > 0:
-                time0 = ncdata['time'][''][0]
+            if len(ser_data['time']) > 0:
+                time0 = ser_data['time'][0]
 
             dim2 = []
-            if vname in ncdata['dim2'][''] and 'data' in ncdata['dim2'][''][vname]:
-                dim2 = json.dumps(
-                    ncdata['dim2'][''][vname]['data'],
-                    cls=NChartsJSONEncoder)
+            if vname in ser_data['dim2'] and 'data' in ser_data['dim2'][vname]:
+                dim2 = mark_safe(json.dumps(
+                    ser_data['dim2'][vname]['data'],
+                    cls=NChartsJSONEncoder).replace("'", r"\u0027"))
 
-            time = json.dumps([x - time0 for x in ncdata['time']['']])
-
-            data = json.dumps(ncdata['data'][''][vname], cls=NChartsJSONEncoder)
-
-            ajax_data[vname] = {
+            ajax_out['data'].append({
+                'variable': vname,
                 'time0': time0,
-                'time': time,
-                'data': data,
+                'time': mark_safe(json.dumps(
+                    [x - time0 for x in ser_data['time']])),
+                'data': mark_safe(json.dumps(
+                    ser_data['data'][0], cls=NChartsJSONEncoder)),
                 'dim2': dim2
-            }
+            })
 
-        # jstr = json.dumps(ajax_data)
+
+        # jstr = json.dumps(ajax_out)
         # _logger.debug("json data=%s",jstr)
         # return HttpResponse(jstr, content_type="application/json")
         return HttpResponse(
-            json.dumps(ajax_data),
+            json.dumps(ajax_out),
             content_type="application/json")
 
