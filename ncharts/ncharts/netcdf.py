@@ -388,8 +388,6 @@ class NetCDFDataset(object):
                         for att in ['units', 'long_name', 'short_name']:
                             if hasattr(var, att):
                                 dsinfo_vars[exp_vname][att] = getattr(var, att)
-                            # else:
-                            #     dsinfo_vars[exp_vname][att] = ''
                         continue
 
                     # variable has been found in an earlier ncfile
@@ -470,10 +468,14 @@ class NetCDFDataset(object):
             than the non-time dimensions of the variable in a file if
             the user has specified selectdim to sub-select over a dimension.
         """
-        vshapes = {}
         dsinfo = self.get_dataset_info()
+        if len(dsinfo['variables']) == 0:
+            self.get_variables()
+            dsinfo = self.get_dataset_info()
+
         dsinfo_vars = dsinfo['variables']
 
+        vshapes = {}
         for exp_vname in variables:
             if exp_vname in dsinfo_vars:
                 # maximum shape of this variable in all files
@@ -874,10 +876,12 @@ class NetCDFDataset(object):
         debug = False
 
         dsinfo = self.get_dataset_info()
-        dsinfo_vars = dsinfo['variables']
 
         if not dsinfo['time_name']:
             self.get_variables()
+            dsinfo = self.get_dataset_info()
+
+        dsinfo_vars = dsinfo['variables']
 
         if not selectdim:
             selectdim = {}
