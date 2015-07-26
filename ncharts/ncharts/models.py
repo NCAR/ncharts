@@ -280,7 +280,8 @@ class FileDataset(Dataset):
         FileDataset.
         """
         return netcdf.NetCDFDataset(
-            os.path.join(self.directory, self.filenames))
+            os.path.join(self.directory, self.filenames),
+            self.get_start_time(), self.get_end_time())
 
     def get_variables(self):
         """Return the time series variable names of this dataset.

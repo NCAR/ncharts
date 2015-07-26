@@ -19,8 +19,7 @@ import numpy as np
 import logging
 import threading
 import operator
-
-from django.utils import html
+import hashlib
 
 from functools import reduce as reduce_
 
@@ -45,7 +44,7 @@ def get_file_modtime(path):
         pstat.st_mtime, tz=pytz.utc)
 
 class NetCDFDataset(object):
-    """A dataset consisting of NetCDF files.
+    """A dataset consisting of NetCDF files, within a period of time.
 
     This is similar to netCDF4.MFDataset, but gets around some of its
     limitations.
@@ -64,7 +63,15 @@ class NetCDFDataset(object):
     is not consistant over the collection of files.
 
     Attributes:
+        path: directory path and file name format
         fileset: The nc_fileset.FileSet encapsulating a set of files.
+        start_time: start time of the dataset
+        end_time: end time of the dataset
+        cache_hash: a hash string, created from the path, start_time
+            and end_time. The cache of NetCDF attributes is
+            stored in the class under this hash code.
+
+    These attributes of NetCDFDataset are cached:
         variables: Dict of dicts for all time-series variables found in
             dataset by their "exported" variable name:
                 { 'shape': tuple of integer dimensions of the variable,
@@ -91,26 +98,34 @@ class NetCDFDataset(object):
 
     __cache_lock = threading.Lock()
 
-    # dictionary, by file path, of attributes of a NetCDFDataset.
+    # dictionary of attributes of a NetCDFDataset.
     __cached_dataset_info = {}
 
-    def __init__(self, path):
+    def __init__(self, path, start_time, end_time):
         """Constructs NetCDFDataset with a path to a filesetFileset.
 
         Raises:
             none
         """
         self.path = path
+        self.fileset = nc_fileset.Fileset.get(path)
+        self.start_time = start_time
+        self.end_time = end_time
 
-    @staticmethod
-    def get_dataset_info(path):
-        """Fetch the cache of info for this dataset.
+        hasher = hashlib.md5()
+        hasher.update(bytes(path,'utf-8'))
+        hasher.update(bytes(str(start_time),'utf-8'))
+        hasher.update(bytes(str(end_time),'utf-8'))
+
+        self.cache_hash = hasher.digest()
+
+    def get_dataset_info(self):
+        """Fetch a copy of the cache of info for this dataset.
         """
         with NetCDFDataset.__cache_lock:
-            if path in NetCDFDataset.__cached_dataset_info:
-                return NetCDFDataset.__cached_dataset_info[path].copy()
+            if self.cache_hash in NetCDFDataset.__cached_dataset_info:
+                return NetCDFDataset.__cached_dataset_info[self.cache_hash].copy()
         dsinfo = {
-            'fileset': nc_fileset.Fileset.get(path),
             'file_mod_times': {},
             'base_time': None,
             'time_dim_name': None,
@@ -122,12 +137,11 @@ class NetCDFDataset(object):
         }
         return dsinfo
 
-    @staticmethod
-    def save_dataset_info(path, dsinfo):
-        """Cache the info for this dataset.
+    def save_dataset_info(self, dsinfo):
+        """Save a copy of info for this dataset.
         """
         with NetCDFDataset.__cache_lock:
-            NetCDFDataset.__cached_dataset_info[path] = dsinfo
+            NetCDFDataset.__cached_dataset_info[self.cache_hash] = dsinfo
 
     def __str__(self):
         return "NetCDFDataset, path=" + str(self.path)
@@ -149,9 +163,7 @@ class NetCDFDataset(object):
         Raises:
             FileNotFoundError, PermissionError
         """
-        if not dataset_info:
-            dataset_info = NetCDFDataset.get_dataset_info(self.path)
-        return dataset_info['fileset'].scan(start_time, end_time)
+        return self.fileset.scan(start_time, end_time)
 
     def get_filepaths(
             self,
@@ -180,7 +192,7 @@ class NetCDFDataset(object):
         The names of the variables in the dataset are converted to an exported
         form. If a variable has a 'short_name' attribute, it is used for the
         variable name, otherwise the exported name is set to the NetCDF variable
-        name. Finally, the variable name is escaped for use in html.
+        name.
 
         Note, we don't read every file.  May want to have
         MAX_NUM_FILES_TO_PRESCAN be an attribute of the dataset.
@@ -205,13 +217,21 @@ class NetCDFDataset(object):
             nc_exc.NoDataFoundException
         """
 
-        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo = self.get_dataset_info()
 
         # Note: dsinfo_vars is a reference. Modificatons to it
         # are also modifications to dsinfo.
         dsinfo_vars = dsinfo['variables']
 
-        filepaths = self.get_filepaths(dataset_info=dsinfo)
+        files = self.get_files(
+            dataset_info=dsinfo,
+            start_time=self.start_time,
+            end_time=self.end_time)
+
+        # typically get_files() also returns the file before start_time
+        # We may want that in reading a period of data, but not
+        # in assembling the variables for the dataset
+        filepaths = [f.path for f in files if f.time >= self.start_time and f.time < self.end_time]
 
         skip = 1
         if len(filepaths) > NetCDFDataset.MAX_NUM_FILES_TO_PRESCAN:
@@ -429,7 +449,7 @@ class NetCDFDataset(object):
 
         # cache dsinfo
         dsvars = dsinfo_vars.copy()
-        NetCDFDataset.save_dataset_info(self.path, dsinfo)
+        self.save_dataset_info(dsinfo)
 
         return dsvars
 
@@ -451,7 +471,7 @@ class NetCDFDataset(object):
             the user has specified selectdim to sub-select over a dimension.
         """
         vshapes = {}
-        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo = self.get_dataset_info()
         dsinfo_vars = dsinfo['variables']
 
         for exp_vname in variables:
@@ -534,7 +554,7 @@ class NetCDFDataset(object):
 
         debug = False
 
-        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo = self.get_dataset_info()
 
         base_time = None
 
@@ -675,7 +695,7 @@ class NetCDFDataset(object):
             A numpy.ma.array containing the data read.
         """
 
-        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo = self.get_dataset_info()
         dsinfo_vars = dsinfo['variables']
 
         debug = False
@@ -853,7 +873,7 @@ class NetCDFDataset(object):
 
         debug = False
 
-        dsinfo = NetCDFDataset.get_dataset_info(self.path)
+        dsinfo = self.get_dataset_info()
         dsinfo_vars = dsinfo['variables']
 
         if not dsinfo['time_name']:
@@ -998,7 +1018,7 @@ class NetCDFDataset(object):
         if debug:
             for series_name in res_data.keys():
                 for exp_vname in res_data[series_name]['vmap']:
-                    var_index = res_data[series_name]['vmap'][exp_name]
+                    var_index = res_data[series_name]['vmap'][exp_vname]
                     _logger.debug(
                         "res_data[%s][%d].shape=%s, exp_vname=%s",
                         series_name, var_index,
