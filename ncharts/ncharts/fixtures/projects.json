@@ -78,5 +78,14 @@
     },
     "model": "ncharts.project", 
     "pk": "CSET"
+},
+{
+    "fields": {
+        "location": "Dixon, CA",
+        "timezones": ["US/Pacific"],
+	"long_name": "Canopy Horizontal Array Turbulence Study"
+    },
+    "model": "ncharts.project", 
+    "pk": "CHATS"
 }
 ]

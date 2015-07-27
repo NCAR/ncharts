@@ -2,9 +2,7 @@
 {
     "fields": {
         "projects": [
-            "METCRAXII",
-            "CentNet Devel",
-            "CABL"
+            "METCRAXII", "CentNet Devel", "CABL", "CHATS"
         ],
         "long_name": "Integrated Surface Flux System"
     }, 
