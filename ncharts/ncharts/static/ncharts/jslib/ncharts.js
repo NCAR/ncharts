@@ -60,8 +60,14 @@
         local_ns.update_sounding_boxes(start_time);
     }
 
+    local_ns.last_scroll = Date.now() - 60 * 1000;
     local_ns.scroll = function(offset) {
-        $('html,body').animate({scrollTop: offset},1000);
+        var now = Date.now();
+        // Don't scroll more often than 30 seconds
+        if (now > local_ns.last_scroll + 30 * 1000) {
+            $('html,body').animate({scrollTop: offset},1000);
+            local_ns.last_scroll = now
+        }
     }
 
     local_ns.update_sounding_boxes = function(start_time) {
@@ -341,13 +347,6 @@
                     // charts of multiple variables sometimes take a while to redraw
                     // if (chart.series.length > 1) chart.redraw();
 
-                    //var update_top = $(this).offset().top;
-                    var current_top = $(document).scrollTop();
-                    var plot_top = $("#plot_button").offset().top;
-
-                    if (current_top < plot_top) {			  
-                        local_ns.scroll(plot_top);
-                    }
                 });
 
                 $("div[id^='heatmap']").each(function(index) {
@@ -563,20 +562,18 @@
                         console.log("chart redraw, elapsed time=",(t1 - t0)/1000," seconds");
                         t0 = t1;
                     }
-
-                    //var update_top = $(this).offset().top;
-                    var current_top = $(document).scrollTop();
-                    var plot_top = $("#plot_button").offset().top;
-
-                    if (current_top < plot_top) {
-                        local_ns.scroll(plot_top);
-                    }
                 });
 
                 // update the start time on the datetimepicker from
                 // first time in chart (milliseconds)
                 if (first_time) {
                     local_ns.update_start_time(first_time);
+                }
+
+                var current_top = document.documentElement.scrollTop || document.body.scrollTop;
+                var plot_top = $("#plot_button").offset().top;
+                if (current_top < plot_top) {			  
+                    local_ns.scroll(plot_top);
                 }
 
                 // schedule again
@@ -1373,13 +1370,9 @@
             }
         }
 
-        var current_top = $(document).scrollTop();
+        var current_top = document.documentElement.scrollTop || document.body.scrollTop;
         var plot_top = $("#plot_button").offset().top;
-
-        if (current_top > plot_top) {
-            local_ns.scroll(current_top);
-        }
-        else {
+        if (current_top < plot_top) {
             local_ns.scroll(plot_top);
         }
     });     // end of DOM-is-ready function
