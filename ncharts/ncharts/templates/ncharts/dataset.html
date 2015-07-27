@@ -92,11 +92,13 @@
             <div class="panel panel-body">
                 <strong>{{ form.variables.errors }}</strong>
                 <div class="input-group">
-                    <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                    {% if form.variables|length <= 20 %}
+                        <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                    {% endif %}
                     <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                 </div>
+                {% if form.variables|length > 20 %}
                 <div class="container" id="variable-checkbox">
-                    {% if form.variables|length > 20 %}
                     <ul class="tabrow">
                         {% for var in form.variables %}
                         {% with var.choice_label|slice:"1"|upper as first_letter %}
@@ -113,14 +115,18 @@
                     <div class="tab-content">
                         {% for var in form.variables %} 
                         {% with var.choice_label|slice:"1"|upper as first_letter %}
-                        {% ifchanged first_letter %}
-                            {% if forloop.first %}
-                                <div id="{{ first_letter }}" class="tab-pane fade">
-                            {% else %}
-                                </div>
-                                <div id="{{ first_letter }}" class="tab-pane fade">
-                            {% endif %}
-                        {% endifchanged %}
+                        {% if forloop.first %}
+                            <div id="{{ first_letter }}" class="tab-pane fade in active">
+                        {% else %}
+                            {% ifchanged first_letter %}
+                                {% if forloop.first %}
+                                    <div id="{{ first_letter }}" class="tab-pane fade">
+                                {% else %}
+                                    </div>
+                                    <div id="{{ first_letter }}" class="tab-pane fade">
+                                {% endif %}
+                            {% endifchanged %}
+                        {% endif %}
                         <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
                             title="{{ variables|get_long_name:var.choice_label }}">
                             {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
@@ -130,14 +136,21 @@
                         {% endwith %}
                         {% endfor %}
                     </div>
-                    {% else %}
+                </div>
+                <div class="input-group">
+                    <label>set tab<input id="id_tab_all" type="checkbox" value="set tab"/>&nbsp;&nbsp;</label>
+                    <label>clear tab<input id="id_tab_clear" type="checkbox" value="clear tab"/>&nbsp;&nbsp;</label>
+                </div>
+                {% else %}
+                    <div class="container" id="variable-checkbox">
                     {% for var in form.variables %} 
                     <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
                         title="{{ variables|get_long_name:var.choice_label }}">
                         {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
                     {% endfor %}
-                    {% endif %}
-                </div>  
+                    </div> 
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
