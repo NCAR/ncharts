@@ -253,6 +253,10 @@ class Dataset(models.Model):
 
         return self.end_time
 
+    def get_tab_variables(self):
+
+        return self.variables
+
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
 
