@@ -5,18 +5,18 @@
     <!--get actual device width-->
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="icon" href="/static/favicon.ico">
-
     <title>{% block title %}{% endblock %}</title>
 
     {% load staticfiles %}
+
+    <link rel="icon" href="{% static 'ncharts/favicon.ico' %}">
 
     <!--
     <link rel="stylesheet" type="text/css"
         href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
     -->
     <link rel="stylesheet" type="text/css"
-        href="{% static "ncharts/css/bootstrap.min.css" %}">
+        href="{% static 'ncharts/css/bootstrap.min.css' %}">
 
     <!-- Optional theme -->
     <!--
@@ -24,21 +24,21 @@
     -->
 
     <link rel="stylesheet" type="text/css"
-        href="{% static "ncharts/css/bootstrap-theme.min.css" %}">
+        href="{% static 'ncharts/css/bootstrap-theme.min.css' %}">
 
-    <link rel="stylesheet" type="text/css" href="{% static "ncharts/csslib/ncharts.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'ncharts/csslib/ncharts.css' %}">
 
-    <script src="{% static "ncharts/js/jquery.min.js" %}"></script>
+    <script src="{% static 'ncharts/js/jquery.min.js' %}"></script>
 
-    <script src="{% static "ncharts/js/bootstrap.min.js" %}"></script>
+    <script src="{% static 'ncharts/js/bootstrap.min.js' %}"></script>
 
     <!--
     <script src="http://code.highcharts.com/stock/highstock.js"> </script>
     <script src="http://code.highcharts.com/stock/modules/exporting.js"> </script>
     -->
-    <script src="{% static "ncharts/js/highstock.js" %}"></script>
-    <script src="{% static "ncharts/js/modules/exporting.js" %}"></script>
-    <script src="{% static "ncharts/js/modules/heatmap.js" %}"></script>
+    <script src="{% static 'ncharts/js/highstock.js' %}"></script>
+    <script src="{% static 'ncharts/js/modules/exporting.js' %}"></script>
+    <script src="{% static 'ncharts/js/modules/heatmap.js' %}"></script>
 
     <!--
     <script src="http://github.highcharts.com/highstock.js"> </script>
@@ -47,16 +47,16 @@
     -->
 
     <script type="text/javascript"
-        src="{% static "ncharts/js/moment.min.js" %}">
+        src="{% static 'ncharts/js/moment.min.js' %}">
     </script>
 
     <script type="text/javascript"
-        src="{% static "ncharts/js/moment-timezone-with-data.min.js" %}">
+        src="{% static 'ncharts/js/moment-timezone-with-data.min.js' %}">
     </script>
 
     <!-- finally, ncharts.js -->
     <script type="text/javascript"
-        src="{% static "ncharts/jslib/ncharts.js" %}">
+        src="{% static 'ncharts/jslib/ncharts.js' %}">
     </script>
 
     {% block head %}{% endblock %}
