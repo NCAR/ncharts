@@ -650,12 +650,7 @@
         $("#id_variables_clear").change(function() {
             // console.log("id_variables_clear change, val=",$(this).prop("checked"));
             if ($(this).prop("checked")) {
-                if ($('.tabrow').length) {
-                    $('.active :checked').prop('checked',false); 
-                }
-                else {
-                    $('#variable-checkbox :checked').prop('checked',false);
-                }
+                $('#variable-checkbox :checked').prop('checked',false);
                 $(this).prop('checked',false);
             }
         });
@@ -663,12 +658,21 @@
         $("#id_variables_all").change(function() {
             // console.log("id_variables_all change, val=",$(this).prop("checked"));
             if ($(this).prop("checked")) {
-                if ($('.tabrow').length) {
-                    $('.active :not(:checked)').prop('checked',true);
-                }
-                else {
-                    $('#variable-checkbox :not(:checked)').prop('checked',true);
-                }
+                $('#variable-checkbox :not(:checked)').prop('checked',true);
+                $(this).prop('checked',false);
+            }
+        });
+
+        $("#id_tab_clear").change(function() {
+            if ($(this).prop("checked")) {
+                $('.active :checked').prop('checked',false); 
+                $(this).prop('checked',false);
+            }
+        });
+
+        $("#id_tab_all").change(function() {
+            if ($(this).prop("checked")) {
+                $('.active :not(:checked)').prop('checked',true);
                 $(this).prop('checked',false);
             }
         });
