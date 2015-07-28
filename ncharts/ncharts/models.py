@@ -255,7 +255,7 @@ class Dataset(models.Model):
 
     def get_tab_variables(self):
 
-        return self.variables
+        return self.variables.all()
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
