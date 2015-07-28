@@ -852,7 +852,9 @@ class DatasetView(View):
                 uunits = []
                 # sorted(dict) becomes a list of sorted keys
                 for vname in sorted(variables):
-                    units = variables[vname]['units']
+                    units = ''
+                    if 'units' in variables[vname]:
+                        units = variables[vname]['units']
                     if not units in uunits:
                         uunits.append(units)
 
