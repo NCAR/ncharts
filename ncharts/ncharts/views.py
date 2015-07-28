@@ -485,7 +485,7 @@ class DatasetView(View):
             _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
             form.no_data("No variables found in {}: {} ".format(str(dset), exc))
 
-        print(dset.get_tab_variables())
+        dset.get_tab_variables()
 
         return render(
             request, self.template_name,
