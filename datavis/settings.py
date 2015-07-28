@@ -220,3 +220,10 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 INTERNAL_IPS = ['128.117']
 
+ADMINS = (
+    ('Gordon Maclean', 'maclean@ucar.edu'),
+    ('Hien Nguyen', 'hnguyen@ucar.edu'),
+)
+EMAIL_HOST="smtp.eol.ucar.edu"
+SERVER_EMAIL="apache@datavis.eol.ucar.edu"
+
