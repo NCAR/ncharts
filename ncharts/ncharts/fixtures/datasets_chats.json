@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2007-03-13T00:00:00+00:00", 
+        "end_time": "2007-06-12T00:00:00+00:00", 
+        "location": "Walnut Orchard near Dixon, CA", 
+        "name": "geo_tiltcor", 
+        "long_name": "winds in geographic coordinates, 3D winds tilt-corrected", 
+        "project": "CHATS",
+	"url": "https://www.eol.ucar.edu/field_projects/chats",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 31
+},
+{
+    "fields": {
+        "directory": "/net/isf/isff/projects/CHATS/ISFF/netcdf_qc_geo_tiltcor", 
+        "filenames": "isff_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 31
+}
+]

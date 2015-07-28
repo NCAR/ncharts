@@ -388,6 +388,9 @@ class NetCDFDataset(object):
                         for att in ['units', 'long_name', 'short_name']:
                             if hasattr(var, att):
                                 dsinfo_vars[exp_vname][att] = getattr(var, att)
+                        # Set default units to ''
+                        if not 'units' in dsinfo_vars[exp_vname]:
+                            dsinfo_vars[exp_vname]['units'] = ''
                         continue
 
                     # variable has been found in an earlier ncfile

@@ -746,7 +746,7 @@ class DatasetView(View):
                     except IndexError:  # all data is nan
                         time_last_ok = (start_time - \
                             datetime.timedelta(seconds=0.001)).timestamp()
-                    except KeyError:  # variable not found
+                    except KeyError:  # variable not in vmap
                         continue
 
                     try:
@@ -792,8 +792,10 @@ class DatasetView(View):
         if len(ncdata) == 1 and '' in ncdata:
             # one series, named ''
             for vname, var in variables.items():
-                vindex = ncdata['']['vmap'][vname]
-                ptype = type_by_shape(ncdata['']['data'][vindex].shape)
+                ptype = "time-series"
+                if vname in ncdata['']['vmap']:
+                    vindex = ncdata['']['vmap'][vname]
+                    ptype = type_by_shape(ncdata['']['data'][vindex].shape)
                 var['plot_type'] = ptype
                 plot_types.add(ptype)
         else:
@@ -850,7 +852,11 @@ class DatasetView(View):
                 uunits = []
                 # sorted(dict) becomes a list of sorted keys
                 for vname in sorted(variables):
-                    units = variables[vname]['units']
+                    units = ''
+                    if 'units' in variables[vname]:
+                        units = variables[vname]['units']
+                    else:
+                        variables[vname]['units'] = units
                     if not units in uunits:
                         uunits.append(units)
 
@@ -996,6 +1002,8 @@ class DataView(View):
 
                 # one series
                 ser_data = ncdata['']
+                if not vname in ser_data['vmap']:
+                    continue
                 vindex = ser_data['vmap'][vname]
 
                 try:
