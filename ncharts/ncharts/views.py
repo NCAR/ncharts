@@ -855,6 +855,8 @@ class DatasetView(View):
                     units = ''
                     if 'units' in variables[vname]:
                         units = variables[vname]['units']
+                    else:
+                        variables[vname]['units'] = units
                     if not units in uunits:
                         uunits.append(units)
 
