@@ -130,6 +130,15 @@ STATIC_URL = '/static/'
 #	Alias /static/ /var/django/eol-django-datavis/static/
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
 
+# People who should receive emails of ERRORs
+ADMINS = (
+    ('Gordon Maclean', 'maclean@ucar.edu'),
+    # ('Hien Nguyen', 'hnguyen@ucar.edu'),
+)
+EMAIL_HOST = "smtp.eol.ucar.edu"
+# Email address they appear to come from
+SERVER_EMAIL = "apache@datavis.eol.ucar.edu"
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -185,19 +194,23 @@ LOGGING = {
             'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }
     },
     'loggers': {
         'django': {
-            'handlers':['django','django_debug'],
+            'handlers':['django','django_debug', 'mail_admins'],
             'propagate': True,
             'level':'DEBUG',
         },
         'datavis': {
-            'handlers':['datavis','datavis_debug'],
+            'handlers':['datavis','datavis_debug', 'mail_admins'],
             'level':'DEBUG',
         },
         'ncharts': {
-            'handlers': ['ncharts_debug','ncharts'],
+            'handlers': ['ncharts_debug','ncharts', 'mail_admins'],
             'level': 'DEBUG',
         },
     }
@@ -219,11 +232,4 @@ if not DEBUG:
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 INTERNAL_IPS = ['128.117']
-
-ADMINS = (
-    ('Gordon Maclean', 'maclean@ucar.edu'),
-    ('Hien Nguyen', 'hnguyen@ucar.edu'),
-)
-EMAIL_HOST="smtp.eol.ucar.edu"
-SERVER_EMAIL="apache@datavis.eol.ucar.edu"
 
