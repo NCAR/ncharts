@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
+import os, socket, getpass
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # Quick-start development settings - unsuitable for production
@@ -137,7 +137,7 @@ ADMINS = (
 )
 EMAIL_HOST = "smtp.eol.ucar.edu"
 # Email address they appear to come from
-SERVER_EMAIL = "apache@datavis.eol.ucar.edu"
+SERVER_EMAIL = getpass.getuser() + '@' + socket.getfqdn()
 
 LOGGING = {
     'version': 1,
