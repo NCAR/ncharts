@@ -99,6 +99,9 @@
                 </div>
                 {% if form.variables|length > 20 %}
                 <div class="container" id="variable-checkbox">
+                    {% for key,value in variable_tabs %}
+                        {{ key }}
+                    {% endfor %}
                     <ul class="tabrow">
                         {% for var in form.variables %}
                         {% with var.choice_label|slice:"1"|upper as first_letter %}
