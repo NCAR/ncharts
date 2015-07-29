@@ -462,6 +462,9 @@ class DatasetView(View):
         soundings = []
         try:
             dsetvars = dset.get_variables()
+
+            var_tabs = dset.get_tab_variables(dsetvars)
+
             # dvars = sorted(dsetvars.keys())
             form.set_variable_choices(dsetvars)
             form.set_yvariable_choices(dsetvars)
@@ -485,14 +488,13 @@ class DatasetView(View):
             _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
             form.no_data("No variables found in {}: {} ".format(str(dset), exc))
 
-        print(dset.get_tab_variables())
-
         return render(
             request, self.template_name,
             {
                 'form': form,
                 'dataset': dset,
                 'variables': dsetvars,
+                'variable_tabs': var_tabs,
                 'soundings': mark_safe(json.dumps(soundings))
             })
 
@@ -565,8 +567,10 @@ class DatasetView(View):
         soundings = []
         sounding_choices = []
         dsetvars = {}
+        var_tabs = {}
         try:
             dsetvars = dset.get_variables()
+            var_tabs = dset.get_tab_variables(dsetvars)
             form.set_variable_choices(dsetvars)
             form.set_yvariable_choices(dsetvars)
 
@@ -616,6 +620,7 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
+                    'variable_tabs': var_tabs,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -672,6 +677,7 @@ class DatasetView(View):
                         'form': form,
                         'dataset': dset,
                         'variables': dsetvars,
+                        'variable_tabs': var_tabs,
                         'soundings': mark_safe(json.dumps(soundings))
                     })
 
@@ -716,6 +722,7 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
+                    'variable_tabs': var_tabs,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -728,6 +735,7 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
+                    'variable_tabs': var_tabs,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -886,6 +894,7 @@ class DatasetView(View):
                 'form': form,
                 'dataset': dset,
                 'variables': dsetvars,
+                'variable_tabs': var_tabs,
                 'plot_groups': plot_groups,
                 'time0': json_time0,
                 'time': json_time,

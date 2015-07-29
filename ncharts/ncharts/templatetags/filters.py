@@ -10,4 +10,12 @@ def get_long_name(vs, v):
     except:
         return ''
 
+@register.filter
+def key(d, key_name):
+    return d[key_name]
 
+@register.filter
+def get_key_values(var_name, variables):
+    for var in variables:
+        if var.choice_label == var_name:
+            return var
