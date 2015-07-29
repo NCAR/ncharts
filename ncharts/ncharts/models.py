@@ -12,6 +12,8 @@ file LICENSE in this package.
 
 import os, pytz, logging
 
+from collections import OrderedDict
+
 from django.db import models
 
 from ncharts import netcdf, fileset, raf_database
@@ -253,9 +255,27 @@ class Dataset(models.Model):
 
         return self.end_time
 
-    def get_tab_variables(self):
+    def get_tab_variables(self, variables):
+          
+        keys = variables.keys()
 
-        return self.variables.all()
+        tab_dict = {}
+
+        for i, key in enumerate(keys):
+            if i == 0:
+                tab = key[0].upper()
+                tab_dict[tab] = [key]
+            else:
+                if tab != key[0].upper():
+                    tab = key[0].upper()
+                    if tab in tab_dict:
+                        tab_dict[tab].append(key)
+                    else:
+                        tab_dict[tab] = [key]
+                else:
+                    tab_dict[tab].append(key)
+
+        return OrderedDict(sorted(tab_dict.items()))
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
