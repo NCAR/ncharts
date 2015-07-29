@@ -923,7 +923,7 @@ class DataView(View):
                             'project_name': project_name,
                             'dataset_name':dataset_name,
                         }))
-            ajax_out['message'] = exc
+            ajax_out['message'] = str(exc)
 
             return HttpResponse(
                 json.dumps(ajax_out),
@@ -948,7 +948,7 @@ class DataView(View):
                                 'project_name': project_name,
                                 'dataset_name':dataset_name,
                             }))
-                ajax_out['message'] = exc
+                ajax_out['message'] = str(exc)
                 return HttpResponse(
                     json.dumps(ajax_out),
                     content_type="application/json")
