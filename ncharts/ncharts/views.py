@@ -508,7 +508,7 @@ class DatasetView(View):
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404 as exc:
-            _logger.error("post: %s", exc)
+            _logger.warn("post: %s", exc)
             messages.warning(request, exc)
             return redirect(
                 'ncharts:dataset', project_name=project_name,
@@ -914,7 +914,7 @@ class DataView(View):
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404 as exc:
-            _logger.error("AJAX DataView get: %s", exc)
+            _logger.warn("AJAX DataView get: %s", exc)
             ajax_out['redirect'] = \
                 request.build_absolute_uri(
                     reverse(
