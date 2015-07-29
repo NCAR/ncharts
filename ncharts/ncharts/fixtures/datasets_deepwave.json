@@ -23,30 +23,5 @@
     }, 
     "model": "ncharts.filedataset",
     "pk": 7
-},
-{
-    "fields": {
-        "variables": [], 
-        "platforms": [
-            "GV"
-        ], 
-        "start_time": "2014-07-01T04:00:00+00:00", 
-        "end_time": "2014-07-01T14:00:00+00:00", 
-        "name": "GV-1sec", 
-        "long_name": "GV, 1 sec data", 
-        "project": "DEEPWAVE",
-	"url": "http://data.eol.ucar.edu/codiac/ds_proj?DEEPWAVE",
-	"status": "Preliminary"
-    }, 
-    "model": "ncharts.dataset",
-    "pk": 8
-},
-{
-    "fields": {
-        "directory": "/scr/tmp/maclean/DEEPWAVE/GV/netcdf",
-        "filenames": "DEEPWAVE_%Y%m%d_rf14.nc"
-    }, 
-    "model": "ncharts.filedataset",
-    "pk": 8
 }
 ]
