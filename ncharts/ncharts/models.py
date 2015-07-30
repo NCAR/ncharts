@@ -275,7 +275,33 @@ class Dataset(models.Model):
                 else:
                     tab_dict[tab].append(key)
 
-        return OrderedDict(sorted(tab_dict.items()))
+        tab_dict = OrderedDict(sorted(tab_dict.items()))
+       
+        combined_vars = []
+        combined_tabs = []
+        temp_dict = tab_dict
+        tab_limit = 5
+        for i, tab in enumerate(temp_dict):
+            tab_dict[tab].sort(key=lambda x: x.lower())
+            combined_vars += tab_dict[tab]
+            combined_tabs.append(tab)
+            if len(combined_vars) > tab_limit and len(combined_tabs) == 1:
+                combined_vars = []
+                del combined_tabs[:]
+            elif len(combined_vars) > tab_limit or (len(combined_vars) <= tab_limit and i == (len(temp_dict) - 1)):
+                if len(combined_tabs) > 1:
+                    for toremove in combined_tabs:
+                        tab_dict = {key: value for key, value in tab_dict.items() if key != toremove}
+                    new_tab = combined_tabs[0] + "-" + combined_tabs[-1]
+                    tab_dict[new_tab] = combined_vars
+                combined_vars = []
+                del combined_tabs[:]
+         
+        temp_dict.clear()
+         
+        tab_dict = OrderedDict(sorted(tab_dict.items()))
+
+        return tab_dict
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
