@@ -7,6 +7,7 @@ class Command(NoArgsCommand):
     def handle_noargs(self, **options):
 
         clnts = ClientState.objects.all()
+        today = datetime.date.today()
 
         for clnt in clnts:
             if not clnt.last_save:
