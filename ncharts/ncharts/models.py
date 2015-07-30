@@ -292,12 +292,10 @@ class Dataset(models.Model):
                 if len(combined_tabs) > 1:
                     for toremove in combined_tabs:
                         tab_dict = {key: value for key, value in tab_dict.items() if key != toremove}
-                    new_tab = combined_tabs[0] + "-" + combined_tabs[-1]
+                    new_tab = combined_tabs[0] + " - " + combined_tabs[-1]
                     tab_dict[new_tab] = combined_vars
                 combined_vars = []
                 del combined_tabs[:]
-         
-        temp_dict.clear()
          
         tab_dict = OrderedDict(sorted(tab_dict.items()))
 
