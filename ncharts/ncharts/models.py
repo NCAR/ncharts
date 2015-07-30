@@ -501,8 +501,6 @@ class ClientState(models.Model):
     # list of sounding series, stringified by json
     soundings = models.TextField(blank=True)
 
-    last_save = models.DateField(auto_now=True, null=True)
-
     def __str__(self):
         return 'ClientState for dataset: %s' % (self.dataset.name)
 
