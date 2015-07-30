@@ -98,15 +98,19 @@ class RAFDatabase(object):
             conn: connection to close.
         Raises:
             psycopg2.Error
+
+        According to http://initd.org/psycopg/docs/connection.html: 
+            Changed in version 2.5: if the connection is used in a with
+            statement, the (rollback) method is automatically called if
+            an exception is raised in the with block.
+
+        All connections here are used in a with statement, so we
+        don't have to call rollback() before close.
         """
 
         with RAFDatabase.__cache_lock:
             for (hashval, cconn) in RAFDatabase.__cached_connections.items():
                 if conn == cconn:
-                    try:
-                        conn.rollback()
-                    except psycopg2.Error as exc:
-                        _logger.warn("%s rollback: %s", conn, exc)
                     try:
                         conn.close()
                     except psycopg2.Error as exc:
@@ -157,8 +161,8 @@ class RAFDatabase(object):
             nc_exc.NoDataFoundException
         """
 
-        with self.conn as conn:
-            try:
+        try:
+            with self.conn as conn:
                 with conn.cursor() as cur:
                     cur.execute("\
     SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
@@ -171,12 +175,11 @@ class RAFDatabase(object):
                             }
 
                     return variables
-            except psycopg2.Error as exc:
-                # psycopg.connections are thread safe
-                RAFDatabase.close_connection(conn)
-                raise nc_exc.NoDataFoundException(
-                    "No variables found: {}".format(exc))
-
+        except psycopg2.Error as exc:
+            # psycopg.connections are thread safe
+            RAFDatabase.close_connection(conn)
+            raise nc_exc.NoDataFoundException(
+                "No variables found: {}".format(exc))
 
     def read_times(
             self,
@@ -195,8 +198,8 @@ class RAFDatabase(object):
 
         vname = "datetime"
 
-        with self.conn as conn:
-            try:
+        try:
+            with self.conn as conn:
                 with conn.cursor() as cur:
                 # datetimes in database are returned to python as timezone naive.
                     cur.execute(
@@ -204,10 +207,10 @@ class RAFDatabase(object):
                         .format(vname, self.table, vname, vname),
                         (start_time, end_time))
                     return [pytz.utc.localize(x[0]).timestamp() for x in cur]
-            except psycopg2.Error as exc:
-                RAFDatabase.close_connection(conn)
-                raise nc_exc.NoDataFoundException(
-                    "read {}: {}".format(vname, exc))
+        except psycopg2.Error as exc:
+            RAFDatabase.close_connection(conn)
+            raise nc_exc.NoDataFoundException(
+                "read {}: {}".format(vname, exc))
 
 
     def get_start_time(self):
@@ -219,8 +222,8 @@ class RAFDatabase(object):
 
         vname = "datetime"
 
-        with self.conn as conn:
-            try:
+        try:
+            with self.conn as conn:
                 with conn.cursor() as cur:
                 # datetimes in database are returned to python as timezone naive.
                     cur.execute(
@@ -228,9 +231,9 @@ class RAFDatabase(object):
                         .format(vname, self.table))
                     start_time = cur.fetchone()[0]
                     return pytz.utc.localize(start_time)
-            except psycopg2.Error as exc:
-                RAFDatabase.close_connection(conn)
-                raise nc_exc.NoDataFoundException("read {}: {}".format(vname, exc))
+        except psycopg2.Error as exc:
+            RAFDatabase.close_connection(conn)
+            raise nc_exc.NoDataFoundException("read {}: {}".format(vname, exc))
 
 
     def read_time_series(
@@ -285,8 +288,8 @@ class RAFDatabase(object):
         vmap = {}
         vdim2 = {}
 
-        with self.conn as conn:
-            try:
+        try:
+            with self.conn as conn:
                 with conn.cursor() as cur:
                     for vname in variables:
 
@@ -351,10 +354,10 @@ class RAFDatabase(object):
                         }
                     }
 
-            except psycopg2.Error as exc:
-                RAFDatabase.close_connection(conn)
-                raise nc_exc.NoDataFoundException(
-                    (operation + ": {}").format(exc))
+        except psycopg2.Error as exc:
+            RAFDatabase.close_connection(conn)
+            raise nc_exc.NoDataFoundException(
+                (operation + ": {}").format(exc))
 
 
 def test_func():
