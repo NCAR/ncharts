@@ -13,8 +13,7 @@ class Command(NoArgsCommand):
         print("#sessions=%d" % len(sessions))
         clnts = ClientState.objects.all()
 
-        active = set()
-        n_inactive = 0
+        active = {}
 
         for sess in sessions:
             sess_dict = sess.get_decoded()
@@ -27,19 +26,18 @@ class Command(NoArgsCommand):
                         project.name, dset.name)
 
                     if cid_name == sess_key and sess_dict[cid_name] == clnt.pk:
-                        active.add(clnt.pk)
+                        active[clnt.pk] = str(sess)
                         break
 
         for clnt in clnts:
             if clnt.pk in active:
-                print("client found in session: pk=%d, dataset=%s" % \
-                    (clnt.pk, clnt.dataset))
+                print("project=%s, dataset=%s, pk=%d, found in session %s" % \
+                    (clnt.dataset.project, clnt.dataset, clnt.pk, active[clnt.pk]))
             else:
-                print("client not found in session: pk=%d, dataset=%s, project=%s, cid_name=%s" % \
-                    (clnt.pk, clnt.dataset.name, clnt.dataset.project.name, nc_views.client_id_name(
+                print("project=%s, dataset=%s, pk=%d, session not found with key='%s' not" % \
+                    (clnt.dataset.project, clnt.dataset, clnt.pk, nc_views.client_id_name(
                         clnt.dataset.project.name, clnt.dataset.name)))
-                n_inactive += 1
 
-        print("#clients=%d, #in-active=%d" % (len(clnts),n_inactive))
+        print("#clients=%d, #unattached=%d" % (len(clnts),len(clnts)-len(active)))
 
 

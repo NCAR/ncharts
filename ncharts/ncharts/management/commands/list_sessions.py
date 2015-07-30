@@ -18,6 +18,7 @@ class Command(NoArgsCommand):
 
             for sessk in sess_dict:
                 if len(sessk) > 5 and sessk[0:5] == "pdid_":
-                    print("  sessk=%s, client_id=%d" % (sessk, sess_dict[sessk]))
+                    exists = ClientState.objects.filter(pk=sess_dict[sessk]).exists()
+                    print("  key='%s', client pk=%d, exists=%s" % (sessk, sess_dict[sessk], exists))
 
 
