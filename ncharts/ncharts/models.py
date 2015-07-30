@@ -277,8 +277,8 @@ class Dataset(models.Model):
 
         tab_dict = OrderedDict(sorted(tab_dict.items()))
        
-        for tab,variables in tab_dict.items():
-            print(len(variables))
+        for tab in tab_dic:
+            tab_dict[tab].sort(key=lambda x: x.lower())
 
         return tab_dict
 
