@@ -275,7 +275,12 @@ class Dataset(models.Model):
                 else:
                     tab_dict[tab].append(key)
 
-        return OrderedDict(sorted(tab_dict.items()))
+        tab_dict = OrderedDict(sorted(tab_dict.items()))
+       
+        for tab,variables in tab_dict.items():
+            print(len(variables))
+
+        return tab_dict
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
