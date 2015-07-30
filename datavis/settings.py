@@ -229,7 +229,7 @@ if not DEBUG:
     CACHE_MIDDLEWARE_SECONDS = 300
     CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 INTERNAL_IPS = ['128.117']
 
