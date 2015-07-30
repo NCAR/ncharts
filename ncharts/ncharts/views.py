@@ -338,12 +338,12 @@ class DatasetView(View):
             pass
 
         client_state_needs_save = False
+        tnow = datetime.datetime.now(timezone.tz)
 
         if not client_state:
             # _logger.debug('DatasetView get, dset.variables=%s',
             #   dset.variables)
 
-            tnow = datetime.datetime.now(timezone.tz)
             tdelta = datetime.timedelta(days=1)
 
             if dset.get_end_time() < tnow or isinstance(dset, nc_models.DBDataset):
@@ -371,7 +371,7 @@ class DatasetView(View):
                 # are unique.
                 pass
             else:
-                # Dataset stored under in user session
+                # Dataset stored in user session
                 # doesn't match that for project and dataset name.
                 # Probably a server restart
                 client_state.dataset = dset
@@ -380,7 +380,6 @@ class DatasetView(View):
                 client_state.yvariable = ""
                 client_state.soundings = ""
 
-                tnow = datetime.datetime.now(timezone.tz)
                 tdelta = datetime.timedelta(days=1)
                 if dset.get_end_time() > tnow:
                     stime = tnow - tdelta
@@ -408,14 +407,15 @@ class DatasetView(View):
                     project_name, dataset_name)
             sel_vars = []
 
-        post_real_time = datetime.datetime.now(timezone.tz) > dset.end_time
+        # If the end_time of the dataset has passed
+        post_real_time = tnow > dset.end_time
 
         if post_real_time and client_state.track_real_time:
             client_state.track_real_time = False
             client_state_needs_save = True
 
         if client_state.track_real_time:
-            client_state.start_time = datetime.datetime.now(timezone.tz) - \
+            client_state.start_time = tnow - \
                 datetime.timedelta(seconds=client_state.time_length)
             client_state_needs_save = True
         elif client_state.start_time > dset.end_time:
@@ -983,6 +983,7 @@ class DataView(View):
                 content_type="application/json")
 
         timezone = client_state.timezone
+        tnow = datetime.datetime.now(timezone)
 
         for vname in sel_vars:
 
@@ -999,7 +1000,7 @@ class DataView(View):
             stime = datetime.datetime.fromtimestamp(
                 time_last_ok + 0.001, tz=timezone)
 
-            etime = datetime.datetime.now(timezone)
+            etime = tnow
 
             try:
                 if isinstance(dset, nc_models.FileDataset):
