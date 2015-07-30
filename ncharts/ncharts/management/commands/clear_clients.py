@@ -21,15 +21,17 @@ class Command(NoArgsCommand):
         for sess in sessions:
             sess_dict = sess.get_decoded()
 
-            for clnt in clnts:
-                dset = clnt.dataset
-                project = dset.project
-                cid_name = nc_views.client_id_name(
-                    project.name, dset.name)
+            for sess_key in sess_dict:
+                for clnt in clnts:
+                    dset = clnt.dataset
+                    project = dset.project
+                    cid_name = nc_views.client_id_name(
+                        project.name, dset.name)
 
-                if cid_name in sess_dict and sess_dict[cid_name] == clnt.pk:
-                    active.add(clnt.pk)
-                    break
+                    if cid_name == sess_key and sess_dict[cid_name] == clnt.pk:
+                        active.add(clnt.pk)
+                        break
+
         for clnt in clnts:
             if clnt.pk in active:
                 print("client found in session: pk=%d, dataset=%s" % \

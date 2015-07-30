@@ -12,11 +12,12 @@ class Command(NoArgsCommand):
         print("#sessions=%d" % len(sessions))
 
         for sess in sessions:
+            print("session=%s" % str(sess))
             sess_dict = sess.get_decoded()
-            print("session keys=%s" % (repr([k for k in sess_dict.keys()])))
+            # print("session keys=%s" % (repr([k for k in sess_dict.keys()])))
 
             for sessk in sess_dict:
                 if len(sessk) > 5 and sessk[0:5] == "pdid_":
-                    print("session, sessk=%s, client_id=%d" % (sessk, sess_dict[sessk]))
+                    print("  sessk=%s, client_id=%d" % (sessk, sess_dict[sessk]))
 
 
