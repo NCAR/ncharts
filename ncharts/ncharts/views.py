@@ -883,10 +883,6 @@ class DatasetView(View):
                         }
                         grpid += 1
 
-        print("type(form['variables'])=%s" % type(form['variables']))
-        for var in iter(form['variables']):
-            print("type(var)=%s" % type(var))
-            break
         return render(
             request, self.template_name, {
                 'form': form,
