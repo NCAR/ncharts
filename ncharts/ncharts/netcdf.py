@@ -592,7 +592,7 @@ class NetCDFDataset(object):
                     return slice(0)
                 except TypeError:
                     if base_time:
-                        _logger.error(
+                        _logger.warning(
                             "%s: %s: cannot parse units: %s. "
                             "Using base_time instead",
                             os.path.split(ncpath)[1],

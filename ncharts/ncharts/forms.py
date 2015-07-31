@@ -218,8 +218,8 @@ class DataSelectionForm(forms.Form):
             variables: list of variable names.
         """
         # choices: (value, label)
-        self.fields['variables'].choices = \
-                sorted([(n, n) for n in variables],key=lambda x: str.lower(x[0]))
+        self.fields['variables'].choices = sorted(
+            [(n, n) for n in variables],key=lambda x: str.lower(x[0]))
         # print("choices=%s" % repr(self.fields['variables'].choices))
 
     def set_yvariable_choices(self, variables):
@@ -229,8 +229,8 @@ class DataSelectionForm(forms.Form):
             variables: list of variable names.
         """
         # choices: (value, label)
-        self.fields['yvariable'].choices = \
-                sorted([(n, n) for n in variables],key=lambda x: str.lower(x[0]))
+        self.fields['yvariable'].choices = sorted(
+            [(n, n) for n in variables],key=lambda x: str.lower(x[0]))
 
     def clean(self):
         """Check the user's selections for correctness.

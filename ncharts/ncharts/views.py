@@ -463,7 +463,6 @@ class DatasetView(View):
         try:
             dsetvars = dset.get_variables()
 
-            var_tabs = dset.get_tab_variables(dsetvars)
 
             # dvars = sorted(dsetvars.keys())
             form.set_variable_choices(dsetvars)
@@ -494,7 +493,6 @@ class DatasetView(View):
                 'form': form,
                 'dataset': dset,
                 'variables': dsetvars,
-                'variable_tabs': var_tabs,
                 'soundings': mark_safe(json.dumps(soundings))
             })
 
@@ -567,10 +565,8 @@ class DatasetView(View):
         soundings = []
         sounding_choices = []
         dsetvars = {}
-        var_tabs = {}
         try:
             dsetvars = dset.get_variables()
-            var_tabs = dset.get_tab_variables(dsetvars)
             form.set_variable_choices(dsetvars)
             form.set_yvariable_choices(dsetvars)
 
@@ -620,7 +616,6 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
-                    'variable_tabs': var_tabs,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -677,7 +672,6 @@ class DatasetView(View):
                         'form': form,
                         'dataset': dset,
                         'variables': dsetvars,
-                        'variable_tabs': var_tabs,
                         'soundings': mark_safe(json.dumps(soundings))
                     })
 
@@ -722,7 +716,6 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
-                    'variable_tabs': var_tabs,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -735,7 +728,6 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
-                    'variable_tabs': var_tabs,
                     'soundings': mark_safe(json.dumps(soundings))
                 })
 
@@ -889,12 +881,15 @@ class DatasetView(View):
                         }
                         grpid += 1
 
+        print("type(form['variables'])=%s" % type(form['variables']))
+        for var in iter(form['variables']):
+            print("type(var)=%s" % type(var))
+            break
         return render(
             request, self.template_name, {
                 'form': form,
                 'dataset': dset,
                 'variables': dsetvars,
-                'variable_tabs': var_tabs,
                 'plot_groups': plot_groups,
                 'time0': json_time0,
                 'time': json_time,

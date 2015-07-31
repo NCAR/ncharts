@@ -98,9 +98,11 @@
                     <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                 </div>
                 {% if form.variables|length > 20 %}
+                {% with tabs=form.variables|make_tabs:dataset  %}
+
                 <div class="container" id="variable-checkbox">
                     <ul class="tabrow">
-                        {% for tab in variable_tabs %}
+                        {% for tab in tabs %}
                             {% if forloop.first %}
                                 <li class="selected"><a data-toggle="tab" href="#{{ tab }}"> {{ tab }}</a></li> 
                             {% else %}
@@ -109,30 +111,28 @@
                         {% endfor %}
                     </ul>
                     <div class="tab-content">
-                        {% for tab in variable_tabs %} 
+                        {% for tab, vars in tabs.items %}
+                            <div id="{{ tab }}"
                             {% if forloop.first %}
-                                <div id="{{ tab }}" class="tab-pane fade in active">
+                                class="tab-pane fade in active"
                             {% else %}
-                                </div>
-                                <div id="{{ tab }}" class="tab-pane fade">
+                                class="tab-pane fade"
                             {% endif %}
-                            {% for var_name in variable_tabs|key:tab %} 
-                                {% with var_name|get_key_values:form.variables as var %}
-                                    <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
-                                        title="{{ variables|get_long_name:var.choice_label }}">
-                                        {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
-                                {% endwith %}
+                            >
+                            {% for var in vars %} 
+                                <label class="col-md-2" id="variable_list"
+                                    data-toggle="tooltip"
+                                    title="{{ variables|get_long_name:var.choice_label }}">{{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label>
                             {% endfor %}
-                            {% if forloop.last %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
+                            </div>
+                    {% endfor %}
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>set tab<input id="id_tab_all" type="checkbox" value="set tab"/>&nbsp;&nbsp;</label>
-                    <label>clear tab<input id="id_tab_clear" type="checkbox" value="clear tab"/>&nbsp;&nbsp;</label>
+                    <label>set all in tab<input id="id_tab_all" type="checkbox" value="set tab"/>&nbsp;&nbsp;</label>
+                    <label>clear all in tab<input id="id_tab_clear" type="checkbox" value="clear tab"/>&nbsp;&nbsp;</label>
                 </div>
+                {% endwith %}
                 {% else %}
                     <div class="container" id="variable-checkbox">
                     {% for var in form.variables %} 
