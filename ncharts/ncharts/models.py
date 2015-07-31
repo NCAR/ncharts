@@ -312,7 +312,7 @@ class Dataset(models.Model):
                 ctab = tab
                 comb_tabs[ctab] = vals
             else:
-                nctab = ctab[0] + ' - ' + tab
+                nctab = ctab[0] + " - " + tab
                 comb_tabs[nctab] = comb_tabs[ctab] + vals
                 del comb_tabs[ctab]
                 ctab = nctab

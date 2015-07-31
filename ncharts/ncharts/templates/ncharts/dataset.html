@@ -120,9 +120,9 @@
                             {% endif %}
                             >
                             {% for var in vars %} 
-                                <label class="col-md-2" id="variable_list"
-                                    data-toggle="tooltip"
-                                    title="{{ variables|get_long_name:var.choice_label }}">{{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label>
+                                <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
+                                    title="{{ variables|get_long_name:var.choice_label }}">
+                                    {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
                             {% endfor %}
                             </div>
                     {% endfor %}
