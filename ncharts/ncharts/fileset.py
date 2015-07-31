@@ -86,11 +86,9 @@ class File(object):
         try:
             self.time = pytz.utc.localize(datetime.datetime.strptime(path, pathdesc))
             return
-        except ValueError as exc:
+        except (ValueError, sre_constants.error) as exc:
             _logger.error("fileset.File __init__: %s", exc)
             raise
-        except sre_constants.error as exc:
-            _logger.error("fileset.File __init__: %s", exc)
         except:
             _logger.error(
                 "fileset.File __init__ unexpected error: %s",
@@ -151,11 +149,9 @@ class File(object):
         try:
             # print('try again, path=', path, ', pathdesc=', pathdesc)
             self.time = pytz.utc.localize(datetime.datetime.strptime(path, pathdesc))
-        except ValueError as exc:
+        except (ValueError, sre_constants.error) as exc:
             _logger.error("fileset.File __init__ %s:", exc)
             raise
-        except sre_constants.error as exc:
-            _logger.error("fileset.File __init__ %s:", exc)
         except:
             _logger.error(
                 "fileset.File __init__ unexpected error %s:",
@@ -354,12 +350,9 @@ class Dir(object):
                 # print('subpath=', subpath)
                 try:
                     pstat = os.stat(subpath)
-                except FileNotFoundError as exc:
+                except (FileNotFoundError, PermissionError) as exc:
                     _logger.error(exc)
                     continue    # maybe it was (very) recently deleted
-                except PermissionError as exc:
-                    _logger.error(exc)
-                    continue
                 if stat.S_ISDIR(pstat.st_mode):
                     pdir = Dir.get(
                         subpath, os.path.join(self.pathdesc, nextpath), pathrem)

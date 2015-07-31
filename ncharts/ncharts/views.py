@@ -586,7 +586,7 @@ class DatasetView(View):
             form.no_data("No variables found in {}: {}".format(dset, exc))
 
         if not form.is_valid():
-            _logger.error('User form is not valid!: %s', repr(form.errors))
+            _logger.warning('User form is not valid!: %s', repr(form.errors))
 
             if dset.dset_type == "sounding":
                 sounding_choices = []
@@ -834,7 +834,8 @@ class DatasetView(View):
                 for series_name in sorted(ncdata.keys()):
                     vnames = sorted([v for v in variables])
                     units = [variables[v]['units'] for v in vnames]
-                    long_names = [(variables[v]['long_name'] if 'long_name' in variables[v] else v) for v in vnames]
+                    long_names = [(variables[v]['long_name'] \
+                        if 'long_name' in variables[v] else v) for v in vnames]
                     plot_groups['g{}'.format(grpid)] = {
                         'series': series_name,
                         'variables': mark_safe(
@@ -875,7 +876,8 @@ class DatasetView(View):
                                 [(variables[v]['units'] if 'units' in variables[v] else '') \
                                     for v in uvars]).replace("'", r"\u0027")),
                             'long_names': mark_safe(json.dumps(
-                                [(variables[v]['long_name'] if 'long_name' in variables[v] else '') \
+                                [(variables[v]['long_name'] \
+                                    if 'long_name' in variables[v] else '') \
                                     for v in uvars]).replace("'", r"\u0027")),
                             'plot_type': mark_safe(ptype),
                         }

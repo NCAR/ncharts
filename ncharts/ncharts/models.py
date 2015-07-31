@@ -258,7 +258,7 @@ class Dataset(models.Model):
     def make_tabs(self, variables):
         """Create a dictionary of tabs for the elements in variables.
 
-        This is so that a large number of checkbox widgits for the
+        This is so that a large number of checkbox widgets for the
         selection of data variables to be plotted can be split into
         tabbed panes.
         
@@ -281,9 +281,11 @@ class Dataset(models.Model):
         (the variable name) and a tab attribute, which when 
         rendered in a template, creates the checkbox html.
 
-        References to these widgits are copied into lists
+        References to these widgets are copied into lists
         under each tab.
         """
+
+        nvars = len(variables)
           
         tabs = OrderedDict()
 
@@ -298,14 +300,13 @@ class Dataset(models.Model):
         # fewer than tab_limit elements
         tab_limit = 10
         comb_tabs = OrderedDict()
-        nvars = 0
         for tab, vals in tabs.items():
 
             # Sort by first letter
             # vals.sort(key=lambda x: x.choice_label.lower())
 
-            nvars += len(vals)
-
+            # pylint thinks ctab could be used before assignment
+            # pylint: disable=used-before-assignment
             if len(comb_tabs) == 0 or \
                     len(comb_tabs[ctab]) > tab_limit or \
                     len(vals) > tab_limit:

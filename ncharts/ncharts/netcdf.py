@@ -33,10 +33,7 @@ def get_file_modtime(path):
     """ Utility to get the modification time of a file. """
     try:
         pstat = os.stat(path)
-    except FileNotFoundError as exc:
-        _logger.error(exc)
-        raise
-    except PermissionError as exc:
+    except (FileNotFoundError, PermissionError) as exc:
         _logger.error(exc)
         raise
 
@@ -113,9 +110,9 @@ class NetCDFDataset(object):
         self.end_time = end_time
 
         hasher = hashlib.md5()
-        hasher.update(bytes(path,'utf-8'))
-        hasher.update(bytes(str(start_time),'utf-8'))
-        hasher.update(bytes(str(end_time),'utf-8'))
+        hasher.update(bytes(path, 'utf-8'))
+        hasher.update(bytes(str(start_time), 'utf-8'))
+        hasher.update(bytes(str(end_time), 'utf-8'))
 
         self.cache_hash = hasher.digest()
 
@@ -149,8 +146,7 @@ class NetCDFDataset(object):
     def get_files(
             self,
             start_time=pytz.utc.localize(datetime.min),
-            end_time=pytz.utc.localize(datetime.max),
-            dataset_info=None):
+            end_time=pytz.utc.localize(datetime.max)):
         """Return the fileset.File objects matching a time period.
 
         Args:
@@ -168,8 +164,7 @@ class NetCDFDataset(object):
     def get_filepaths(
             self,
             start_time=pytz.utc.localize(datetime.min),
-            end_time=pytz.utc.localize(datetime.max),
-            dataset_info=None):
+            end_time=pytz.utc.localize(datetime.max)):
         """Return the file path names matching the time period.
         Args:
             start_time: datetime.datetime of start of fileset scan.
@@ -181,7 +176,7 @@ class NetCDFDataset(object):
         Raises:
             FileNotFoundError, PermissionError
         """
-        return [f.path for f in self.get_files(start_time, end_time, dataset_info=dataset_info)]
+        return [f.path for f in self.get_files(start_time, end_time)]
 
     def get_variables(
             self,
@@ -224,7 +219,6 @@ class NetCDFDataset(object):
         dsinfo_vars = dsinfo['variables']
 
         files = self.get_files(
-            dataset_info=dsinfo,
             start_time=self.start_time,
             end_time=self.end_time)
 
@@ -287,10 +281,7 @@ class NetCDFDataset(object):
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
                     break
-                except OSError as exc:
-                    _logger.error("%s: %s", ncpath, exc)
-                    time.sleep(itry)
-                except RuntimeError as exc:
+                except (OSError, RuntimeError) as exc:
                     _logger.error("%s: %s", ncpath, exc)
                     time.sleep(itry)
 
@@ -924,10 +915,7 @@ class NetCDFDataset(object):
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
                     break
-                except OSError as exc:
-                    _logger.error("%s: %s", ncpath, exc)
-                    time.sleep(itry)
-                except RuntimeError as exc:
+                except (OSError, RuntimeError) as exc:
                     _logger.error("%s: %s", ncpath, exc)
                     time.sleep(itry)
 
@@ -1022,7 +1010,7 @@ class NetCDFDataset(object):
             # _logger.warning("%s: %s", str(self), repr(exc))
             raise exc
 
-        ncol_read = sum([len(cdata) for (i,cdata) in res_data.items()])
+        ncol_read = sum([len(cdata) for (i, cdata) in res_data.items()])
         if ncol_read == 0:
             exc = nc_exc.NoDataException(
                 "No variables named {} found between {} and {}".
