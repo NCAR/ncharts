@@ -19,3 +19,7 @@ def get_key_values(var_name, variables):
     for var in variables:
         if var.choice_label == var_name:
             return var
+
+@register.filter
+def make_tabs(variables, dset):
+    return dset.make_tabs(variables)

@@ -255,53 +255,76 @@ class Dataset(models.Model):
 
         return self.end_time
 
-    def get_tab_variables(self, variables):
+    def make_tabs(self, variables):
+        """Create a dictionary of tabs for the elements in variables.
+
+        This is so that a large number of checkbox widgits for the
+        selection of data variables to be plotted can be split into
+        tabbed panes.
+        
+        The tab names can be created from the first character of the
+        variable names, or in a platform-dependent way, by a
+        category determined from the variable name.
+
+        Args:
+            variables: a django.forms.forms.BoundField, such as
+            from form['variables'], where form is an instance
+            of ncharts.forms.DataSelectionForm, which has a
+            class member named variables of type
+            forms.MultipleChoiceField. The variables have been
+            alphabetically sorted prior to this call.
+
+        Each element returned by iterating over variables is
+        a django.forms.widgets.CheckboxChoiceInput.
+        An instance of CheckboxChoiceInput has a choice_label
+        attribute containing the label part of the choice tuple,
+        (the variable name) and a tab attribute, which when 
+        rendered in a template, creates the checkbox html.
+
+        References to these widgits are copied into lists
+        under each tab.
+        """
           
-        keys = variables.keys()
+        tabs = OrderedDict()
 
-        tab_dict = {}
-
-        for i, key in enumerate(keys):
-            if i == 0:
-                tab = key[0].upper()
-                tab_dict[tab] = [key]
-            else:
-                if tab != key[0].upper():
-                    tab = key[0].upper()
-                    if tab in tab_dict:
-                        tab_dict[tab].append(key)
-                    else:
-                        tab_dict[tab] = [key]
-                else:
-                    tab_dict[tab].append(key)
-
-        tab_dict = OrderedDict(sorted(tab_dict.items()))
+        for var in iter(variables):
+            vname = var.choice_label
+            char1 = vname[0].upper()
+            if not char1 in tabs:
+                tabs[char1] = []
+            tabs[char1].append(var)
        
-        combined_vars = []
-        combined_tabs = []
-        temp_dict = tab_dict
-        tab_limit = 5
-        for i, tab in enumerate(temp_dict):
-            tab_dict[tab].sort(key=lambda x: x.lower())
-            combined_vars += tab_dict[tab]
-            combined_tabs.append(tab)
-            if len(combined_vars) > tab_limit and len(combined_tabs) == 1:
-                combined_vars = []
-                del combined_tabs[:]
-            elif len(combined_vars) > tab_limit or (len(combined_vars) <= tab_limit and i == (len(temp_dict) - 1)):
-                if len(combined_tabs) > 1:
-                    for toremove in combined_tabs:
-                        tab_dict = {key: value for key, value in tab_dict.items() if key != toremove}
-                    new_tab = combined_tabs[0] + "-" + combined_tabs[-1]
-                    tab_dict[new_tab] = combined_vars
-                combined_vars = []
-                del combined_tabs[:]
-         
-        temp_dict.clear()
-         
-        tab_dict = OrderedDict(sorted(tab_dict.items()))
+        # Combine neighboring tabs if they each contain
+        # fewer than tab_limit elements
+        tab_limit = 10
+        comb_tabs = OrderedDict()
+        nvars = 0
+        for tab, vals in tabs.items():
 
-        return tab_dict
+            # Sort by first letter
+            # vals.sort(key=lambda x: x.choice_label.lower())
+
+            nvars += len(vals)
+
+            if len(comb_tabs) == 0 or \
+                    len(comb_tabs[ctab]) > tab_limit or \
+                    len(vals) > tab_limit:
+                ctab = tab
+                comb_tabs[ctab] = vals
+            else:
+                nctab = ctab[0] + '-' + tab
+                comb_tabs[nctab] = comb_tabs[ctab] + vals
+                del comb_tabs[ctab]
+                ctab = nctab
+
+        # Double check that we didn't lose any variables
+        nres = 0
+        for tab, vals in comb_tabs.items():
+            nres += len(vals)
+
+        if nres != nvars:
+            _logger.error("%d variables unaccounted for in building tabs", (nvars - nres))
+        return comb_tabs
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
