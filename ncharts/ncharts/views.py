@@ -347,7 +347,10 @@ class DatasetView(View):
             tdelta = datetime.timedelta(days=1)
 
             if dset.get_end_time() < tnow or isinstance(dset, nc_models.DBDataset):
-                stime = dset.get_start_time()
+                try:
+                    stime = dset.get_start_time()
+                except nc_exc.NoDataFoundException as exc:
+                    stime = tnow - tdelta
             else:
                 stime = tnow - tdelta
 
@@ -381,10 +384,13 @@ class DatasetView(View):
                 client_state.soundings = ""
 
                 tdelta = datetime.timedelta(days=1)
-                if dset.get_end_time() > tnow:
-                    stime = tnow - tdelta
+                if dset.get_end_time() < tnow or isinstance(dset, nc_models.DBDataset):
+                    try:
+                        stime = dset.get_start_time()
+                    except nc_exc.NoDataFoundException as exc:
+                        stime = tnow - tdelta
                 else:
-                    stime = dset.get_start_time()
+                    stime = tnow - tdelta
 
                 client_state.start_time = stime
                 client_state.time_length = tdelta.total_seconds()
@@ -462,7 +468,6 @@ class DatasetView(View):
         soundings = []
         try:
             dsetvars = dset.get_variables()
-
 
             # dvars = sorted(dsetvars.keys())
             form.set_variable_choices(dsetvars)
