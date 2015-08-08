@@ -97,7 +97,7 @@ class RAFDatabase(object):
         Args:
             conn: connection to close.
         Raises:
-            psycopg2.Error
+            nothing
 
         According to http://initd.org/psycopg/docs/connection.html: 
             Changed in version 2.5: if the connection is used in a with
@@ -232,6 +232,7 @@ class RAFDatabase(object):
                     start_time = cur.fetchone()[0]
                     return pytz.utc.localize(start_time)
         except psycopg2.Error as exc:
+            _logger.warn("%s: read %s: %s", conn, vname, exc)
             RAFDatabase.close_connection(conn)
             raise nc_exc.NoDataFoundException("read {}: {}".format(vname, exc))
 
