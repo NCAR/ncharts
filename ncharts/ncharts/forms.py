@@ -160,7 +160,7 @@ class DataSelectionForm(forms.Form):
             options={
                 'format': 'yyyy-mm-dd hh:ii',
                 'clearBtn': 0,
-                'todayBtn': 1,
+                'todayBtn': 0,
                 'pickerPosition': 'bottom-right'
             }))
 
