@@ -97,9 +97,9 @@ class RAFDatabase(object):
         Args:
             conn: connection to close.
         Raises:
-            psycopg2.Error
+            nothing
 
-        According to http://initd.org/psycopg/docs/connection.html: 
+        According to http://initd.org/psycopg/docs/connection.html:
             Changed in version 2.5: if the connection is used in a with
             statement, the (rollback) method is automatically called if
             an exception is raised in the with block.
@@ -232,6 +232,7 @@ class RAFDatabase(object):
                     start_time = cur.fetchone()[0]
                     return pytz.utc.localize(start_time)
         except psycopg2.Error as exc:
+            _logger.warn("%s: read %s: %s", conn, vname, exc)
             RAFDatabase.close_connection(conn)
             raise nc_exc.NoDataFoundException("read {}: {}".format(vname, exc))
 
@@ -305,9 +306,10 @@ class RAFDatabase(object):
                         missval = vinfo[0][1]
 
                         if len(dims) > 1:
-                            # In initial CSET data, dims for CUHSAS_RWOOU in variable_list was [1,99]
-                            # Seems that the 99 should have been 100, which is what is returned
-                            # by this:
+                            # In initial CSET data, dims for CUHSAS_RWOOU
+                            # in variable_list was [1,99]
+                            # Seems that the 99 should have been 100,
+                            # which is what is returned by this:
                             operation = "read dimension of {}".format(vname)
                             cur.execute("\
     SELECT array_upper({},1) FROM {} FETCH FIRST 1 ROW ONLY;\
