@@ -41,6 +41,9 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 # Abbreviated name of a sounding, e.g. "Jun23_0413Z"
 SOUNDING_NAME_FMT = "%b%d_%H%MZ"
 
+projs = nc_models.Project.objects.all()
+plats = nc_models.Platform.objects.all()
+
 class StaticView(TemplateView):
     """View class for rendering a simple template page.
     """
@@ -62,9 +65,7 @@ def projects(request):
     # root = Root.objects.get(name='projects')
     # projs = root.project_set.all()
 
-    projs = nc_models.Project.objects.all()
-
-    context = {'projects': projs}
+    context = {'projects': projs, 'platforms':plats}
     return render(request, 'ncharts/projects.html', context)
 
 def platforms(request):
@@ -74,9 +75,7 @@ def platforms(request):
     # root = Root.objects.get(name='platforms')
     # plats = root.platform_set.all()
 
-    plats = nc_models.Platform.objects.all()
-
-    context = {'platforms': plats}
+    context = {'projects':projs, 'platforms': plats}
     return render(request, 'ncharts/platforms.html', context)
 
 def projects_platforms(request):
@@ -88,9 +87,6 @@ def projects_platforms(request):
     # root = Root.objects.get(name='projects')
     # projs = root.project_set.all()
 
-    projs = nc_models.Project.objects.all()
-    plats = nc_models.Platform.objects.all()
-
     context = {'projects': projs, 'platforms': plats}
     return render(request, 'ncharts/projectsPlatforms.html', context)
 
@@ -100,9 +96,9 @@ def project(request, project_name):
     try:
         proj = nc_models.Project.objects.get(name=project_name)
         dsets = proj.dataset_set.all()
-        plats = nc_models.Platform.objects.filter(
+        platFilter = nc_models.Platform.objects.filter(
             projects__name__exact=project_name)
-        context = {'project': proj, 'platforms': plats, 'datasets': dsets}
+        context = {'project': proj, 'platFilter': platFilter, 'datasets': dsets, 'projects': projs, 'platforms': plats}
         return render(request, 'ncharts/project.html', context)
     except nc_models.Project.DoesNotExist:
         raise Http404
@@ -112,8 +108,8 @@ def platform(request, platform_name):
     """
     try:
         plat = nc_models.Platform.objects.get(name=platform_name)
-        projs = plat.projects.all()
-        context = {'platform': plat, 'projects': projs}
+        platProjs = plat.projects.all()
+        context = {'platform': plat, 'platProjs': platProjs, 'projects': projs, 'platforms': plats}
         return render(request, 'ncharts/platform.html', context)
     except (nc_models.Project.DoesNotExist, nc_models.Platform.DoesNotExist):
         raise Http404
@@ -130,7 +126,7 @@ def platform_project(request, platform_name, project_name):
             project__name__exact=project_name).filter(
                 platforms__name__exact=platform_name)
 
-        context = {'project': proj, 'platform': plat, 'datasets': dsets}
+        context = {'project': proj, 'platform': plat, 'datasets': dsets, 'projects': projs, 'platforms': plats}
         return render(request, 'ncharts/platformProject.html', context)
     except (nc_models.Project.DoesNotExist, nc_models.Platform.DoesNotExist):
         raise Http404
@@ -498,7 +494,9 @@ class DatasetView(View):
                 'form': form,
                 'dataset': dset,
                 'variables': dsetvars,
-                'soundings': mark_safe(json.dumps(soundings))
+                'soundings': mark_safe(json.dumps(soundings)),
+                'projects': projs,
+                'platforms': plats
             })
 
     def post(self, request, *args, project_name, dataset_name, **kwargs):
@@ -621,7 +619,9 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
-                    'soundings': mark_safe(json.dumps(soundings))
+                    'soundings': mark_safe(json.dumps(soundings)),
+                    'projects': projs,
+                    'platforms': plats
                 })
 
         # Save the client state from the form
@@ -677,7 +677,9 @@ class DatasetView(View):
                         'form': form,
                         'dataset': dset,
                         'variables': dsetvars,
-                        'soundings': mark_safe(json.dumps(soundings))
+                        'soundings': mark_safe(json.dumps(soundings)),
+                        'projects': projs,
+                        'platforms': plats
                     })
 
             if yvar not in sel_vars:
@@ -721,7 +723,9 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
-                    'soundings': mark_safe(json.dumps(soundings))
+                    'soundings': mark_safe(json.dumps(soundings)),
+                    'projects': projs,
+                    'platforms': plats
                 })
 
         except (OSError, nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
@@ -733,7 +737,9 @@ class DatasetView(View):
                     'form': form,
                     'dataset': dset,
                     'variables': dsetvars,
-                    'soundings': mark_safe(json.dumps(soundings))
+                    'soundings': mark_safe(json.dumps(soundings)),
+                    'projects': projs,
+                    'platforms': plats
                 })
 
         time0 = {}
@@ -902,6 +908,8 @@ class DatasetView(View):
                 'time_length': client_state.time_length,
                 'soundings': mark_safe(json.dumps(soundings)),
                 'yvariable': yvar.replace("'", r"\u0027"),
+                'projects': projs,
+                'platforms': plats
                 })
 
 class DataView(View):

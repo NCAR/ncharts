@@ -56,93 +56,112 @@
 
     <!-- finally, ncharts.js -->
     <script type="text/javascript"
-        src="{% static 'ncharts/jslib/ncharts.js' %}">
+src="{% static 'ncharts/jslib/ncharts.js' %}">
     </script>
 
     {% block head %}{% endblock %}
 
-</head>
+    </head>
 
-<body role="document">
-  <div id="wrapper">
-    <nav class="navbar navbar-default" role="navigation">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-top">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand active" href="/">NCharts<span class="sr-only">(active)</span></a>
+    <body role="document">
+    <div id="wrapper">
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid row">
+                <div class="navbar-header col-md-1">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-top">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand active" href="/"><b><i>NCharts</i></b><span class="sr-only">(active)</span></a>
+                </div>
+
+                <div class="dropdown col-md-1">
+                    <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu1" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
+                    {% if projects %}
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                        {% for project in projects %}
+                            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                        <p>No projects are available.</p>
+                    {% endif %}
+                </div>
+
+                <div class="dropdown col-md-1">
+                    <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu1" data-toggle="dropdown"><b>Platforms</b><span class="caret"></span></button>
+                    {% if platforms %}
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                        {% for platform in platforms %}
+                            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:platform' platform.name %}">{{ platform.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                        <p>No projects are available.</p>
+                    {% endif %}
+                </div>
             </div>
-            <div class="collapse navbar-collapse" id="navbar-top">
-                <ul class="nav navbar-nav">
-                    <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
-                    <li><a href="http://www.eol.ucar.edu">EOL</a></li>
-                    <li><a href="/ncharts/help">Help</a></li>
-                </ul>
+        </nav>
+
+        <div class="container-fluid" role="banner">
+            <div class="page-header">
+                <h3>{% block headline %}{% endblock %}</h3>
             </div>
         </div>
-    </nav>
-
-    <div class="container-fluid" role="banner">
-        <div class="page-header">
-            <h3>{% block headline %}{% endblock %}</h3>
+        <div class="container-fluid" role="main" id="content">
+            {% block content %}{% endblock %}
         </div>
-    </div>
-    <div class="container-fluid" role="main" id="content">
-        {% block content %}{% endblock %}
-    </div>
 
-    <div id="footer">
-      <nav class="navbar navbar-default navbar-bottom" role="navigation">
-        <div class="container">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-bottom">
-              <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand active" href="/">NCharts<span class="sr-only">(active)</span></a>
-          </div>
-          <div class="collapse navbar-collapse" id="navbar-bottom">
-            <ul class="nav navbar-nav">
-              <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
-              <li><a href="http://www.eol.ucar.edu">EOL</a></li>
-              <li><a href="/ncharts/help">Help</a></li>
-            </ul>
-          </div>
+        <div id="footer">
+            <nav class="navbar navbar-default navbar-bottom" role="navigation">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-bottom">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand active" href="/">NCharts<span class="sr-only">(active)</span></a>
+                    </div>
+                    <div class="collapse navbar-collapse" id="navbar-bottom">
+                        <ul class="nav navbar-nav">
+                            <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
+                            <li><a href="http://www.eol.ucar.edu">EOL</a></li>
+                            <li><a href="/ncharts/help">Help</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!-- OrgNavFooter Script -->
+            <div align="center">
+                <script>
+
+// CUSTOM VARIABLES
+                var contactLink = "https://www.eol.ucar.edu/contact";     // enter your Webmaster/Feedback link. Include http:// or mailto:
+                var hideOrgNav = false;        // hide the entire OrgNav from view
+                var hideFooter = false;          // hide the entire OrgFooter from view
+                var hideNSF = false;               // hide the NSF disclaimer
+                var footerColor = '#000000';       // hex color of the footer font including the #
+
+                // DO NOT EDIT BELOW THIS POINT
+                var jsHost = (("https:" == document.location.protocol) ? "https://" : "http://");
+                if(typeof jQuery === "undefined"){
+                    document.write("<scr"+"ipt src='"+jsHost+"ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js' type='text/javascript'></scr"+"ipt>");
+                }
+document.write("<scr"+"ipt src='"+jsHost+"www2.ucar.edu/js/orgnav' type='text/javascript'></scr"+"ipt>");
+                </script>
+                <noscript><iframe frameborder="0" width="100%" src="http://www2.ucar.edu/sites/default/modules/custom/ucar_comm_site/includes/noscript.php"></iframe></noscript>
+                <!-- END OrgNavFooter Script -->
+                <script>
+$(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();   
+        });
+                </script>
+            </div>
         </div>
-      </nav>
-      <!-- OrgNavFooter Script -->
-      <div align="center">
-	<script>
-	
-	  // CUSTOM VARIABLES
-	  var contactLink = "https://www.eol.ucar.edu/contact";     // enter your Webmaster/Feedback link. Include http:// or mailto:
-	  var hideOrgNav = false;        // hide the entire OrgNav from view
-	  var hideFooter = false;          // hide the entire OrgFooter from view
-	  var hideNSF = false;               // hide the NSF disclaimer
-	  var footerColor = '#000000';       // hex color of the footer font including the #
-	  
-	  // DO NOT EDIT BELOW THIS POINT
-	  var jsHost = (("https:" == document.location.protocol) ? "https://" : "http://");
-	  if(typeof jQuery === "undefined"){
-	  document.write("<scr"+"ipt src='"+jsHost+"ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js' type='text/javascript'></scr"+"ipt>");
-	  }
-	  document.write("<scr"+"ipt src='"+jsHost+"www2.ucar.edu/js/orgnav' type='text/javascript'></scr"+"ipt>");
-	</script>
-	<noscript><iframe frameborder="0" width="100%" src="http://www2.ucar.edu/sites/default/modules/custom/ucar_comm_site/includes/noscript.php"></iframe></noscript>
-	<!-- END OrgNavFooter Script -->
-	<script>
-	  $(document).ready(function(){
-	  $('[data-toggle="tooltip"]').tooltip();   
-	  });
-	</script>
-      </div>
-    </div>
-</body>
-</html>
+        </body>
+        </html>
 
