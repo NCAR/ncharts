@@ -67,41 +67,52 @@ src="{% static 'ncharts/jslib/ncharts.js' %}">
     <div id="wrapper">
         <nav class="navbar navbar-default" role="navigation">
             <div class="container-fluid row">
-                <div class="navbar-header col-md-1">
+                <div class="navbar-header">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-top">
                         <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
                     <a class="navbar-brand active" href="/"><b><i>NCharts</i></b><span class="sr-only">(active)</span></a>
                 </div>
 
-                <div class="dropdown col-md-1">
-                    <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu1" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
-                    {% if projects %}
-                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                        {% for project in projects %}
-                            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                        <p>No projects are available.</p>
-                    {% endif %}
+                <div class="collapse navbar-collapse col-md-1" id="navbar-top">
+                    <ul class="nav navbar-nav">                                     
+                        <li><a href="/ncharts/help">Help</a></li>                                
+                    </ul>                                                                                         
                 </div>
 
-                <div class="dropdown col-md-1">
-                    <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu1" data-toggle="dropdown"><b>Platforms</b><span class="caret"></span></button>
-                    {% if platforms %}
-                    <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                        {% for platform in platforms %}
-                            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:platform' platform.name %}">{{ platform.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                        <p>No projects are available.</p>
-                    {% endif %}
-                </div>
+                {% if projects %}
+                    <div class="dropdown col-md-1">
+                        <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu1" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                            {% for project in projects %}
+                                <li role="presentation"><a role="menuitem" href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                {% if platforms %}
+                    <div class="dropdown col-md-1">
+                        <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu2" data-toggle="dropdown"><b>Platforms</b><span class="caret"></span></button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
+                            {% for platform in platforms %}
+                                <li role="presentation"><a role="menuitem" href="{% url 'ncharts:platform' platform.name %}">{{ platform.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                {% if datasets %}
+                    <div class="dropdown col-md-1">
+                        <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu3" data-toggle="dropdown"><b>Datasets</b><span class="caret"></span></button>
+	                <ul class="dropdown-menu" role="menu" aria-labelledby="menu3">
+                            {% for dataset in datasets %}
+                                <li><a href="{% url 'ncharts:dataset' project.name dataset.name %}" data-toggle="tooltip" title="{{ dataset.long_name }}">{{ dataset.name }}</a></li>
+                            {% endfor %}
+	                </ul>
+                    </div>
+                {% endif %}
             </div>
         </nav>
 
@@ -124,7 +135,7 @@ src="{% static 'ncharts/jslib/ncharts.js' %}">
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-                        <a class="navbar-brand active" href="/">NCharts<span class="sr-only">(active)</span></a>
+                        <a class="navbar-brand active" href="/"><b><i>NCharts</i></b><span class="sr-only">(active)</span></a>
                     </div>
                     <div class="collapse navbar-collapse" id="navbar-bottom">
                         <ul class="nav navbar-nav">

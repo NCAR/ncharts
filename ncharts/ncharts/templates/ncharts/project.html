@@ -16,7 +16,7 @@
             {% if datasets %}
 	    <ul class="list-inline">
                 {% for dataset in datasets %}
-                <li><a href="{% url 'ncharts:dataset' project.name dataset.name %}" data-toggle="tooltip" title="{{ dataset.long_name }}">{{ dataset.name }}</a></li>
+                    <li><a href="{% url 'ncharts:dataset' project.name dataset.name %}" data-toggle="tooltip" title="{{ dataset.long_name }}">{{ dataset.name }}</a></li>
                 {% endfor %}
 	    </ul>
             {% else %}
