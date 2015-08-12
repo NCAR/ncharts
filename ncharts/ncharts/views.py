@@ -488,11 +488,13 @@ class DatasetView(View):
             _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
             form.no_data("No variables found in {}: {} ".format(str(dset), exc))
 
+        dsets = proj.dataset_set.all()
         return render(
             request, self.template_name,
             {
                 'form': form,
                 'dataset': dset,
+                'datasets': dsets,
                 'variables': dsetvars,
                 'soundings': mark_safe(json.dumps(soundings)),
                 'projects': projs,
@@ -531,6 +533,9 @@ class DatasetView(View):
             return redirect(
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
+ 
+        proj = nc_models.Project.objects.get(name=project_name)
+        dsets = proj.dataset_set.all()
 
         # vars = [ v.name for v in dset.variables.all() ]
 
@@ -618,6 +623,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'datasets': dsets,
                     'variables': dsetvars,
                     'soundings': mark_safe(json.dumps(soundings)),
                     'projects': projs,
@@ -676,6 +682,7 @@ class DatasetView(View):
                     {
                         'form': form,
                         'dataset': dset,
+                        'datasets': dsets,
                         'variables': dsetvars,
                         'soundings': mark_safe(json.dumps(soundings)),
                         'projects': projs,
@@ -722,6 +729,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'datasets': dsets,
                     'variables': dsetvars,
                     'soundings': mark_safe(json.dumps(soundings)),
                     'projects': projs,
@@ -736,6 +744,7 @@ class DatasetView(View):
                 {
                     'form': form,
                     'dataset': dset,
+                    'datasets': dsets,
                     'variables': dsetvars,
                     'soundings': mark_safe(json.dumps(soundings)),
                     'projects': projs,
@@ -898,6 +907,7 @@ class DatasetView(View):
             request, self.template_name, {
                 'form': form,
                 'dataset': dset,
+                'datasets': dsets,
                 'variables': dsetvars,
                 'plot_groups': plot_groups,
                 'time0': json_time0,

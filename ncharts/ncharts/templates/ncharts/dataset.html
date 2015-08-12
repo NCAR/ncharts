@@ -7,10 +7,21 @@
 
 {% block title %}{{ dataset }}{% endblock %}
 
-{% block headline %}Dataset: <a href="{% url 'ncharts:dataset' dataset.project.name dataset.name %}">{{ dataset.long_name }}</a>{% endblock %}
-
+{% block headline %}<p>Dataset: <a href="{% url 'ncharts:dataset' dataset.project.name dataset.name %}">{{ dataset.long_name }}</a>
+{% if datasets %}
+    <div class="dropdown">
+        <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu3" data-toggle="dropdown"><b>Datasets</b><span class="caret"></span></button>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="menu3">
+        {% for dataset in datasets %}
+            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:dataset' dataset.project.name dataset.name %}">{{ dataset.name }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}</p>
+{% endblock %}
 
 {% block content %}
+
 <p><b>Project: </b><a href="{% url 'ncharts:project' dataset.project.name %}">{{ dataset.project.name }}</a></p>
 <p><b>Location: </b>{{ dataset.location }}</p>
 <p><b>Start Date:</b> {{ dataset.start_time }}</p>
@@ -61,6 +72,7 @@
             </div>
         </div>
     </div>
+
     {% if dataset.dset_type == 'sounding' %}
     <div class="col-md-12">
         <div class="panel panel-default">
