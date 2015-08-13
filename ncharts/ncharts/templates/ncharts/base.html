@@ -87,8 +87,8 @@ src="{% static 'ncharts/jslib/ncharts.js' %}">
                     </div>
 
                     {% if projects %}
-                    <div class="dropdown col-md-2">
-                        <button class="btn btn-default dropdown-toggle" type="button" id="menu1" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
+                    <div class="dropdown" id="menu1">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
                             {% for project in projects %}
                             <li role="presentation"><a role="menuitem" href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
@@ -98,7 +98,7 @@ src="{% static 'ncharts/jslib/ncharts.js' %}">
                     {% endif %}
 
                     {% if platforms %}
-                    <div class="dropdown col-md-2">
+                    <div class="dropdown" id="menu2">
                         <button class="btn btn-default dropdown-toggle formButtonfront" type="button" id="menu2" data-toggle="dropdown"><b>Platforms</b><span class="caret"></span></button>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
                             {% for platform in platforms %}
