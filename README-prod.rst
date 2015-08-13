@@ -166,6 +166,16 @@ The following is for RedHat systems, such as CentOS or Fedora.
     sudo mv /etc/httpd /etc/httpd.orig
     sudo cp -r etc/httpd /etc
 
+Tweak the umask of the systemd service, so that apache group members can read/write the log files::
+    sudo mkdir /etc/systemd/system/httpd.service.d
+    cat << EOD > /tmp/umask.conf
+    [Service]
+    UMask=0007
+    EOD
+
+    sudo cp /tmp/umask.conf /etc/systemd/system/httpd.service.d
+    sudo systemctl daemon-reload
+
  See above for creating and setting permissions on LOG_DIR::
 
     sudo systemctl enable httpd.service
@@ -173,6 +183,14 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 11. Test!
 
-    http://127.0.0.1/ncharts
+    http://localhost/ncharts
 
+12. Clearing expired sessions and unattached ClientState objects
+
+ This is done from a crontab on the server::
+    crontab -l
+    MAILTO=maclean@ucar.edu
+    #
+    # On Sundays, clear expired sessions and then the unattached clients
+    0 0 * * 0 cd /var/django/eol-django-datavis; source ../virtualenv/django/bin/activate; ./manage.py clearsessions; ./manage.py clear_clients
 
