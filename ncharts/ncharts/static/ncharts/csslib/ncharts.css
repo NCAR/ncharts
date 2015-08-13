@@ -115,6 +115,24 @@ li#variable_list {
     display: inline;
 }
 
+.clear {
+    clear: both;
+}
+
+.container1, .container2 {
+    float: left;
+    left: 10px;
+}
+
+.btn {
+    border: 1px solid gray;
+    border-radius: 7%;
+    font-size: 0.875;
+    word-wrap: break-word;
+    width: 100px;
+    max-width: 100%;
+}
+
 .tabrow {
     text-align: center;
     list-style: none;

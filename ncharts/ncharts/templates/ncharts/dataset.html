@@ -7,17 +7,19 @@
 
 {% block title %}{{ dataset }}{% endblock %}
 
-{% block headline %}<p>Dataset: <a href="{% url 'ncharts:dataset' dataset.project.name dataset.name %}">{{ dataset.long_name }}</a>
-{% if datasets %}
-    <div class="dropdown">
-        <button class="btn btn-default dropdown-toggle" style="width:100px;height:40px;" type="button" id="menu3" data-toggle="dropdown"><b>Datasets</b><span class="caret"></span></button>
+{% block headline %}
+    <div class="container1">Dataset: <a href="{% url 'ncharts:dataset' dataset.project.name dataset.name %}">{{ dataset.long_name }}</a></div>
+    {% if datasets %}
+    <div class="dropdown container2">
+        <button class="btn btn-default dropdown-toggle" type="button" id="menu3" data-toggle="dropdown"><b>Datasets</b><span class="caret"></span></button>
         <ul class="dropdown-menu" role="menu" aria-labelledby="menu3">
-        {% for dataset in datasets %}
+            {% for dataset in datasets %}
             <li role="presentation"><a role="menuitem" href="{% url 'ncharts:dataset' dataset.project.name dataset.name %}">{{ dataset.name }}</a></li>
-        {% endfor %}
+            {% endfor %}
         </ul>
     </div>
-    {% endif %}</p>
+    {% endif %}
+<div class="clear"></div>
 {% endblock %}
 
 {% block content %}
@@ -105,7 +107,7 @@
                 <strong>{{ form.variables.errors }}</strong>
                 <div class="input-group">
                     {% if form.variables|length <= 20 %}
-                        <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                    <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
                     {% endif %}
                     <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                 </div>
@@ -115,28 +117,28 @@
                 <div class="container" id="variable-checkbox">
                     <ul class="tabrow">
                         {% for tab in tabs %}
-                            {% if forloop.first %}
-                                <li class="selected"><a data-toggle="tab" href="#{{ tab }}"> {{ tab }}</a></li> 
-                            {% else %}
-                                <li><a data-toggle="tab" href="#{{ tab }}"> {{ tab }}</a></li>
-                            {% endif %}
+                        {% if forloop.first %}
+                        <li class="selected"><a data-toggle="tab" href="#{{ tab }}"> {{ tab }}</a></li> 
+                        {% else %}
+                        <li><a data-toggle="tab" href="#{{ tab }}"> {{ tab }}</a></li>
+                        {% endif %}
                         {% endfor %}
                     </ul>
                     <div class="tab-content">
                         {% for tab, vars in tabs.items %}
-                            <div id="{{ tab }}"
+                        <div id="{{ tab }}"
                             {% if forloop.first %}
-                                class="tab-pane fade in active"
+                            class="tab-pane fade in active"
                             {% else %}
-                                class="tab-pane fade"
+                            class="tab-pane fade"
                             {% endif %}
                             >
                             {% for var in vars %} 
-                                <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
-                                    title="{{ variables|get_long_name:var.choice_label }}">
-                                    {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
+                            <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
+                                title="{{ variables|get_long_name:var.choice_label }}">
+                                {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
                             {% endfor %}
-                            </div>
+                        </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -146,13 +148,13 @@
                 </div>
                 {% endwith %}
                 {% else %}
-                    <div class="container" id="variable-checkbox">
+                <div class="container" id="variable-checkbox">
                     {% for var in form.variables %} 
                     <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
                         title="{{ variables|get_long_name:var.choice_label }}">
                         {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
                     {% endfor %}
-                    </div> 
+                </div> 
                 {% endif %}
             </div>
         </div>
@@ -212,11 +214,11 @@ var sounding_yvar = '{{ yvariable }}';
 </script>
 
 {% for group,val in plot_groups.items %}
-    {% if val.plot_type == 'sounding-profile' %}
-    <div class="sounding-chart-wrapper">
+{% if val.plot_type == 'sounding-profile' %}
+<div class="sounding-chart-wrapper">
     {% else %}
     <div class="time-series-chart-wrapper">
-    {% endif %}
+        {% endif %}
         <div class="chart-inner">
             <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
         </div>
@@ -230,6 +232,6 @@ jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
 jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
 jQuery.data(div,"dim2_name","{{ dim2.name }}");
     </script>
-{% endfor %}
-{% endif %}
-{% endblock %}
+    {% endfor %}
+    {% endif %}
+    {% endblock %}
