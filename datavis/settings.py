@@ -31,6 +31,15 @@ else:
     VAR_RUN_DIR = '/var/run/django'
     VAR_LIB_DIR = '/var/lib/django'
 
+# ALLOWED_HOSTS are the server's IP names, NOT the names of allowed client hosts
+# (seems like an unfortunate variable name).
+# You may see log errors such as:
+# Invalid HTTP_HOST header: 'www.baidu.com'. You may need to add 'www.baidu.com' to ALLOWED_HOSTS.
+#
+# Don't add those host names to ALLOWED_HOSTS!
+# Hackers send an HTTP packet with an altered HTTP_HOST and SERVER_NAME, hoping
+# that a dumb server, thinking HTTP_HOST is itself, will use it in redirects and <script>
+# statemtents. The latter could result in an import of hacker code on a client's browser.
 ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost', '128.117.82.210' ]
 
 # Application definition
