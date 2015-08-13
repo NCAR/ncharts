@@ -41,9 +41,6 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 # Abbreviated name of a sounding, e.g. "Jun23_0413Z"
 SOUNDING_NAME_FMT = "%b%d_%H%MZ"
 
-projs = nc_models.Project.objects.all()
-plats = nc_models.Platform.objects.all()
-
 class StaticView(TemplateView):
     """View class for rendering a simple template page.
     """
@@ -65,6 +62,9 @@ def projects(request):
     # root = Root.objects.get(name='projects')
     # projs = root.project_set.all()
 
+    projs = nc_models.Project.objects.all()
+    plats = nc_models.Platform.objects.all()
+
     context = {'projects': projs, 'platforms':plats}
     return render(request, 'ncharts/projects.html', context)
 
@@ -74,6 +74,9 @@ def platforms(request):
 
     # root = Root.objects.get(name='platforms')
     # plats = root.platform_set.all()
+
+    projs = nc_models.Project.objects.all()
+    plats = nc_models.Platform.objects.all()
 
     context = {'projects':projs, 'platforms': plats}
     return render(request, 'ncharts/platforms.html', context)
@@ -87,6 +90,9 @@ def projects_platforms(request):
     # root = Root.objects.get(name='projects')
     # projs = root.project_set.all()
 
+    projs = nc_models.Project.objects.all()
+    plats = nc_models.Platform.objects.all()
+
     context = {'projects': projs, 'platforms': plats}
     return render(request, 'ncharts/projectsPlatforms.html', context)
 
@@ -96,6 +102,8 @@ def project(request, project_name):
     try:
         proj = nc_models.Project.objects.get(name=project_name)
         dsets = proj.dataset_set.all()
+        projs = nc_models.Project.objects.all()
+        plats = nc_models.Platform.objects.all()
         platFilter = nc_models.Platform.objects.filter(
             projects__name__exact=project_name)
         context = {'project': proj, 'platFilter': platFilter, 'datasets': dsets, 'projects': projs, 'platforms': plats}
@@ -109,6 +117,8 @@ def platform(request, platform_name):
     try:
         plat = nc_models.Platform.objects.get(name=platform_name)
         platProjs = plat.projects.all()
+        projs = nc_models.Project.objects.all()
+        plats = nc_models.Platform.objects.all()
         context = {'platform': plat, 'platProjs': platProjs, 'projects': projs, 'platforms': plats}
         return render(request, 'ncharts/platform.html', context)
     except (nc_models.Project.DoesNotExist, nc_models.Platform.DoesNotExist):
@@ -121,6 +131,8 @@ def platform_project(request, platform_name, project_name):
 
         plat = nc_models.Platform.objects.get(name=platform_name)
         proj = nc_models.Project.objects.get(name=project_name)
+        projs = nc_models.Project.objects.all()
+        plats = nc_models.Platform.objects.all()
 
         dsets = nc_models.Dataset.objects.filter(
             project__name__exact=project_name).filter(
@@ -303,6 +315,8 @@ class DatasetView(View):
                 dataset_name, project_name)
 
         proj = get_object_or_404(nc_models.Project.objects, name=project_name)
+        projs = nc_models.Project.objects.all()
+        plats = nc_models.Platform.objects.all()
 
         # Get the named dataset of the project
         dset = get_object_or_404(proj.dataset_set, name=dataset_name)
@@ -535,6 +549,8 @@ class DatasetView(View):
                 dataset_name=dataset_name)
  
         proj = nc_models.Project.objects.get(name=project_name)
+        projs = nc_models.Project.objects.all()
+        plats = nc_models.Platform.objects.all()
         dsets = proj.dataset_set.all()
 
         # vars = [ v.name for v in dset.variables.all() ]
