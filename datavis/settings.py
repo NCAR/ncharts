@@ -36,11 +36,14 @@ else:
 # You may see log errors such as:
 # Invalid HTTP_HOST header: 'www.baidu.com'. You may need to add 'www.baidu.com' to ALLOWED_HOSTS.
 #
-# Don't add those host names to ALLOWED_HOSTS!
-# Hackers send an HTTP packet with an altered HTTP_HOST and SERVER_NAME, hoping
-# that a dumb server, thinking HTTP_HOST is itself, will use it in redirects and <script>
-# statemtents. The latter could result in an import of hacker code on a client's browser.
-ALLOWED_HOSTS = [ 'datavis', 'datavis.eol.ucar.edu', 'localhost', '128.117.82.210' ]
+# Don't add those external host names to ALLOWED_HOSTS!
+# Hacked sites may have a link to this site, but as I understand it, the redirect
+# may contain an HTTP packet with an altered HTTP_HOST and SERVER_NAME, hoping that
+# a dumb server, thinking HTTP_HOST is itself, will use it in its own redirects and
+# <script> statemtents.  The latter could result in an import of hacker code on a
+# client's browser. Setting ALLOWED_HOSTS to the various names for datavis will
+# result in packets being ignored if they contain other than the following:
+ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'localhost', '128.117.82.210']
 
 # Application definition
 
