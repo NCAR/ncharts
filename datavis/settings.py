@@ -25,7 +25,7 @@ DEBUG = True
 if DEBUG:
     VAR_RUN_DIR = BASE_DIR
     VAR_LIB_DIR = BASE_DIR
-    LOG_DIR = os.path.join(BASE_DIR,'log')
+    LOG_DIR = os.path.join(BASE_DIR, 'log')
 else:
     LOG_DIR = '/var/log/django'
     VAR_RUN_DIR = '/var/run/django'
@@ -113,7 +113,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
-        'OPTIONS': { 'timeout': 20, },
+        'OPTIONS': {'timeout': 20,},
     }
 }
 
@@ -140,7 +140,7 @@ STATIC_URL = '/static/'
 # the static files it finds.
 # See /etc/httpd/conf/vhosts/datavis.conf:
 #	Alias /static/ /var/django/eol-django-datavis/static/
-STATIC_ROOT = os.path.join(BASE_DIR,'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # People who should receive emails of ERRORs
 ADMINS = (
@@ -213,16 +213,16 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers':['django','django_debug', 'mail_admins'],
+            'handlers':['django', 'django_debug', 'mail_admins'],
             'propagate': True,
             'level':'DEBUG',
         },
         'datavis': {
-            'handlers':['datavis','datavis_debug', 'mail_admins'],
+            'handlers':['datavis', 'datavis_debug', 'mail_admins'],
             'level':'DEBUG',
         },
         'ncharts': {
-            'handlers': ['ncharts_debug','ncharts', 'mail_admins'],
+            'handlers': ['ncharts_debug', 'ncharts', 'mail_admins'],
             'level': 'DEBUG',
         },
     }
@@ -232,7 +232,7 @@ if not DEBUG:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
+            'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR, 'django_memcached.sock'),
             # 'LOCATION': '127.0.0.1:11211',
             'TIMEOUT': 300, # 300 seconds is the default
         }
