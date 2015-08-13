@@ -23,3 +23,4 @@ def get_key_values(var_name, variables):
 @register.filter
 def make_tabs(variables, dset):
     return dset.make_tabs(variables)
+
