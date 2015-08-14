@@ -11,8 +11,8 @@ def get_long_name(vs, v):
         return ''
 
 @register.filter
-def key(d, key_name):
-    return d[key_name]
+def get_item(dictionary, key):
+    return dictionary.get(key)
 
 @register.filter
 def get_key_values(var_name, variables):
