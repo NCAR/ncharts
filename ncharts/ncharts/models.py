@@ -331,7 +331,7 @@ class Dataset(models.Model):
    
     def isfs_tabs(self, variables):
 
-        tabs = OrderedDict()
+        tabs = {}
 
         tabs["Met"] = {"tooltip":"Meteorological Variables", "variables":[]}
         tabs["Rad"] = {"tooltip":"Radiation Variables", "variables":[]}
@@ -343,10 +343,10 @@ class Dataset(models.Model):
         tabs["3rdMoments"] = {"tooltip":"3rd Moments Variables", "variables":[]}
         tabs["4thMoments"] = {"tooltip":"4th Moments Variables", "variables":[]}
 
-        met_list = ["T", "RH", "P", "Spd", "Dir", "U", "V"]
+        met_list = ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V"]
         rad_list = ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome"]
         soil_list = ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", "Tau63", "Lambdasoil"]
-        wind_list = ["u", "v", "w", "Idiag", "diagbits"]
+        wind_list = ["u", "v", "w", "ldiag", "diagbits", "spd", "spd_max", "dir"]
         scalars_list = ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr"]
 
         for var in iter(variables):
@@ -363,6 +363,8 @@ class Dataset(models.Model):
                     tabs["3dWind"]["variables"].append(var)
                 elif start_field in scalars_list:
                     tabs["Scalars"]["variables"].append(var)
+                else: 
+                    tabs["Others"]["variables"].append(var)
             elif quote_num == 2:
                 tabs["2ndMoments"]["variables"].append(var)
             elif quote_num == 3:
@@ -371,6 +373,9 @@ class Dataset(models.Model):
                 tabs["4thMoments"]["variables"].append(var)
             else:
                 tabs["Others"]["variables"].append(var)
+
+        tabs = {key: value for key, value in tabs.items() if value["variables"]}
+        tabs = OrderedDict(sorted(tabs.items(), key=lambda x: x[0]))
 
         return tabs;
 
