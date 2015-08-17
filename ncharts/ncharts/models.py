@@ -261,7 +261,7 @@ class Dataset(models.Model):
         This is so that a large number of checkbox widgets for the
         selection of data variables to be plotted can be split into
         tabbed panes.
-        
+
         The tab names can be created from the first character of the
         variable names, or in a platform-dependent way, by a
         category determined from the variable name.
@@ -278,7 +278,7 @@ class Dataset(models.Model):
         a django.forms.widgets.CheckboxChoiceInput.
         An instance of CheckboxChoiceInput has a choice_label
         attribute containing the label part of the choice tuple,
-        (the variable name) and a tab attribute, which when 
+        (the variable name) and a tab attribute, which when
         rendered in a template, creates the checkbox html.
 
         References to these widgets are copied into lists
@@ -286,7 +286,7 @@ class Dataset(models.Model):
         """
 
         nvars = len(variables)
-          
+
         tabs = OrderedDict()
 
         for var in iter(variables):
@@ -295,7 +295,7 @@ class Dataset(models.Model):
             if not char1 in tabs:
                 tabs[char1] = {"variables":[]}
             tabs[char1]["variables"].append(var)
-       
+
         # Combine neighboring tabs if they each contain
         # fewer than tab_limit elements
         tab_limit = 10
@@ -328,12 +328,23 @@ class Dataset(models.Model):
         if nres != nvars:
             _logger.error("%d variables unaccounted for in building tabs", (nvars - nres))
         return comb_tabs
-   
+
     def isfs_tabs(self, variables):
+        """Create a tabs dictionary for ISFS variables
+
+        Args:
+            variables: a django.forms.forms.BoundField, such as
+            from form['variables'], where form is an instance
+            of ncharts.forms.DataSelectionForm, which has a
+            class member named variables of type
+            forms.MultipleChoiceField. The variables have been
+            alphabetically sorted prior to this call.
+        """
 
         tabs = {}
 
         tabs["Met"] = {"tooltip":"Meteorological Variables", "variables":[]}
+        tabs["Power"] = {"tooltip":"Battery and Solar Power", "variables":[]}
         tabs["Rad"] = {"tooltip":"Radiation Variables", "variables":[]}
         tabs["Soil"] = {"tooltip":"Soil Variables", "variables":[]}
         tabs["3dWind"] = {"tooltip":"3D Wind Variables", "variables":[]}
@@ -343,11 +354,13 @@ class Dataset(models.Model):
         tabs["3rdMoments"] = {"tooltip":"3rd Moments Variables", "variables":[]}
         tabs["4thMoments"] = {"tooltip":"4th Moments Variables", "variables":[]}
 
-        met_list = ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V"]
-        rad_list = ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome"]
-        soil_list = ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", "Tau63", "Lambdasoil"]
+        met_list = ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan"]
+        pow_list = ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote"]
+        rad_list = ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome", "Wetness"]
+        soil_list = ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", \
+            "Tau63", "Lambdasoil", "asoil", "Cvsoil", "Gsfc"]
         wind_list = ["u", "v", "w", "ldiag", "diagbits", "spd", "spd_max", "dir"]
-        scalars_list = ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr"]
+        scalars_list = ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr", "irgadiag", "p"]
 
         for var in iter(variables):
             start_field = var.choice_label.split(".", 1)[0]
@@ -355,6 +368,8 @@ class Dataset(models.Model):
             if quote_num == 0:
                 if start_field in met_list:
                     tabs["Met"]["variables"].append(var)
+                elif start_field in pow_list:
+                    tabs["Power"]["variables"].append(var)
                 elif start_field in rad_list:
                     tabs["Rad"]["variables"].append(var)
                 elif start_field in soil_list:
@@ -363,7 +378,7 @@ class Dataset(models.Model):
                     tabs["3dWind"]["variables"].append(var)
                 elif start_field in scalars_list:
                     tabs["Scalars"]["variables"].append(var)
-                else: 
+                else:
                     tabs["Others"]["variables"].append(var)
             elif quote_num == 2:
                 tabs["2ndMoments"]["variables"].append(var)
@@ -377,7 +392,7 @@ class Dataset(models.Model):
         tabs = {key: value for key, value in tabs.items() if value["variables"]}
         tabs = OrderedDict(sorted(tabs.items(), key=lambda x: x[0]))
 
-        return tabs;
+        return tabs
 
     def make_tabs(self, variables):
 
