@@ -255,7 +255,7 @@ class Dataset(models.Model):
 
         return self.end_time
 
-    def make_tabs(self, variables):
+    def alphabetic_tabs(self, variables):
         """Create a dictionary of tabs for the elements in variables.
 
         This is so that a large number of checkbox widgets for the
@@ -293,8 +293,8 @@ class Dataset(models.Model):
             vname = var.choice_label
             char1 = vname[0].upper()
             if not char1 in tabs:
-                tabs[char1] = []
-            tabs[char1].append(var)
+                tabs[char1] = {"variables":[]}
+            tabs[char1]["variables"].append(var)
        
         # Combine neighboring tabs if they each contain
         # fewer than tab_limit elements
@@ -308,24 +308,84 @@ class Dataset(models.Model):
             # pylint thinks ctab could be used before assignment
             # pylint: disable=used-before-assignment
             if len(comb_tabs) == 0 or \
-                    len(comb_tabs[ctab]) > tab_limit or \
-                    len(vals) > tab_limit:
+                    len(comb_tabs[ctab]["variables"]) > tab_limit or \
+                    len(vals["variables"]) > tab_limit:
                 ctab = tab
                 comb_tabs[ctab] = vals
             else:
                 nctab = ctab[0] + "-" + tab
-                comb_tabs[nctab] = comb_tabs[ctab] + vals
+                if not nctab in comb_tabs:
+                    comb_tabs[nctab] = {"variables":[]}
+                comb_tabs[nctab]["variables"] = comb_tabs[ctab]["variables"] + vals["variables"]
                 del comb_tabs[ctab]
                 ctab = nctab
 
         # Double check that we didn't lose any variables
         nres = 0
         for tab, vals in comb_tabs.items():
-            nres += len(vals)
+            nres += len(vals["variables"])
 
         if nres != nvars:
             _logger.error("%d variables unaccounted for in building tabs", (nvars - nres))
         return comb_tabs
+   
+    def isfs_tabs(self, variables):
+
+        tabs = OrderedDict()
+
+        tabs["Met"] = {"tooltip":"Meteorological Variables", "variables":[]}
+        tabs["Rad"] = {"tooltip":"Radiation Variables", "variables":[]}
+        tabs["Soil"] = {"tooltip":"Soil Variables", "variables":[]}
+        tabs["3dWind"] = {"tooltip":"3D Wind Variables", "variables":[]}
+        tabs["Scalars"] = {"tooltip":"Fast Scalars Variables", "variables":[]}
+        tabs["Others"] = {"tooltip":"Other Variables", "variables":[]}
+        tabs["2ndMoments"] = {"tooltip":"2nd Moments Variables", "variables":[]}
+        tabs["3rdMoments"] = {"tooltip":"3rd Moments Variables", "variables":[]}
+        tabs["4thMoments"] = {"tooltip":"4th Moments Variables", "variables":[]}
+
+        met_list = ["T", "RH", "P", "Spd", "Dir", "U", "V"]
+        rad_list = ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome"]
+        soil_list = ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", "Tau63", "Lambdasoil"]
+        wind_list = ["u", "v", "w", "Idiag", "diagbits"]
+        scalars_list = ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr"]
+
+        for var in iter(variables):
+            start_field = var.choice_label.split(".", 1)[0]
+            quote_num = start_field.count("'")
+            if quote_num == 0:
+                if start_field in met_list:
+                    tabs["Met"]["variables"].append(var)
+                elif start_field in rad_list:
+                    tabs["Rad"]["variables"].append(var)
+                elif start_field in soil_list:
+                    tabs["Soil"]["variables"].append(var)
+                elif start_field in wind_list:
+                    tabs["3dWind"]["variables"].append(var)
+                elif start_field in scalars_list:
+                    tabs["Scalars"]["variables"].append(var)
+            elif quote_num == 2:
+                tabs["2ndMoments"]["variables"].append(var)
+            elif quote_num == 3:
+                tabs["3rdMoments"]["variables"].append(var)
+            elif quote_num == 4:
+                tabs["4thMoments"]["variables"].append(var)
+            else:
+                tabs["Others"]["variables"].append(var)
+
+        return tabs;
+
+    def make_tabs(self, variables):
+
+        is_isfs = False
+
+        for plat in self.platforms.all():
+            if plat.name == "ISFS":
+                is_isfs = True
+
+        if is_isfs:
+            return self.isfs_tabs(variables)
+        else:
+            return self.alphabetic_tabs(variables)
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.

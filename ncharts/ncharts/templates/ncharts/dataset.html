@@ -115,11 +115,11 @@
 
                 <div class="container" id="variable-checkbox">
                     <ul class="tabrow">
-                        {% for tab in tabs %}
+                        {% for tab, vars in tabs.items %}
                         {% if forloop.first %}
-                        <li class="selected"><a data-toggle="tab" href="#{{ tab }}"> {{ tab }}</a></li> 
+                        <li class="selected"><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ tab }}"> {{ tab }}</a></li> 
                         {% else %}
-                        <li><a data-toggle="tab" href="#{{ tab }}"> {{ tab }}</a></li>
+                        <li><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ tab }}"> {{ tab }}</a></li>
                         {% endif %}
                         {% endfor %}
                     </ul>
@@ -132,7 +132,7 @@
                             class="tab-pane fade"
                             {% endif %}
                             >
-                            {% for var in vars %} 
+                            {% for var in vars|get_item:"variables" %} 
                             <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
                                 title="{{ variables|get_long_name:var.choice_label }}">
                                 {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
