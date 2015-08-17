@@ -10,11 +10,6 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-# TODO:
-#   cronjob to iterate over user sessions, age off expired ones,
-#   remove any ClientState instances that are not associated
-#   with a session.
-
 from django.shortcuts import render, get_object_or_404, redirect
 
 from django.http import HttpResponse, Http404
