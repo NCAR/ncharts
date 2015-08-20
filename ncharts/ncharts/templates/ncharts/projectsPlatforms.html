@@ -36,7 +36,7 @@
                             {% endif %}
                             >
                             {% for project in projects %} 
-                            <li class="col-md-2"><a href="{% url 'ncharts:project' project.name %}" data-toggle="tooltip"
+                            <li class="col-md-2" id="project_tab"><a href="{% url 'ncharts:project' project.name %}" data-toggle="tooltip"
                                 title="{{ project.long_name }}">{{ project.name }}</a></li>
                             {% endfor %}
                         </div>

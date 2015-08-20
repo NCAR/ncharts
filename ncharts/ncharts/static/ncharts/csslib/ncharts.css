@@ -115,6 +115,10 @@ li#variable_list {
     display: inline;
 }
 
+li#project_tab {
+    display: inline;
+}
+
 .container1, .container2 {
     float: left;
     left: 10px;
@@ -158,12 +162,13 @@ li#variable_list {
     text-shadow: 0 1px #FFF;
     margin: 0 -5px;
     min-width: 50px;
-    padding: 2px 10px;
 }
 
 .tabrow a {
     display: block;
     width: 100%;
+    padding: 2px 10px;
+    height: 100%;
 }
 
 .tabrow li.selected {
