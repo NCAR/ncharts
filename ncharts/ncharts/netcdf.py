@@ -75,7 +75,6 @@ class NetCDFDataset(object):
                   'dimnames': tuple of str dimension names for variable,
                   'units': str value of "units" attribute if found,
                   'long_name': str value of "long_name" attribute if found,
-                  'short_name': str value of "short_name" attribute if found,
                   'dtype': numpy.dtype of the variable
                }.
         base_time: str name of base_time variable if found in the dataset.
@@ -207,7 +206,6 @@ class NetCDFDataset(object):
                 time_index: index of the time dimension
                 units: units attribute of the NetCDF variable
                 long_name: long_name attribute of the NetCDF variable
-                short_name: short_name attribute of the NetCDF variable
         Raises:
             nc_exc.NoDataFoundException
         """
@@ -376,7 +374,7 @@ class NetCDFDataset(object):
                         dsinfo_vars[exp_vname]['dtype'] = var.dtype
                         dsinfo_vars[exp_vname]['time_index'] = time_index
                         # Grab certain attributes
-                        for att in ['units', 'long_name', 'short_name']:
+                        for att in ['units', 'long_name']:
                             if hasattr(var, att):
                                 dsinfo_vars[exp_vname][att] = getattr(var, att)
                         # Set default units to ''
@@ -431,6 +429,15 @@ class NetCDFDataset(object):
                             "in other files. Skipping this variable.",
                             ncpath, nc_vname, time_index)
                         del dsinfo_vars[exp_vname]
+
+                    for att in ['units', 'long_name']:
+                        if hasattr(var, att) and att in dsinfo_vars[exp_vname]:
+                            if getattr(var, att) != dsinfo_vars[exp_vname][att]:
+                                _logger.info(
+                                    "%s: %s: %s=%s is different than previous value=%s",
+                                    ncpath, nc_vname, att, getattr(var, att),
+                                    dsinfo_vars[exp_vname][att])
+                                dsinfo_vars[exp_vname][att] = getattr(var, att)
 
             finally:
                 ncfile.close()
