@@ -101,9 +101,21 @@
         "location": "Dixon, CA",
         "timezones": ["US/Pacific"],
 	"long_name": "Canopy Horizontal Array Turbulence Study",
-        "start_year": "2007"
+        "start_year": "2007",
+        "end_year": "2007"
     },
     "model": "ncharts.project", 
     "pk": "CHATS"
+},
+{
+    "fields": {
+        "location": "NCAR EOL Calibration Lab",
+        "timezones": ["US/Mountain"],
+	"long_name": "NCAR EOL Calibration Lab",
+        "start_year": "2015",
+        "end_year": "2015"
+    },
+    "model": "ncharts.project", 
+    "pk": "CALLAB"
 }
 ]
