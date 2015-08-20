@@ -84,23 +84,14 @@ class Project(models.Model):
         res = {}
         now = datetime.datetime.now()
 
-        for i, project in enumerate(projects):
+        for project in projects:
             if project.end_year == None:
                 project.end_year = now.year
-            if i == 0:
-                earliest_year = project.start_year
-                latest_year = project.end_year
-            else:
-                if earliest_year > project.start_year:
-                    earliest_year = project.start_year
-                if latest_year < project.end_year:
-                    latest_year = project.end_year
-                for year in list(range(earliest_year, latest_year + 1)):
-                    if year not in res:
-                        res[year] = []
-                for project_year in list(range(project.start_year, project.end_year + 1)):
-                    res[project_year].append(project)    
-        
+            for year in list(range(project.start_year, project.end_year + 1)):
+                if year not in res:
+                    res[year] = []
+                res[year].append(project)
+
         res = OrderedDict(sorted(res.items(), key=lambda x: x[0]))
 
         return res
