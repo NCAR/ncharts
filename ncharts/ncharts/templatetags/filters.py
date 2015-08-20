@@ -1,4 +1,5 @@
 from django import template
+from ncharts import models as nc_models
 
 register = template.Library()
 
@@ -24,3 +25,6 @@ def get_key_values(var_name, variables):
 def make_tabs(variables, dset):
     return dset.make_tabs(variables)
 
+@register.filter
+def make_project_tabs(projects):
+    return nc_models.Project.make_tabs(projects)

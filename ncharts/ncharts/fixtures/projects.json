@@ -3,7 +3,9 @@
     "fields": {
         "location": "Barringer Meteor Crater, AZ",
         "timezones": ["US/Arizona", "UTC"],
-	"long_name": "Meteor Crater Experiment II"
+	"long_name": "Meteor Crater Experiment II",
+        "start_year": "2013",
+        "end_year": "2013"
     }, 
     "model": "ncharts.project", 
     "pk": "METCRAXII"
@@ -11,7 +13,8 @@
 {
     "fields": {
         "timezones": ["US/Mountain", "UTC"],
-	"long_name": "NCAR Weather Station Plots"
+	"long_name": "NCAR Weather Station Plots",
+        "start_year": "2013"
     }, 
     "model": "ncharts.project", 
     "pk": "Weather"
@@ -20,7 +23,9 @@
     "fields": {
         "location": "New Zealand",
         "timezones": ["NZ", "UTC"],
-	"long_name": "Deep Propagating Gravity Wave Experiment over New Zealand"
+	"long_name": "Deep Propagating Gravity Wave Experiment over New Zealand",
+        "start_year": "2014",
+        "end_year": "2014"
     }, 
     "model": "ncharts.project", 
     "pk": "DEEPWAVE"
@@ -29,7 +34,9 @@
     "fields": {
         "location": "Boulder", 
         "timezones": ["US/Mountain", "UTC"],
-	"long_name": "NCAR's Next Generation Surface Flux System"
+	"long_name": "NCAR's Next Generation Surface Flux System",
+        "start_year": "2015",
+        "end_year": "2015"
     }, 
     "model": "ncharts.project", 
     "pk": "CentNet Devel"
@@ -38,7 +45,9 @@
     "fields": {
         "location": "Greeley, CO",
         "timezones": ["US/Mountain", "UTC"],
-	 "long_name": "Multi Angle Snowflake Camera-Radar experiment"
+	"long_name": "Multi Angle Snowflake Camera-Radar experiment",
+        "start_year": "2014",
+        "end_year": "2015"
     }, 
     "model": "ncharts.project", 
     "pk": "MASCRAD"
@@ -47,7 +56,9 @@
     "fields": {
         "location": "Firestone, CO",
         "timezones": ["US/Mountain", "UTC"],
-	"long_name": "Front Range Observational Network Testbed"
+	"long_name": "Front Range Observational Network Testbed",
+        "start_year": "2014",
+        "end_year": "2015"
     },
     "model": "ncharts.project", 
     "pk": "FRONT"
@@ -56,7 +67,9 @@
     "fields": {
         "location": "Boulder Atmospheric Observatory, Erie, CO",
         "timezones": ["US/Mountain", "UTC"],
-	"long_name": "An educational deployment of ISFS and MGAUS"
+	"long_name": "An educational deployment of ISFS and MGAUS",
+        "start_year": "2015",
+        "end_year": "2015"
     },
     "model": "ncharts.project", 
     "pk": "CABL"
@@ -65,7 +78,9 @@
     "fields": {
         "location": "Kansas, Nebraska",
         "timezones": ["US/Central", "UTC"],
-	"long_name": "Plains Elevated Convection at Night"
+	"long_name": "Plains Elevated Convection at Night",
+        "start_year": "2015",
+        "end_year": "2015"
     },
     "model": "ncharts.project", 
     "pk": "PECAN"
@@ -74,7 +89,9 @@
     "fields": {
         "location": "Eastern Pacific",
         "timezones": ["UTC"],
-	"long_name": "Cloud System Evolution in the Trades"
+	"long_name": "Cloud System Evolution in the Trades",
+        "start_year": "2015",
+        "end_year": "2015"
     },
     "model": "ncharts.project", 
     "pk": "CSET"
@@ -83,7 +100,8 @@
     "fields": {
         "location": "Dixon, CA",
         "timezones": ["US/Pacific"],
-	"long_name": "Canopy Horizontal Array Turbulence Study"
+	"long_name": "Canopy Horizontal Array Turbulence Study",
+        "start_year": "2007"
     },
     "model": "ncharts.project", 
     "pk": "CHATS"
