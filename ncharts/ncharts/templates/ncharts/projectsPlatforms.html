@@ -18,7 +18,7 @@
                 {% with years=projects|make_project_tabs %}
                 <div class="container">
                     <ul class="tabrow">
-                        {% for year in projects|make_project_tabs %}
+                        {% for year in years %}
                         {% if forloop.first %}
                         <li class="selected"><a data-toggle="tab" href="#{{ year }}"> {{ year }}</a></li> 
                         {% else %}

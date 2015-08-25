@@ -9,6 +9,7 @@
 
     {% load staticfiles %}
 
+    {% load filters %}
     <link rel="icon" href="{% static 'ncharts/favicon.ico' %}">
 
     <!--
@@ -56,7 +57,7 @@
 
     <!-- finally, ncharts.js -->
     <script type="text/javascript"
-src="{% static 'ncharts/jslib/ncharts.js' %}">
+        src="{% static 'ncharts/jslib/ncharts.js' %}">
     </script>
 
     {% block head %}{% endblock %}
@@ -87,14 +88,23 @@ src="{% static 'ncharts/jslib/ncharts.js' %}">
                     </div>
 
                     {% if projects %}
-                    <div class="dropdown" id="menu1">
-                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                            {% for project in projects %}
-                            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
+                        {% with years=projects|make_project_tabs %}
+                        <div class="dropdown" id="menu1">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                                {% for year,projects in years.items %}
+                                <li class="dropdown-submenu" role="presentation">
+                                    <a role="menuitem"> {{ year }}</a>
+                                    <ul>
+                                    {% for project in projects %}
+                                        <li><a href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
+                                    {% endfor %}
+                                    </ul>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endwith %}
                     {% endif %}
 
                     {% if platforms %}
