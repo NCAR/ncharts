@@ -92,6 +92,9 @@ class Project(models.Model):
                     res[year] = []
                 res[year].append(project)
 
+        for year, projects in res.items():
+            projects.sort(key=lambda x: x.name)
+
         res = OrderedDict(sorted(res.items(), key=lambda x: x[0]))
 
         return res
