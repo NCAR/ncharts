@@ -280,7 +280,8 @@ class NetCDFDataset(object):
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
                     break
-                except (OSError, RuntimeError) as exc:
+                except (OSError, RuntimeError) as excx:
+                    exc = excx
                     time.sleep(itry)
 
             if not fileok:
@@ -924,7 +925,8 @@ class NetCDFDataset(object):
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
                     break
-                except (OSError, RuntimeError) as exc:
+                except (OSError, RuntimeError) as excx:
+                    exc = excx
                     time.sleep(itry)
 
             if not fileok:
