@@ -767,6 +767,7 @@
             var vnames =  $( this ).data("variables");
             var vunits =  $( this ).data("units");
             var long_names =  $( this ).data("long_names");
+            var date = $("input#id_start_time").val();
 
             // console.log("time-series, plot_times[''].length=",plot_times[''].length);
             // console.log("vnames=",vnames,", vunits=",vunits);
@@ -910,6 +911,15 @@
                         },
                         gapSize: 2,
                     },
+                },
+                subtitle: {
+                    text: "Start Time: " + date,
+                    style: {
+                        fontWeight: 'bold'
+                    },
+                    align: 'right',
+                    x: -30,
+                    y: 15
                 },
                 xAxis: {
                     type: 'datetime',
