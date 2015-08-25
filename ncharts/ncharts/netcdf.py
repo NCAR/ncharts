@@ -264,6 +264,7 @@ class NetCDFDataset(object):
 
             fileok = False
             skip_file = False
+            exc = None
 
             for itry in range(0, 3):
                 try:
@@ -280,10 +281,10 @@ class NetCDFDataset(object):
                     fileok = True
                     break
                 except (OSError, RuntimeError) as exc:
-                    _logger.error("%s: %s", ncpath, exc)
                     time.sleep(itry)
 
             if not fileok:
+                _logger.error("%s: %s", ncpath, exc)
                 continue
 
             n_files_read += 1
@@ -917,16 +918,17 @@ class NetCDFDataset(object):
 
             # the files might be in the process of being moved, deleted, etc
             fileok = False
+            exc = None
             for itry in range(0, 3):
                 try:
                     ncfile = netCDF4.Dataset(ncpath)
                     fileok = True
                     break
                 except (OSError, RuntimeError) as exc:
-                    _logger.error("%s: %s", ncpath, exc)
                     time.sleep(itry)
 
             if not fileok:
+                _logger.error("%s: %s", ncpath, exc)
                 continue
 
             if not series_name in res_data:

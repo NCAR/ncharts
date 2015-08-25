@@ -19,7 +19,7 @@
 },
 {
     "fields": {
-        "directory": "/net/isf/isff/projects/CHATS/ISFF/netcdf_qc_geo_tiltcor", 
+        "directory": "/net/isf/isff/projects/CHATS/ISFF/netcdf/qc_geo_tiltcor", 
         "filenames": "isff_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
