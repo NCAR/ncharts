@@ -45,7 +45,7 @@ div#id_start_time {
 }
 
 /* For desktop screen time-series */
-@media only screen and (min-device-width:1224px) {
+@media only screen and (min-device-width:1024px) {
     .time-series-chart-wrapper {
         position: relative;
         padding-bottom: 40%;
@@ -57,7 +57,7 @@ div#id_start_time {
 }
 
 /* For phones time-series */
-@media only screen and (min-device-width: 320px) and (max-device-width: 736px) {
+@media only screen and (min-device-width: 320px) and (max-device-width: 768px) {
     .time-series-chart-wrapper {
         position: relative;
         padding-bottom: 50%;
