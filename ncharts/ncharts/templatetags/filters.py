@@ -26,5 +26,6 @@ def make_tabs(variables, dset):
     return dset.make_tabs(variables)
 
 @register.filter
+    """Get the dictionary of years and projects from models.py"""
 def make_project_tabs(projects):
     return nc_models.Project.make_tabs(projects)
