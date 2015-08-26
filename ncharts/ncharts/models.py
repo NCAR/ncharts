@@ -81,6 +81,16 @@ class Project(models.Model):
     @classmethod
     def make_tabs(cls, projects):
 
+        """A class method for creating dictionary of projects based on their start years
+            and end years. The dictionary keys will be the years and the values will be 
+            the projects that happen within the corresponding years. The years and projects are sorted 
+            numerically and alphabetically. 
+
+            Args: The Project class itself and the list of projects from netcdf.
+            Ret: The sorted dictionary of years and projects. 
+
+        """
+
         res = {}
         now = datetime.datetime.now()
 
@@ -420,6 +430,12 @@ class Dataset(models.Model):
         return tabs
 
     def make_tabs(self, variables):
+
+        """Select the correct tabbing method for the corresponding platform.
+            If the dataset if of ISFS platform, the isfs_tabs method is used.
+            Else, the alphabetic_tabs method is used.
+
+        """
 
         is_isfs = False
 
