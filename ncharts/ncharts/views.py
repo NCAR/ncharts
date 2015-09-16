@@ -471,6 +471,7 @@ class DatasetView(View):
             form.fields['track_real_time'].widget.attrs['disabled'] = True
 
         soundings = []
+        dsetvars = {}
         try:
             dsetvars = dset.get_variables()
 
