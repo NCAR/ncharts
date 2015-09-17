@@ -117,5 +117,16 @@
     },
     "model": "ncharts.project", 
     "pk": "CALLAB"
+},
+{
+    "fields": {
+        "location": "NCAR Gulfstream V",
+        "timezones": ["UTC"],
+	"long_name": "NCAR Gulfstream V",
+        "start_year": "2015",
+        "end_year": "2016"
+    },
+    "model": "ncharts.project", 
+    "pk": "GV"
 }
 ]
