@@ -87,17 +87,6 @@
 },
 {
     "fields": {
-        "location": "Eastern Pacific",
-        "timezones": ["UTC"],
-	"long_name": "Cloud System Evolution in the Trades",
-        "start_year": "2015",
-        "end_year": "2015"
-    },
-    "model": "ncharts.project", 
-    "pk": "CSET"
-},
-{
-    "fields": {
         "location": "Dixon, CA",
         "timezones": ["US/Pacific"],
 	"long_name": "Canopy Horizontal Array Turbulence Study",
@@ -124,9 +113,20 @@
         "timezones": ["UTC"],
 	"long_name": "NCAR Gulfstream V",
         "start_year": "2015",
-        "end_year": "2016"
+        "end_year": "2015"
     },
     "model": "ncharts.project", 
     "pk": "GV"
+},
+{
+    "fields": {
+        "location": "NCAR C130",
+        "timezones": ["UTC"],
+	"long_name": "NCAR C130 Hercules",
+        "start_year": "2015",
+        "end_year": "2015"
+    },
+    "model": "ncharts.project", 
+    "pk": "C130"
 }
 ]

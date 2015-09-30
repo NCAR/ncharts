@@ -32,12 +32,22 @@
 {
     "fields": {
         "projects": [
-            "DEEPWAVE", "CSET", "GV"
+            "DEEPWAVE", "GV"
         ],
         "long_name": "Gulfstream V Research Aircraft"
     }, 
     "model": "ncharts.platform", 
     "pk": "GV"
+},
+{
+    "fields": {
+        "projects": [
+            "C130"
+        ],
+        "long_name": "NCAR C130 Research Aircraft"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "C130"
 },
 {
     "fields": {

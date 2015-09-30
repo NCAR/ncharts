@@ -3,27 +3,27 @@
     "fields": {
         "variables": [], 
         "platforms": [
-            "GV"
+            "C130"
         ], 
         "start_time": "2015-01-01T00:00:00+00:00", 
-        "end_time": "2017-01-01T00:00:00+00:00", 
-        "name": "GV-LRT", 
-        "long_name": "NCAR Gulfstream V, low-rate realtime data", 
-        "project": "GV",
-	"url": "https://www.eol.ucar.edu/instrumentation/aircraft/GV",
+        "end_time": "2015-12-31T00:00:00+00:00", 
+        "name": "C130-LRT", 
+        "long_name": "NCAR Hercules C130, low-rate realtime data", 
+        "project": "C130",
+	"url": "https://www.eol.ucar.edu/instrumentation/aircraft/C130",
 	"status": "Preliminary"
     }, 
     "model": "ncharts.dataset",
-    "pk": 32
+    "pk": 33
 },
 {
     "fields": {
-        "dbname": "real-time-GV",
+        "dbname": "real-time-C130",
         "user": "ads",
         "host": "eol-rt-data.fl-ext.ucar.edu",
         "table": "raf_lrt"
     }, 
     "model": "ncharts.dbdataset",
-    "pk": 32
+    "pk": 33
 }
 ]
