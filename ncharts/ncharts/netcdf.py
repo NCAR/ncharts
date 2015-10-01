@@ -33,7 +33,7 @@ def get_file_modtime(path):
     """ Utility to get the modification time of a file. """
     try:
         pstat = os.stat(path)
-    except (FileNotFoundError, PermissionError) as exc:
+    except OSError as exc:
         _logger.error(exc)
         raise
 
@@ -156,7 +156,7 @@ class NetCDFDataset(object):
             List of file path names matching the time period.
 
         Raises:
-            FileNotFoundError, PermissionError
+            OSError
         """
         return self.fileset.scan(start_time, end_time)
 
@@ -173,7 +173,7 @@ class NetCDFDataset(object):
             List of file path names matching the time period.
 
         Raises:
-            FileNotFoundError, PermissionError
+            OSError
         """
         return [f.path for f in self.get_files(start_time, end_time)]
 
@@ -207,6 +207,7 @@ class NetCDFDataset(object):
                 units: units attribute of the NetCDF variable
                 long_name: long_name attribute of the NetCDF variable
         Raises:
+            OSError
             nc_exc.NoDataFoundException
         """
 
@@ -853,6 +854,7 @@ class NetCDFDataset(object):
             }
 
         Raises:
+            OSError
             nc_exc.NoDataFoundException
             nc_exc.NoDataException
 
