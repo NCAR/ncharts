@@ -386,9 +386,9 @@ class Dataset(models.Model):
         tabs["3D_Winds"] = {"tooltip":"3D Wind Variables", "variables":[]}
         tabs["Scalars"] = {"tooltip":"Fast Scalar Variables", "variables":[]}
         tabs["Others"] = {"tooltip":"Other Variables", "variables":[]}
-        tabs["2ndMoments"] = {"tooltip":"2nd Moments Variables", "variables":[]}
-        tabs["3rdMoments"] = {"tooltip":"3rd Moments Variables", "variables":[]}
-        tabs["4thMoments"] = {"tooltip":"4th Moments Variables", "variables":[]}
+        tabs["2ndMoments"] = {"tooltip":"2nd Moments (variances, covariances)", "variables":[]}
+        tabs["3rdMoments"] = {"tooltip":"3rd Moments (tri-variances)", "variables":[]}
+        tabs["4thMoments"] = {"tooltip":"4th Moments", "variables":[]}
 
         met_list = ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan"]
         pow_list = ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote"]
@@ -426,7 +426,7 @@ class Dataset(models.Model):
                 tabs["Others"]["variables"].append(var)
 
         # Remove empty tabs. Keep original order
-        for key,value in tabs.items():
+        for key, value in tabs.items():
             if not value["variables"]:
                 tabs.pop(key)
 
