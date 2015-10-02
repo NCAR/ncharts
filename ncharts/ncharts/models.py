@@ -376,14 +376,15 @@ class Dataset(models.Model):
             alphabetically sorted prior to this call.
         """
 
-        tabs = {}
+        tabs = OrderedDict()
 
+        # This is the order that the tabs will appear
         tabs["Met"] = {"tooltip":"Meteorological Variables", "variables":[]}
         tabs["Power"] = {"tooltip":"Battery and Solar Power", "variables":[]}
         tabs["Rad"] = {"tooltip":"Radiation Variables", "variables":[]}
         tabs["Soil"] = {"tooltip":"Soil Variables", "variables":[]}
-        tabs["3dWind"] = {"tooltip":"3D Wind Variables", "variables":[]}
-        tabs["Scalars"] = {"tooltip":"Fast Scalars Variables", "variables":[]}
+        tabs["3D_Winds"] = {"tooltip":"3D Wind Variables", "variables":[]}
+        tabs["Scalars"] = {"tooltip":"Fast Scalar Variables", "variables":[]}
         tabs["Others"] = {"tooltip":"Other Variables", "variables":[]}
         tabs["2ndMoments"] = {"tooltip":"2nd Moments Variables", "variables":[]}
         tabs["3rdMoments"] = {"tooltip":"3rd Moments Variables", "variables":[]}
@@ -410,7 +411,7 @@ class Dataset(models.Model):
                 elif start_field in soil_list:
                     tabs["Soil"]["variables"].append(var)
                 elif start_field in wind_list:
-                    tabs["3dWind"]["variables"].append(var)
+                    tabs["3D_Winds"]["variables"].append(var)
                 elif start_field in scalars_list:
                     tabs["Scalars"]["variables"].append(var)
                 else:
@@ -424,8 +425,10 @@ class Dataset(models.Model):
             else:
                 tabs["Others"]["variables"].append(var)
 
-        tabs = {key: value for key, value in tabs.items() if value["variables"]}
-        tabs = OrderedDict(sorted(tabs.items(), key=lambda x: x[0]))
+        # Remove empty tabs. Keep original order
+        for key,value in tabs.items():
+            if not value["variables"]:
+                tabs.pop(key)
 
         return tabs
 
