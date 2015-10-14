@@ -229,7 +229,7 @@ class RAFDatabase(object):
                     cur.execute(
                         "SELECT {} FROM {} FETCH FIRST 1 ROW ONLY;"
                         .format(vname, self.table))
-                    start_time = cur.fetchone()[0]
+                    start_time = cur.fetchone()
                     if not start_time:
                         _logger.warn("%s: read %s: no data", conn, vname)
                         raise nc_exc.NoDataFoundException("read {}".format(vname))
