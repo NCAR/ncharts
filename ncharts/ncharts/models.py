@@ -387,8 +387,8 @@ class Dataset(models.Model):
         tabs["Scalars"] = {"tooltip":"Fast Scalar Variables", "variables":[]}
         tabs["Others"] = {"tooltip":"Other Variables", "variables":[]}
         tabs["2ndMoments"] = {"tooltip":"variances, covariances", "variables":[]}
-        tabs["3rdMoments"] = {"tooltip":"skewness", "variables":[]}
-        tabs["4thMoments"] = {"tooltip":"kurtosis", "variables":[]}
+        tabs["3rdMoments"] = {"tooltip":"", "variables":[]}
+        tabs["4thMoments"] = {"tooltip":"", "variables":[]}
 
         met_list = ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan"]
         pow_list = ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote"]
