@@ -230,7 +230,10 @@ class RAFDatabase(object):
                         "SELECT {} FROM {} FETCH FIRST 1 ROW ONLY;"
                         .format(vname, self.table))
                     start_time = cur.fetchone()[0]
-                    return pytz.utc.localize(start_time)
+                    if not start_time:
+                        _logger.warn("%s: read %s: no data", conn, vname)
+                        raise nc_exc.NoDataFoundException("read {}".format(vname))
+                    return pytz.utc.localize(start_time[0])
         except psycopg2.Error as exc:
             _logger.warn("%s: read %s: %s", conn, vname, exc)
             RAFDatabase.close_connection(conn)
