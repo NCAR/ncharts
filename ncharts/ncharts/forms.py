@@ -15,6 +15,8 @@ from django.contrib import messages
 
 from datetimewidget import widgets as dt_widgets
 
+from ncharts import exceptions as nc_exc
+
 import pytz
 
 import datetime
@@ -219,7 +221,7 @@ class DataSelectionForm(forms.Form):
         """
         # choices: (value, label)
         self.fields['variables'].choices = sorted(
-            [(n, n) for n in variables],key=lambda x: str.lower(x[0]))
+            [(n, n) for n in variables], key=lambda x: str.lower(x[0]))
         # print("choices=%s" % repr(self.fields['variables'].choices))
 
     def set_yvariable_choices(self, variables):
@@ -230,7 +232,7 @@ class DataSelectionForm(forms.Form):
         """
         # choices: (value, label)
         self.fields['yvariable'].choices = sorted(
-            [(n, n) for n in variables],key=lambda x: str.lower(x[0]))
+            [(n, n) for n in variables], key=lambda x: str.lower(x[0]))
 
     def clean(self):
         """Check the user's selections for correctness.
@@ -267,17 +269,20 @@ class DataSelectionForm(forms.Form):
         # but interpret them in the dataset timezone
         start_time = self.get_cleaned_start_time()
 
-        if start_time < self.dataset.get_start_time():
-            msg = "chosen start time: {} is earlier than " \
-                "dataset start time, resetting to {}".format(
-                    start_time.isoformat(),
-                    self.dataset.get_start_time().astimezone(timezone).isoformat())
-            if self.request:
-                messages.warning(self.request, msg)
-            # self.add_error('start_time', forms.ValidationError(msg))
-            start_time = self.dataset.get_start_time().astimezone(timezone)
-            cleaned_data['start_time'] = start_time.replace(tzinfo=None)
-            self.clean_method_altered_data = True
+        try:
+            if start_time < self.dataset.get_start_time():
+                msg = "chosen start time: {} is earlier than " \
+                    "dataset start time, resetting to {}".format(
+                        start_time.isoformat(),
+                        self.dataset.get_start_time().astimezone(timezone).isoformat())
+                if self.request:
+                    messages.warning(self.request, msg)
+                # self.add_error('start_time', forms.ValidationError(msg))
+                start_time = self.dataset.get_start_time().astimezone(timezone)
+                cleaned_data['start_time'] = start_time.replace(tzinfo=None)
+                self.clean_method_altered_data = True
+        except nc_exc.NoDataFoundException as exc:
+            self.add_error('start_time', forms.ValidationError("dataset start time not available"))
 
         tunits = cleaned_data['time_length_units']
 
