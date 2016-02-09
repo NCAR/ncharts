@@ -269,6 +269,9 @@ class DataSelectionForm(forms.Form):
         # but interpret them in the dataset timezone
         start_time = self.get_cleaned_start_time()
 
+        if not start_time:
+            raise forms.ValidationError('start time not found')
+
         try:
             if start_time < self.dataset.get_start_time():
                 msg = "chosen start time: {} is earlier than " \
@@ -281,7 +284,7 @@ class DataSelectionForm(forms.Form):
                 start_time = self.dataset.get_start_time().astimezone(timezone)
                 cleaned_data['start_time'] = start_time.replace(tzinfo=None)
                 self.clean_method_altered_data = True
-        except nc_exc.NoDataFoundException as exc:
+        except nc_exc.NoDataFoundException:
             self.add_error('start_time', forms.ValidationError("dataset start time not available"))
 
         tunits = cleaned_data['time_length_units']
