@@ -56,10 +56,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
  On Fedora, had to do::
     virtualenv-3.4 -p /usr/bin/python3 django
- 
+
  Activate that virtual environment::
 
-    source $HOME/virtuanenvs/django/bin/activate
+    source $HOME/virtualenvs/django/bin/activate
 
  The activation needs to be done once for each shell. To make it easier, you can create an alias in your $HOME/.bashrc::
 
@@ -69,7 +69,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 4. Add other Python packages to virtual environment::
 
-    source $HOME/virtuanenvs/django/bin/activate
+    source $HOME/virtualenvs/django/bin/activate
 
     python3 -m pip install --upgrade django
     python3 -m pip install --upgrade numpy
@@ -102,10 +102,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
  Create the log directory::
     mkdir $DJROOT/eol-django-datavis/log
 
-6. Initialize the database. 
+6. Initialize the database.
 
  This runs migrate command, which should also handle the situation of one of the models changes, or is added or deleted::
-    
+
     ./migrate_db.sh -d
 
  The -d option indicates this is a development server.  If the db.sqlite3 database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. The security of the password is not critical for a development server if it is not exposed to the internet. I'd suggest not using your UCAS or EOL server password.
@@ -146,7 +146,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
  Often on a development server one doesn't enable caching, so that
  changes are seen without clearing out the cache.
-    
+
  If you want to test caching, enable the CACHES configuration in settings.py
  so that it is enabled even when DEBUG is true. Then start memcached by hand,
  specifying the location of the socket in the runstring.  On a development server,
