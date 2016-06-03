@@ -21,10 +21,11 @@ bower install bootstrap || exit 1
 bower install moment || exit 1
 bower install moment-timezone || exit 1
 
-rsync -av bower_components/jquery/dist/ $dest/js || exit 1
-rsync -av bower_components/bootstrap/dist/ $dest || exit 1
-rsync -av bower_components/moment/min/moment.min.js $dest/js || exit 1
-rsync -av bower_components/moment-timezone/builds/moment-timezone-with-data.min.js $dest/js || exit 1
+rsync -rv bower_components/jquery/dist/ $dest/js || exit 1
+rsync -rv bower_components/bootstrap/dist/ $dest || exit 1
+
+rsync -rv bower_components/moment/min/moment.min.js $dest/js || exit 1
+rsync -rv bower_components/moment-timezone/builds/moment-timezone-with-data.min.js $dest/js || exit 1
 
 # This gets git://github.com/robdodson/highcharts.com.git, which I'm not sure I want
 # bower install highstock
@@ -44,7 +45,7 @@ if $do_zip; then
     cd highcharts
 
     unzip ../Highcharts.zip > /dev/null
-    rsync -av js $dest || exit 1
+    rsync -rv js $dest || exit 1
 
     cd -
 
@@ -52,15 +53,15 @@ if $do_zip; then
     cd highstock
 
     unzip ../Highstock.zip > /dev/null
-    rsync -av js/highstock*.js $dest/js || exit 1
+    rsync -rv js/highstock*.js $dest/js || exit 1
     cd -
 else
     wget code.highcharts.com/stock/highstock.js || exit 1
     wget code.highcharts.com/stock/modules/exporting.js || exit 1
     wget code.highcharts.com/stock/modules/heatmap.js || exit 1
-    rsync -av highstock.js $dest/js || exit 1
-    rsync -av exporting.js $dest/js/modules || exit 1
-    rsync -av heatmap.js $dest/js/modules || exit 1
+    rsync -rv highstock.js $dest/js || exit 1
+    rsync -rv exporting.js $dest/js/modules || exit 1
+    rsync -rv heatmap.js $dest/js/modules || exit 1
 fi
 
 echo "On a production server, you should run the static.sh script, which basically does python3 manage.py collectstatic
