@@ -1,5 +1,4 @@
-eol-django-datavis
-==================
+# eol-django-datavis
 
 Data plotting Web application, developed at NCAR EOL.
 
