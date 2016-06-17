@@ -18,10 +18,6 @@ BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
-#
-# FIXME: move secret key out of source code / don't hard-code
-#
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'abc-123-this-value-is-totally-insecure'
 
