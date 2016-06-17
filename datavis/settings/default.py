@@ -23,7 +23,7 @@ BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 #
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '6-u3&i0wz1lgpwlq3apf1)&o%niv4gql4iv_ibr2^^e2y#=_=6'
+SECRET_KEY = 'abc-123-this-value-is-totally-insecure'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
