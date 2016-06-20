@@ -185,10 +185,11 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 ```
 
   To run the application in `production` mode, set `DJANGO_SETTINGS_MODULE` environment variable to `datavis.settings.production` in another service `.conf` file, *e.g.* `/etc/systemd/system/httpd.service.d/datavis-settings-production.conf`:
+  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted"
 
-  ```
-[Service]
-Environment="DJANGO_SETTINGS_MODULE=datavis.settings.production"
+  ```sh
+  sudo systemctl daemon-reload
+  sudo systemctl restart httpd
 ```
 
   Install the httpd configuration files:
