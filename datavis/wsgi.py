@@ -10,7 +10,7 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 import os
 
 #
-# default Django to production for ˚SECURE BY DEFAULT
+# default Django to production for "SECURE BY DEFAULT"
 #
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "datavis.settings.production")
 
