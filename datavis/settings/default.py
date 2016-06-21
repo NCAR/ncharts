@@ -227,19 +227,6 @@ LOGGING = {
     }
 }
 
-if not DEBUG:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR, 'django_memcached.sock'),
-            # 'LOCATION': '127.0.0.1:11211',
-            'TIMEOUT': 300, # 300 seconds is the default
-        }
-    }
-    CACME_MIDDLEWARE_ALIAS = 'default'
-    CACHE_MIDDLEWARE_SECONDS = 300
-    CACHE_MIDDLEWARE_KEY_PREFIX = ''
-
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 INTERNAL_IPS = ['128.117']
