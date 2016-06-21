@@ -162,11 +162,6 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo systemctl daemon.reload
   sudo systemctl enable memcached_django.service
   sudo systemctl start memcached_django.service
-
-  sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
-  sudo systemctl daemon.reload
-  sudo systemctl enable memcached_django.service
-  sudo systemctl start memcached_django.service
 ```
 
 10. Configure and start httpd server
