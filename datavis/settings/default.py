@@ -1,6 +1,8 @@
 """
 Django settings for datavis project.
 
+Default / development settings. For production settings, use production.py
+
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
 
