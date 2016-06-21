@@ -133,7 +133,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   This shell script executes the django *collectstatic* command to find the static files in the ncharts directory, as well as static files in python site-packages, and copies them to BASE_DIR/static.
 
-  On a production server, the root files go in BASE_DIR/static, which is the same as $DJROOT/static. `See datavis/settings/base.py`:
+  On a production server, the root files go in BASE_DIR/static, which is the same as $DJROOT/static. `See datavis/settings/default.py`:
 
   ```python
   STATIC_ROOT = os.path.join(BASE_DIR,'static')
@@ -145,7 +145,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 9. Memcached:
 
-  The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings.py`:
+  The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings/production.py`:
 
   ```python
   'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
