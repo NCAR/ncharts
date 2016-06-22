@@ -71,17 +71,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 5. Configuration
 
-  Important!  Set `DEBUG = False` in `datavis/settings.py`. The django docs warn in several places that using `DEBUG = True` on a production server exposed to the WWW is a security hole.
+  Production settings are set and managed in `datavis/settings/production.py`. `DEBUG` should be set to `False`, as the Django docs warn in several places that using `DEBUG = True` on a production server exposed to the WWW is a security hole.
 
-  In `settings.py`, `DEBUG = False`, results in:
-
-  ```
-  LOG_DIR = '/var/log/django'
-  VAR_RUN_DIR = '/var/run/django'
-  VAR_LIB_DIR = '/var/run/django'
-```
-
-  Create and set permissions on `LOG_DIR`, `VAR_RUN_DIR` and `VAR_LIB_DIR`:
+  Create and set permissions on `LOG_DIR`, `VAR_RUN_DIR` and `VAR_LIB_DIR`, per their values set in `datavis/settings/production.py`:
 
   ```sh
   mkdir /var/log/django
@@ -141,7 +133,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   This shell script executes the django *collectstatic* command to find the static files in the ncharts directory, as well as static files in python site-packages, and copies them to BASE_DIR/static.
 
-  On a production server, the root files go in BASE_DIR/static, which is the same as $DJROOT/static. See datavis/settings.py:
+  On a production server, the root files go in BASE_DIR/static, which is the same as $DJROOT/static. `See datavis/settings/default.py`:
 
   ```python
   STATIC_ROOT = os.path.join(BASE_DIR,'static')
@@ -153,7 +145,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 9. Memcached:
 
-  The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings.py`:
+  The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings/production.py`:
 
   ```python
   'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR,'django_memcached.sock'),
@@ -170,14 +162,16 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo systemctl daemon.reload
   sudo systemctl enable memcached_django.service
   sudo systemctl start memcached_django.service
-
-  sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
-  sudo systemctl daemon.reload
-  sudo systemctl enable memcached_django.service
-  sudo systemctl start memcached_django.service
 ```
 
 10. Configure and start httpd server
+
+  A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. This can be passed to Apache from `systemd` by adding a `.conf` service file to `/etc/systemd/system/httpd.service.d/`, *e.g.* `datavis-secret-key.conf`:
+
+  ```
+[Service]
+Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
+```
 
   If you're paranoid, and want to generate a new `SECRET_KEY`:
 
@@ -185,7 +179,12 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python -c 'import random; import string; print "".join([random.SystemRandom().choice(string.digits + string.letters + string.punctuation) for i in range(100)])'
 ```
 
-  Enter that key in `datavis/settings.py`.
+  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted"
+
+  ```sh
+  sudo systemctl daemon-reload
+  sudo systemctl restart httpd
+```
 
   Install the httpd configuration files:
 
@@ -207,7 +206,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo systemctl daemon-reload
 ```
 
-  See above for creating and setting permissions on LOG_DIR:
+  See above for creating and setting permissions on `LOG_DIR`:
 
   ```sh
   sudo systemctl enable httpd.service

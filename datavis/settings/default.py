@@ -1,6 +1,8 @@
 """
 Django settings for datavis project.
 
+Default / development settings. For production settings, use production.py
+
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
 
@@ -8,28 +10,25 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
+# formerly datavis/settings.py
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os, socket, getpass
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '6-u3&i0wz1lgpwlq3apf1)&o%niv4gql4iv_ibr2^^e2y#=_=6'
+SECRET_KEY = 'abc-123-this-value-is-totally-insecure'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
-if DEBUG:
-    VAR_RUN_DIR = BASE_DIR
-    VAR_LIB_DIR = BASE_DIR
-    LOG_DIR = os.path.join(BASE_DIR, 'log')
-else:
-    LOG_DIR = '/var/log/django'
-    VAR_RUN_DIR = '/var/run/django'
-    VAR_LIB_DIR = '/var/lib/django'
+VAR_RUN_DIR = BASE_DIR
+VAR_LIB_DIR = BASE_DIR
+LOG_DIR = os.path.join(BASE_DIR, 'log')
 
 # ALLOWED_HOSTS are the server's IP names, NOT the names of allowed client hosts
 # (seems like an unfortunate variable name).
@@ -227,19 +226,6 @@ LOGGING = {
         },
     }
 }
-
-if not DEBUG:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR, 'django_memcached.sock'),
-            # 'LOCATION': '127.0.0.1:11211',
-            'TIMEOUT': 300, # 300 seconds is the default
-        }
-    }
-    CACME_MIDDLEWARE_ALIAS = 'default'
-    CACHE_MIDDLEWARE_SECONDS = 300
-    CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
