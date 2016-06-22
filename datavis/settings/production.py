@@ -27,3 +27,8 @@ CACHES = {
 CACHE_MIDDLEWARE_ALIAS = 'default'
 CACHE_MIDDLEWARE_SECONDS = 300
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
+
+#
+# TODO: decrease logging levels below DEBUG in production
+#       https://docs.djangoproject.com/en/1.8/topics/logging/
+#
