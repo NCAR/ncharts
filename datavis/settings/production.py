@@ -9,7 +9,7 @@ DEBUG = False
 DEFAULT_LOG_DIR = LOG_DIR
 
 LOG_DIR     = '/var/log/django'
-LOG_LEVEL   = 'ERROR'
+LOG_LEVEL   = 'WARNING'
 
 VAR_RUN_DIR = '/var/run/django'
 VAR_LIB_DIR = '/var/lib/django'
