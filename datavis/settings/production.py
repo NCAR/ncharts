@@ -9,6 +9,8 @@ DEBUG = False
 DEFAULT_LOG_DIR = LOG_DIR
 
 LOG_DIR     = '/var/log/django'
+LOG_LEVEL   = 'ERROR'
+
 VAR_RUN_DIR = '/var/run/django'
 VAR_LIB_DIR = '/var/lib/django'
 
@@ -38,11 +40,6 @@ CACHE_MIDDLEWARE_ALIAS = 'default'
 CACHE_MIDDLEWARE_SECONDS = 300
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
-#
-# TODO: decrease logging levels below DEBUG in production
-#       https://docs.djangoproject.com/en/1.8/topics/logging/
-#
-
 if LOG_DIR != DEFAULT_LOG_DIR:
 
   #
@@ -52,3 +49,6 @@ if LOG_DIR != DEFAULT_LOG_DIR:
   for key, value in LOGGING['handlers'].items():
     if 'filename' in value:
       value['filename'] = value['filename'].replace(DEFAULT_LOG_DIR, LOG_DIR)
+
+    if 'level' in value:
+      value['level'] = LOG_LEVEL
