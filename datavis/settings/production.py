@@ -12,6 +12,14 @@ LOG_DIR     = '/var/log/django'
 VAR_RUN_DIR = '/var/run/django'
 VAR_LIB_DIR = '/var/lib/django'
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
+        'OPTIONS': {'timeout': 20,},
+    }
+}
+
 SECRET_KEY = os.environ.get('EOL_DATAVIS_SECRET_KEY')
 
 if SECRET_KEY == None:
