@@ -3,3 +3,4 @@ __pycache__
 ncharts
 static
 log
+/.vagrant*
