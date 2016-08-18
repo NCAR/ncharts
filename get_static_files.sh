@@ -16,10 +16,10 @@ tmpdir=$(mktemp -d /tmp/ncharts_static_XXXXXX)
 trap "{ rm -rf $tmpdir; }" EXIT
 
 cd $tmpdir
-bower install jquery || exit 1
-bower install bootstrap || exit 1
-bower install moment || exit 1
-bower install moment-timezone || exit 1
+bower --allow-root install jquery || exit 1
+bower --allow-root install bootstrap || exit 1
+bower --allow-root install moment || exit 1
+bower --allow-root install moment-timezone || exit 1
 
 rsync -rv bower_components/jquery/dist/ $dest/js || exit 1
 rsync -rv bower_components/bootstrap/dist/ $dest || exit 1
@@ -29,7 +29,7 @@ rsync -rv bower_components/moment-timezone/builds/moment-timezone-with-data.min.
 
 # This gets git://github.com/robdodson/highcharts.com.git, which I'm not sure I want
 # bower install highstock
-# We'll get what we want from highcharts.com with wget
+# We'll get what we want from highcharts.com with curl -O
 
 
 # Either can get the full highcharts zip files, or get just what we want.
@@ -39,8 +39,8 @@ if $do_zip; then
 
     # download zip files
     # www.highcharts/com/download
-    wget code.highcharts.com/zips/Highcharts.zip || exit 1
-    wget code.highcharts.com/zips/Highstock.zip || exit 1
+    curl -O code.highcharts.com/zips/Highcharts.zip || exit 1
+    curl -O code.highcharts.com/zips/Highstock.zip || exit 1
     mkdir highcharts
     cd highcharts
 
@@ -56,9 +56,9 @@ if $do_zip; then
     rsync -rv js/highstock*.js $dest/js || exit 1
     cd -
 else
-    wget code.highcharts.com/stock/highstock.js || exit 1
-    wget code.highcharts.com/stock/modules/exporting.js || exit 1
-    wget code.highcharts.com/stock/modules/heatmap.js || exit 1
+    curl -O code.highcharts.com/stock/highstock.js || exit 1
+    curl -O code.highcharts.com/stock/modules/exporting.js || exit 1
+    curl -O code.highcharts.com/stock/modules/heatmap.js || exit 1
     rsync -rv highstock.js $dest/js || exit 1
     rsync -rv exporting.js $dest/js/modules || exit 1
     rsync -rv heatmap.js $dest/js/modules || exit 1
