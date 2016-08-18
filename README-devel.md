@@ -37,15 +37,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   ```sh
   export DJROOT=$HOME/git     # for example
   cd $DJROOT
-  git clone /net/cds/git/eol-django-datavis.git
-  ```
-
-   Since the django-ncharts app is undergoing many changes, rather than create a python package out of it, it is simpler to clone it from github to a neighboring directory, and create a symbolic link:
-
-  ```sh
-  git clone https://github.com/ncareol/django-ncharts.git
-  cd eol-django-datavis
-  ln -s ../django-ncharts/ncharts .
+  git clone https://github.com/ncareol/eol-django-datavis.git
   ```
 
 3. Create virtual environment
@@ -151,13 +143,12 @@ The following is for RedHat systems, such as CentOS or Fedora.
   To fetch the static files of the supporting software such as jquery, bootstrap and highcharts do:
 
   ```sh
-  cd $DJROOT/django-ncharts
   ./get_static_files.sh
 ```
 
-  The files will be written to `$DJROOT/django-ncharts/ncharts/static/ncharts`.
+  The files will be written to `$DJROOT/ncharts/static/ncharts`.
 
-  To see what static files are needed for ncharts, see the `<script>` tags in `django-ncharts/ncharts/templates/ncharts/base.html`.
+  To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
   On development server, these static filies will be automatically found and served by the django.contrib.staticfiles django application.
 
