@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2015-02-18T00:00:00+00:00", 
+        "end_time": "2015-06-26T00:00:00+00:00", 
+        "location": "Boulder Atmospheric Observatory and Erie High School", 
+        "name": "geo_tiltcor", 
+        "long_name": "CABL, winds in geographic coordinates, 3D winds tilt-corrected", 
+        "project": "CABL",
+	"url": "https://www.eol.ucar.edu/field_projects/cabl",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 15
+},
+{
+    "fields": {
+        "directory": "/net/ftp/pub/archive/isff/projects/cabl/netcdf/qc_geo_tiltcor",
+        "filenames": "isfs_tc_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 15
+}
+]

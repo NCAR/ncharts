@@ -1,0 +1,236 @@
+[
+{
+    "fields": {
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "timezones": ["US/Mountain", "UTC"],
+        "location": "NCAR Foothills Lab, Boulder CO", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2009-01-01T00:00:00+00:00", 
+        "end_time": "2016-12-31T00:00:00+00:00", 
+        "name": "flab-5min", 
+        "long_name": "NCAR Foothills Lab Weather Station", 
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=fl",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 1
+},
+{
+    "fields": {
+        "directory": "/net/weather/flab/data", 
+        "filenames": "flab.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 1
+},
+{
+    "fields": {
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "timezones": ["US/Mountain", "UTC"],
+        "location": "NCAR Wyoming Supercomputer Center, Cheyenne WY", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2012-06-01T00:00:00+00:00", 
+        "end_time": "2016-12-31T00:00:00+00:00", 
+        "name": "nwsc-5min", 
+        "long_name": "NWSC Weather Station", 
+        "project": "Weather",
+	"url": "https://www.eol.ucar.edu/cgi-bin/weather.cgi?site=nwsc",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 2
+},
+{
+    "fields": {
+        "directory": "/net/weather/nwsc/data", 
+        "filenames": "nwsc.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 2
+},
+{
+    "fields": {
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "timezones": ["US/Mountain", "UTC"],
+        "location": "NCAR Mesa Lab, Boulder CO", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2009-01-01T00:00:00+00:00", 
+        "end_time": "2016-12-31T00:00:00+00:00", 
+        "name": "mlab-5min", 
+        "long_name": "NCAR Mesa Lab Weather Station", 
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=ml",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 3
+},
+{
+    "fields": {
+        "directory": "/net/weather/mlab/data", 
+        "filenames": "mlab.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 3
+},
+{
+    "fields": {
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "timezones": ["US/Eastern", "UTC"],
+        "location": "NSF Headquarters, Washington DC", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2009-01-26T00:00:00+00:00", 
+        "end_time": "2016-12-31T00:00:00+00:00", 
+        "name": "nsf-5min", 
+        "long_name": "NSF Weather Station", 
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=nsf&fields=tdry&fields=rh&fields=cpres0&fields=wspd&fields=wdir&fields=raina&site=ml&units=metric&period=5-minute",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 4
+},
+{
+    "fields": {
+        "directory": "/net/weather/nsf/data", 
+        "filenames": "nsf.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 4
+},
+{
+    "fields": {
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "timezones": ["US/Mountain", "UTC"],
+        "location": "NCAR Research Aircraft Facility, Westminster CO", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2013-12-10T00:00:00+00:00", 
+        "end_time": "2016-12-31T00:00:00+00:00", 
+        "name": "raf-5min", 
+        "long_name": "NCAR RAF Weather Station", 
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=raf&fields=tdry&fields=rh&fields=cpres0&fields=wspd&fields=wdir&fields=raina&site=nsf&units=metric&period=5-minute",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 5
+},
+{
+    "fields": {
+        "directory": "/net/weather/raf/data", 
+        "filenames": "raf.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 5
+},
+{
+    "fields": {
+        "variables": [
+            1, 
+            2, 
+            3, 
+            4, 
+            5, 
+            6, 
+            7, 
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "timezones": ["US/Mountain", "UTC"],
+        "location": "Fireside Elementary, Louisville CO", 
+        "platforms": [
+            "Weather Station"
+        ], 
+        "start_time": "2014-02-13T00:00:00+00:00", 
+        "end_time": "2016-12-31T00:00:00+00:00", 
+        "name": "fireside-5min", 
+        "long_name": "Foothills Elementary Weather Station", 
+        "project": "Weather",
+	"url": "http://www.eol.ucar.edu/cgi-bin/weather.cgi?site=fireside&fields=tdry&fields=rh&fields=cpres0&fields=wspd&fields=wdir&fields=raina&site=raf&units=metric&period=5-minute",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 6
+},
+{
+    "fields": {
+        "directory": "/net/weather/fireside/data", 
+        "filenames": "fireside.%Y%m%d.cdf"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 6
+}
+]

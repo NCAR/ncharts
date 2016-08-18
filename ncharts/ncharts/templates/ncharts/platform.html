@@ -1,0 +1,30 @@
+{% extends "ncharts/base.html" %}
+
+{% block title %}{{ platform }}{% endblock %}
+
+{% block headline %}Platform: {{ platform }}{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <p>Projects of {{ platform.name }}</p>
+            </div>
+            <div class="panel-body">
+            {% if platProjs %}
+	    <ul class="list-inline">
+                {% for project in platProjs %}
+                    <li><a href="{% url 'ncharts:platformProject' platform.name project.name %}" data-toggle="tooltip" title="{{ project.long_name }}">{{ project.name }}</a></li>
+                {% endfor %}
+	    </ul>
+            {% else %}
+            <p>No projects for platform {{ platform.name }}.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

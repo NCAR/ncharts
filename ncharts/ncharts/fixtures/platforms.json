@@ -1,0 +1,72 @@
+[
+{
+    "fields": {
+        "projects": [
+            "METCRAXII", "CentNet Devel", "CABL", "CHATS", "CALLAB"
+        ],
+        "long_name": "Integrated Surface Flux System"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "ISFS"
+},
+{
+    "fields": {
+        "projects": [
+            "Weather"
+        ],
+        "long_name": "NCAR Weather Station"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "Weather Station"
+},
+{
+    "fields": {
+        "projects": [
+            "DEEPWAVE", "PECAN"
+        ],
+        "long_name": "Integrated Sounding System"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "ISS"
+},
+{
+    "fields": {
+        "projects": [
+            "DEEPWAVE", "GV"
+        ],
+        "long_name": "Gulfstream V Research Aircraft"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "GV"
+},
+{
+    "fields": {
+        "projects": [
+            "C130"
+        ],
+        "long_name": "NCAR C130 Research Aircraft"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "C130"
+},
+{
+    "fields": {
+        "projects": [
+            "MASCRAD", "PECAN"
+        ],
+        "long_name": "GPS Advanced Upper-Air Sounding System"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "GAUS"
+},
+{
+    "fields": {
+        "projects": [
+            "FRONT","PECAN"
+        ],
+        "long_name": "S-band/Ka-band Dual Polarization, Dual Wavelength Doppler Radar"
+    }, 
+    "model": "ncharts.platform", 
+    "pk": "S-PolKa"
+}
+]
