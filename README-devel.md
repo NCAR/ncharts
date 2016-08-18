@@ -48,7 +48,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 3. Create virtual environment
 
-  A virtual environment allows you to run specific versions of python packages without effecting other users on the system. These commands will create a django virtual environment in your `$HOME` directory:
+  A virtual environment allows you to run specific versions of python packages without affecting other users on the system. These commands will create a django virtual environment in your `$HOME` directory:
 
   ```sh
   mkdir $HOME/virtualenvs
