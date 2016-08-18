@@ -14,6 +14,8 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   To install the required RPMs:
 
+**TODO:** manual install of `pip`, no longer in EOL yum repo
+
   ```sh
   sudo yum install python3 python3-pip python3-memcached \
         memcached python3-mod_wsgi python3-devel netcdf-devel hdf5-devel \
