@@ -1,4 +1,4 @@
-# eol-django-datavis
+# ncharts
 
 Data plotting Web application, developed at NCAR EOL.
 
@@ -13,6 +13,8 @@ The following is for RedHat systems, such as CentOS or Fedora.
   RPMs for python3 and python3-devel are available on the EOL yum repo for CentOS7, but not CentOS6. See the SEW wiki at http://wiki.eol.ucar.edu/sew/EOL_YUM_Repository.
 
   To install the required RPMs:
+
+**TODO:** manual install of `pip`, no longer in EOL yum repo
 
   ```sh
   sudo yum install python3 python3-pip python3-memcached \
@@ -35,20 +37,12 @@ The following is for RedHat systems, such as CentOS or Fedora.
   ```sh
   export DJROOT=$HOME/git     # for example
   cd $DJROOT
-  git clone /net/cds/git/eol-django-datavis.git
-  ```
-
-   Since the django-ncharts app is undergoing many changes, rather than create a python package out of it, it is simpler to clone it from github to a neighboring directory, and create a symbolic link:
-
-  ```sh
-  git clone https://github.com/ncareol/django-ncharts.git
-  cd eol-django-datavis
-  ln -s ../django-ncharts/ncharts .
+  git clone https://github.com/ncareol/ncharts.git
   ```
 
 3. Create virtual environment
 
-  A virtual environment allows you to run specific versions of python packages without effecting other users on the system. These commands will create a django virtual environment in your `$HOME` directory:
+  A virtual environment allows you to run specific versions of python packages without affecting other users on the system. These commands will create a django virtual environment in your `$HOME` directory:
 
   ```sh
   mkdir $HOME/virtualenvs
@@ -106,7 +100,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   LOG_DIR = os.path.join(BASE_DIR,'log')
 ```
 
-  `BASE_DIR` is set in `datavis/settings.py` as the parent directory of datavis, which, in this configuration is `$DJROOT/eol-django-datavis`
+  `BASE_DIR` is set in `datavis/settings.py` as the parent directory of datavis, which, in this configuration is `$DJROOT/ncharts`
 
   The memcached socket is on `VAR_RUN_DIR`.
   The database is on `VAR_LIB_DIR`.
@@ -114,7 +108,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   Create the log directory:
 
   ```sh
-  mkdir $DJROOT/eol-django-datavis/log
+  mkdir $DJROOT/ncharts/log
 ```
 
 6. Initialize the database.
@@ -149,13 +143,12 @@ The following is for RedHat systems, such as CentOS or Fedora.
   To fetch the static files of the supporting software such as jquery, bootstrap and highcharts do:
 
   ```sh
-  cd $DJROOT/django-ncharts
   ./get_static_files.sh
 ```
 
-  The files will be written to `$DJROOT/django-ncharts/ncharts/static/ncharts`.
+  The files will be written to `$DJROOT/ncharts/static/ncharts`.
 
-  To see what static files are needed for ncharts, see the `<script>` tags in `django-ncharts/ncharts/templates/ncharts/base.html`.
+  To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
   On development server, these static filies will be automatically found and served by the django.contrib.staticfiles django application.
 

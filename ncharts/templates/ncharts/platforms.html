@@ -1,0 +1,28 @@
+{% extends "ncharts/base.html" %}
+
+{% block title %}Platforms{% endblock %}
+
+{% block headline %}Platforms{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">Available Platforms</div>
+            <div class="panel-body">
+                {% if platforms %}
+		<ul class="list-inline">
+                    {% for platform in platforms %}
+                        <li><a href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a></li>
+                    {% endfor %}
+		</ul>
+                {% else %}
+                    <p>No platforms are available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

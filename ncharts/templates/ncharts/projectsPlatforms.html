@@ -1,0 +1,76 @@
+{% extends "ncharts/base.html" %}
+
+{% load filters %}
+{% block title %}NCharts Home{% endblock %}
+
+{% block headline %}Select a Project or Platform{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <p>Projects</p>
+            </div>
+            <div class="panel-body">
+            {% if projects %}
+                {% with years=projects|make_project_tabs %}
+                <div class="container">
+                    <ul class="tabrow">
+                        {% for year in years %}
+                        {% if forloop.first %}
+                        <li class="selected"><a data-toggle="tab" href="#{{ year }}"> {{ year }}</a></li> 
+                        {% else %}
+                        <li><a data-toggle="tab" href="#{{ year }}"> {{ year }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <div class="tab-content">
+                        {% for year, projects in years.items %}
+                        <div id="{{ year }}"
+                            {% if forloop.first %}
+                            class="tab-pane fade in active"
+                            {% else %}
+                            class="tab-pane fade"
+                            {% endif %}
+                            >
+                            {% for project in projects %} 
+                            <li class="col-md-2" id="project_tab"><a href="{% url 'ncharts:project' project.name %}" data-toggle="tooltip"
+                                title="{{ project.long_name }}">{{ project.name }}</a></li>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endwith %}
+            {% else %}
+                <p>No projects are available.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <p>Platforms</p>
+            </div>
+            <div class="panel-body">
+            {% if platforms %}
+	    <ul class="list-inline">
+                {% for platform in platforms %}
+                    <li><a href="{% url 'ncharts:platform' platform.name %}" data-toggle="tooltip" title="{{ platform.long_name }}">{{ platform.name }}</a></li>
+                {% endfor %}
+	    </ul>
+            {% else %}
+                <p>No platforms are available.</p>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
