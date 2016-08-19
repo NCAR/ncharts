@@ -1,4 +1,4 @@
-# eol-django-datavis
+# ncharts
 
 Data plotting Web application, developed at NCAR EOL.
 
@@ -37,7 +37,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   ```sh
   export DJROOT=$HOME/git     # for example
   cd $DJROOT
-  git clone https://github.com/ncareol/eol-django-datavis.git
+  git clone https://github.com/ncareol/ncharts.git
   ```
 
 3. Create virtual environment
@@ -100,7 +100,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   LOG_DIR = os.path.join(BASE_DIR,'log')
 ```
 
-  `BASE_DIR` is set in `datavis/settings.py` as the parent directory of datavis, which, in this configuration is `$DJROOT/eol-django-datavis`
+  `BASE_DIR` is set in `datavis/settings.py` as the parent directory of datavis, which, in this configuration is `$DJROOT/ncharts`
 
   The memcached socket is on `VAR_RUN_DIR`.
   The database is on `VAR_LIB_DIR`.
@@ -108,7 +108,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   Create the log directory:
 
   ```sh
-  mkdir $DJROOT/eol-django-datavis/log
+  mkdir $DJROOT/ncharts/log
 ```
 
 6. Initialize the database.

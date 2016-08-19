@@ -1,4 +1,4 @@
-# eol-django-datavis CHANGELOG
+# ncharts CHANGELOG
 
 ## 1.0.0
 

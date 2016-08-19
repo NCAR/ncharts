@@ -1,4 +1,4 @@
-# eol-django-datavis
+# ncharts
 
 Data plotting Web application, developed at NCAR EOL.
 
@@ -25,8 +25,8 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   ```sh
   cd $DJROOT
-  git clone https://github.com/ncareol/eol-django-datavis.git
-  cd eol-django-datavis
+  git clone https://github.com/ncareol/ncharts.git
+  cd ncharts
 ```
 
 3. Create virtual environment
@@ -223,5 +223,5 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   MAILTO=maclean@ucar.edu
   #
   # On Sundays, clear expired sessions and then the unattached clients
-  0 0 * * 0 cd /var/django/eol-django-datavis; source ../virtualenv/django/bin/activate; ./manage.py clearsessions; ./manage.py clear_clients
+  0 0 * * 0 cd /var/django/ncharts; source ../virtualenv/django/bin/activate; ./manage.py clearsessions; ./manage.py clear_clients
 ```
