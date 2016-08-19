@@ -1,4 +1,4 @@
-# eol-django-datavis
+# ncharts
 
 Data plotting Web application, developed at NCAR EOL.
 
@@ -8,7 +8,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 1. Install required packages
 
-  This is the same as step one of in setting up a development server. See README-devel.
+  This is the same as step one of in setting up a development server. See `README-devel.md`.
 
 2. Decide where to put the django code and configuration.
 
@@ -25,10 +25,8 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   ```sh
   cd $DJROOT
-  git clone /net/cds/git/eol-django-datavis.git
-  git clone https://github.com/ncareol/django-ncharts.git
-  cd eol-django-datavis
-  ln -s ../django-ncharts/ncharts .
+  git clone https://github.com/ncareol/ncharts.git
+  cd ncharts
 ```
 
 3. Create virtual environment
@@ -119,11 +117,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
   To fetch the static files of the supporting software used by ncharts, such as jquery, bootstrap and highcharts do:
 
   ```sh
-  cd $DJROOT/django-ncharts
   ./get_static_files.sh
 ```
 
-  The filies will be written to `$DJROOT/django-ncharts/ncharts/static/ncharts`.
+  The filies will be written to `$DJROOT/ncharts/static/ncharts`.
 
   Then on a production server, execute the static.sh shell script:
 
@@ -139,9 +136,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
   STATIC_ROOT = os.path.join(BASE_DIR,'static')
 ```
 
-  On a production server, `static.sh` must be run every time `django-ncharts/ncharts/static/ncharts/jslib/ncharts.js` is changed on the server.
+  On a production server, `static.sh` must be run every time `ncharts/static/ncharts/jslib/ncharts.js` is changed on the server.
 
-  To see what static files are needed for ncharts, see the `<script>` tags in `django-ncharts/ncharts/templates/ncharts/base.html`.
+  To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
 9. Memcached:
 
@@ -226,5 +223,5 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   MAILTO=maclean@ucar.edu
   #
   # On Sundays, clear expired sessions and then the unattached clients
-  0 0 * * 0 cd /var/django/eol-django-datavis; source ../virtualenv/django/bin/activate; ./manage.py clearsessions; ./manage.py clear_clients
+  0 0 * * 0 cd /var/django/ncharts; source ../virtualenv/django/bin/activate; ./manage.py clearsessions; ./manage.py clear_clients
 ```

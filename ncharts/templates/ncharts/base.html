@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <!--get actual device width-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{% block title %}{% endblock %}</title>
+
+    {% load staticfiles %}
+
+    {% load filters %}
+    <link rel="icon" href="{% static 'ncharts/favicon.ico' %}">
+
+    <!--
+    <link rel="stylesheet" type="text/css"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    -->
+    <link rel="stylesheet" type="text/css"
+        href="{% static 'ncharts/css/bootstrap.min.css' %}">
+
+    <!-- Optional theme -->
+    <!--
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    -->
+
+    <link rel="stylesheet" type="text/css"
+        href="{% static 'ncharts/css/bootstrap-theme.min.css' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'ncharts/csslib/ncharts.css' %}">
+
+    <script src="{% static 'ncharts/js/jquery.min.js' %}"></script>
+
+    <script src="{% static 'ncharts/js/bootstrap.min.js' %}"></script>
+
+    <!--
+    <script src="http://code.highcharts.com/stock/highstock.js"> </script>
+    <script src="http://code.highcharts.com/stock/modules/exporting.js"> </script>
+    -->
+    <script src="{% static 'ncharts/js/highstock.js' %}"></script>
+    <script src="{% static 'ncharts/js/modules/exporting.js' %}"></script>
+    <script src="{% static 'ncharts/js/modules/heatmap.js' %}"></script>
+
+    <!--
+    <script src="http://github.highcharts.com/highstock.js"> </script>
+    <script src="http://code.highcharts.com/stock/modules/exporting.js"> </script>
+    <script src="http://code.highcharts.com/stock/modules/heatmap.js"> </script>
+    -->
+
+    <script type="text/javascript"
+        src="{% static 'ncharts/js/moment.min.js' %}">
+    </script>
+
+    <script type="text/javascript"
+        src="{% static 'ncharts/js/moment-timezone-with-data.min.js' %}">
+    </script>
+
+    <!-- finally, ncharts.js -->
+    <script type="text/javascript"
+        src="{% static 'ncharts/jslib/ncharts.js' %}">
+    </script>
+
+    {% block head %}{% endblock %}
+
+    </head>
+
+    <body role="document">
+    <div id="wrapper">
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid row">
+                <div class="col-md-12">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-top">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand active" href="/"><b><i>NCharts</i></b><span class="sr-only">(active)</span></a>
+                    </div>
+
+                    <div class="collapse navbar-collapse col-md-1" id="navbar-top">
+                        <ul class="nav navbar-nav">                                     
+                            <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
+                            <li><a href="http://www.eol.ucar.edu">EOL</a></li>
+                            <li><a href="/ncharts/help">Help</a></li>     
+                        </ul>                                                                                         
+                    </div>
+
+                    {% if projects %}
+                        {% with years=projects|make_project_tabs %}
+                        <div class="dropdown" id="menu1">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                                {% for year,projects in years.items %}
+                                <li class="dropdown-submenu" role="presentation">
+                                    <a role="menuitem"> {{ year }}</a>
+                                    <ul>
+                                    {% for project in projects %}
+                                        <li><a href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
+                                    {% endfor %}
+                                    </ul>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+
+                    {% if platforms %}
+                    <div class="dropdown" id="menu2">
+                        <button class="btn btn-default dropdown-toggle formButtonfront" type="button" id="menu2" data-toggle="dropdown"><b>Platforms</b><span class="caret"></span></button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
+                            {% for platform in platforms %}
+                            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:platform' platform.name %}">{{ platform.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid" role="banner">
+            <div class="page-header">
+                <h3>{% block headline %}{% endblock %}</h3>
+            </div>
+        </div>
+        <div class="container-fluid" role="main" id="content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <div id="footer">
+            <nav class="navbar navbar-default navbar-bottom" role="navigation">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-bottom">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand active" href="/"><b><i>NCharts</i></b><span class="sr-only">(active)</span></a>
+                    </div>
+                    <div class="collapse navbar-collapse" id="navbar-bottom">
+                        <ul class="nav navbar-nav">
+                            <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
+                            <li><a href="http://www.eol.ucar.edu">EOL</a></li>
+                            <li><a href="/ncharts/help">Help</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!-- OrgNavFooter Script -->
+            <div align="center">
+                <script>
+
+// CUSTOM VARIABLES
+                var contactLink = "https://www.eol.ucar.edu/contact";     // enter your Webmaster/Feedback link. Include http:// or mailto:
+                var hideOrgNav = false;        // hide the entire OrgNav from view
+                var hideFooter = false;          // hide the entire OrgFooter from view
+                var hideNSF = false;               // hide the NSF disclaimer
+                var footerColor = '#000000';       // hex color of the footer font including the #
+
+                // DO NOT EDIT BELOW THIS POINT
+                var jsHost = (("https:" == document.location.protocol) ? "https://" : "http://");
+                if(typeof jQuery === "undefined"){
+                    document.write("<scr"+"ipt src='"+jsHost+"ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js' type='text/javascript'></scr"+"ipt>");
+                }
+document.write("<scr"+"ipt src='"+jsHost+"www2.ucar.edu/js/orgnav' type='text/javascript'></scr"+"ipt>");
+                </script>
+                <noscript><iframe frameborder="0" width="100%" src="http://www2.ucar.edu/sites/default/modules/custom/ucar_comm_site/includes/noscript.php"></iframe></noscript>
+                <!-- END OrgNavFooter Script -->
+                <script>
+$(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();   
+        });
+                </script>
+            </div>
+        </div>
+    </div>
+    </body>
+    </html>
+

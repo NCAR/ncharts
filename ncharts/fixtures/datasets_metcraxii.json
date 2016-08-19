@@ -1,0 +1,54 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2013-09-27T07:00:00+00:00", 
+        "end_time": "2013-11-03T00:00:00+00:00", 
+        "location": "Barringer Meteor Crater, Arizona", 
+        "name": "5 min, geo, tiltcor", 
+        "long_name": "5 minute, winds in geographic coords, tilt-corrected", 
+        "project": "METCRAXII",
+	"url": "http://data.eol.ucar.edu/codiac/dss/id=386.001",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 9
+},
+{
+    "fields": {
+        "directory": "/net/isf/isff/projects/METCRAXII/ISFF/netcdf_qc_geo_tiltcor", 
+        "filenames": "isfs_tc_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 9
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2013-09-27T07:00:00+00:00", 
+        "end_time": "2013-11-02T07:00:00+00:00", 
+        "location": "Barringer Meteor Crater, Arizona", 
+        "name": "high-rate, geo tilt_cor", 
+        "long_name": "high-rate, winds in geographic coordinates, tilt-corrected", 
+        "project": "METCRAXII",
+	"url": "http://data.eol.ucar.edu/codiac/dss/id=386.007",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 10
+},
+{
+    "fields": {
+        "directory": "/net/isf/isff/projects/METCRAXII/ISFF/netcdf_hr_qc_geo_tiltcor", 
+        "filenames": "metcraxii_tc_%Y%m%d_%H.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 10
+}
+]

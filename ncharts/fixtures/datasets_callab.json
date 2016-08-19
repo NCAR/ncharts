@@ -1,0 +1,27 @@
+[
+{
+    "fields": {
+        "project": "CALLAB",
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2015-08-20T00:00:00+00:00", 
+        "end_time": "2015-12-31T00:00:00+00:00", 
+        "location": "NCAR EOL Calibration Lab", 
+        "name": "callab-1",
+        "long_name": "NOAA Humidity tests",
+	"url": "https://www.eol.ucar.edu/observing_facilities/isfs",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 101
+},
+{
+    "fields": {
+        "directory": "/net/isf/isff/projects/CALLAB/ISFF/netcdf/2015-callab-1", 
+        "filenames": "callab_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 101
+}
+]
