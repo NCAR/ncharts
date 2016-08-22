@@ -27,6 +27,17 @@ SECRET_KEY = os.environ.get('EOL_DATAVIS_SECRET_KEY')
 if SECRET_KEY == None:
   raise ValueError('EOL_DATAVIS_SECRET_KEY environment variable must be set when running with datavis.settings.production')
 
+#
+# Don't add those external host names to ALLOWED_HOSTS!
+# Hacked sites may have a link to this site, but as I understand it, the redirect
+# may contain an HTTP packet with an altered HTTP_HOST and SERVER_NAME, hoping that
+# a dumb server, thinking HTTP_HOST is itself, will use it in its own redirects and
+# <script> statemtents.  The latter could result in an import of hacker code on a
+# client's browser. Setting ALLOWED_HOSTS to the various names for datavis will
+# result in packets being ignored if they contain other than the following:
+#
+ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210']
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
