@@ -42,7 +42,7 @@ LOG_DIR = os.path.join(BASE_DIR, 'log')
 # <script> statemtents.  The latter could result in an import of hacker code on a
 # client's browser. Setting ALLOWED_HOSTS to the various names for datavis will
 # result in packets being ignored if they contain other than the following:
-ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'localhost', '128.117.82.210']
+ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210']
 
 # Application definition
 
