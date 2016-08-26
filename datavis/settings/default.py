@@ -143,7 +143,7 @@ STATIC_URL = '/static/'
 # STATIC_ROOT is where "pythyon3 manage.py collectstatic" puts
 # the static files it finds.
 # See /etc/httpd/conf/vhosts/datavis.conf:
-#	Alias /static/ /var/django/eol-django-datavis/static/
+#	Alias /static/ /var/django/ncharts/static/
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # People who should receive emails of ERRORs
