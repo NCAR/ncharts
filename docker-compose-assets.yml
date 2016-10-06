@@ -1,0 +1,14 @@
+#
+# USAGE: invoke w/ -f <filename>, e.g.
+#   $ docker-compose -f docker-compose-assets.yml run assets get_static_files.sh
+#
+
+#
+# service for managing assets w/ bower
+# https://hub.docker.com/_/node/
+#
+assets:
+  # image: ncareol/alpine-node-bower:0.0.1
+  build: docker/assets
+  volumes:
+    - .:/app
