@@ -4,3 +4,4 @@ ncharts
 static
 log
 /.vagrant*
+/docker-compose.yml
