@@ -12,9 +12,8 @@ This directory, `docker/`, contains files for building and configuring **Docker*
 
 ## Images
 
-Images are typically built by `cd`'ing to the respective directory and running
+Images are typically built by `cd`'ing to the service's respective directory and running:
 
 ```sh
 $ docker build .
 ```
-
