@@ -51,15 +51,14 @@ CACHE_MIDDLEWARE_ALIAS = 'default'
 CACHE_MIDDLEWARE_SECONDS = 300
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
-if LOG_DIR != DEFAULT_LOG_DIR:
+#
+# iterate over LOGGING['handlers'] and update filenames w/ new LOG_DIR and
+# LOG_LEVEL, as needed
+#
 
-  #
-  # iterate over LOGGING['handlers'] and update filenames w/ new LOG_DIR
-  #
+for key, value in LOGGING['handlers'].items():
+  if 'filename' in value and LOG_DIR != DEFAULT_LOG_DIR:
+    value['filename'] = value['filename'].replace(DEFAULT_LOG_DIR, LOG_DIR)
 
-  for key, value in LOGGING['handlers'].items():
-    if 'filename' in value:
-      value['filename'] = value['filename'].replace(DEFAULT_LOG_DIR, LOG_DIR)
-
-    if 'level' in value:
-      value['level'] = LOG_LEVEL
+  if 'level' in value:
+    value['level'] = LOG_LEVEL
