@@ -8,11 +8,11 @@ DEBUG = False
 
 DEFAULT_LOG_DIR = LOG_DIR
 
-LOG_DIR     = '/var/log/django'
-LOG_LEVEL   = 'WARNING'
+LOG_DIR     = os.getenv('DATAVIS_LOG_DIR',     '/var/log/django')
+LOG_LEVEL   = os.getenv('DATAVIS_LOG_LEVEL',   'WARNING')
 
-VAR_RUN_DIR = '/var/run/django'
-VAR_LIB_DIR = '/var/lib/django'
+VAR_RUN_DIR = os.getenv('DATAVIS_VAR_RUN_DIR', '/var/run/django')
+VAR_LIB_DIR = os.getenv('DATAVIS_VAR_LIB_DIR', '/var/lib/django')
 
 DATABASES = {
     'default': {
