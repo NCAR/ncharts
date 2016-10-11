@@ -8,19 +8,18 @@ DEBUG = False
 
 DEFAULT_LOG_DIR = LOG_DIR
 
-LOG_DIR     = os.getenv('DATAVIS_LOG_DIR',     '/var/log/django')
-LOG_LEVEL   = os.getenv('DATAVIS_LOG_LEVEL',   'WARNING')
+LOG_DIR   = os.getenv('DATAVIS_LOG_DIR',   '/var/log/django')
+LOG_LEVEL = os.getenv('DATAVIS_LOG_LEVEL', 'WARNING')
+DB_DIR    = os.getenv('DATAVIS_DB_DIR',    BASE_DIR)
 
 MEMCACHED_LOCATION = os.getenv('DATAVIS_MEMCACHED_LOCATION', 'unix:/var/run/django/django_memcached.sock')
 
-DB_DIR      = os.getenv('DATAVIS_DB_DIR',      BASE_DIR)
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
-        'OPTIONS': {'timeout': 20,},
-    }
+  'default': {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
+    'OPTIONS': {'timeout': 20,},
+  }
 }
 
 SECRET_KEY = os.environ.get('EOL_DATAVIS_SECRET_KEY')
@@ -38,7 +37,6 @@ if SECRET_KEY == None:
 # result in packets being ignored if they contain other than the following:
 #
 ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', 'local.docker', '128.117.82.210']
-
 
 CACHES = {
     'default': {
