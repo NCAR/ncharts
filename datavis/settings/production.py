@@ -12,12 +12,12 @@ LOG_DIR     = os.getenv('DATAVIS_LOG_DIR',     '/var/log/django')
 LOG_LEVEL   = os.getenv('DATAVIS_LOG_LEVEL',   'WARNING')
 
 VAR_RUN_DIR = os.getenv('DATAVIS_VAR_RUN_DIR', '/var/run/django')
-VAR_LIB_DIR = os.getenv('DATAVIS_VAR_LIB_DIR', '/var/lib/django')
+DB_DIR      = os.getenv('DATAVIS_DB_DIR',      '/var/lib/django')
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
         'OPTIONS': {'timeout': 20,},
     }
 }
