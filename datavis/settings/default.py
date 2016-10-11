@@ -27,7 +27,7 @@ SECRET_KEY = 'abc-123-this-value-is-totally-insecure'
 DEBUG = True
 
 VAR_RUN_DIR = BASE_DIR
-DB_DIR      = BASE_DIR
+DB_DIR  = BASE_DIR
 LOG_DIR = os.path.join(BASE_DIR, 'log')
 
 # ALLOWED_HOSTS are the server's IP names, NOT the names of allowed client hosts
