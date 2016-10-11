@@ -26,7 +26,6 @@ SECRET_KEY = 'abc-123-this-value-is-totally-insecure'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-VAR_RUN_DIR = BASE_DIR
 DB_DIR  = BASE_DIR
 LOG_DIR = os.path.join(BASE_DIR, 'log')
 

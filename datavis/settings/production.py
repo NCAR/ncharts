@@ -11,7 +11,7 @@ DEFAULT_LOG_DIR = LOG_DIR
 LOG_DIR     = os.getenv('DATAVIS_LOG_DIR',     '/var/log/django')
 LOG_LEVEL   = os.getenv('DATAVIS_LOG_LEVEL',   'WARNING')
 
-VAR_RUN_DIR = os.getenv('DATAVIS_VAR_RUN_DIR', '/var/run/django')
+MEMCACHED_LOCATION = os.getenv('DATAVIS_MEMCACHED_LOCATION', 'unix:/var/run/django/django_memcached.sock')
 
 DB_DIR      = os.getenv('DATAVIS_DB_DIR',      BASE_DIR)
 
@@ -39,11 +39,11 @@ if SECRET_KEY == None:
 #
 ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', 'local.docker', '128.117.82.210']
 
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR, 'django_memcached.sock'),
-        # 'LOCATION': '127.0.0.1:11211',
+        'LOCATION': MEMCACHED_LOCATION,
         'TIMEOUT': 300, # 300 seconds is the default
     }
 }
