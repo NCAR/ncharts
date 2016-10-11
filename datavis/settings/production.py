@@ -8,7 +8,7 @@ DEBUG = False
 
 DEFAULT_LOG_DIR = LOG_DIR
 
-LOG_DIR   = os.getenv('DATAVIS_LOG_DIR',   '/var/log/django')
+LOG_DIR   = os.getenv('DATAVIS_LOG_DIR',   DEFAULT_LOG_DIR)
 LOG_LEVEL = os.getenv('DATAVIS_LOG_LEVEL', 'WARNING')
 DB_DIR    = os.getenv('DATAVIS_DB_DIR',    BASE_DIR)
 
