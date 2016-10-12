@@ -1,0 +1,21 @@
+#
+# ABOUT
+#
+# starter Docker Compose override for development environment
+# intended to be used in conjunction w/ docker-compose-base.yml
+#
+# USAGE
+#
+# symbolically link to this file from project root directory
+# $ ln -s docker/docker-compose-dev.override.yml docker-compose.override.yml
+#
+
+app:
+  environment:
+    EOL_DATAVIS_SECRET_KEY: "abc123"
+  ports:
+    - '8000:8000'
+
+web:
+  ports:
+    - '8080:80'
