@@ -1,9 +1,13 @@
 #
-# ABOUT: base Docker Compose file:
+# ABOUT
+#
+# Base Docker Compose file, defining services for:
 # - django app
 # - nginx front end
 #
-# USAGE: symbolically link to this file from project root directory and then
+# USAGE
+#
+# symbolically link to this file from project root directory and then
 # add environment-specific customization via an override file
 #
 # $ ln -s docker/docker-compose-base.yml docker-compose.yml
