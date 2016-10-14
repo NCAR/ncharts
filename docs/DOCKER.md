@@ -6,7 +6,7 @@
 
 ```sh
 $ sudo yum install docker
-$ curl -L https://github.com/docker/compose/releases/download/1.8.0/$ docker-compose-`uname -s`-`uname -m` > /tmp/docker-compose
+$ curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /tmp/docker-compose
 $ chmod +x /tmp/docker-compose
 $ sudo mv /tmp/docker-compose /usr/local/bin/
 ```
