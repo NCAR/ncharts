@@ -1,6 +1,6 @@
 # ncharts
 
-Data plotting Web application, developed at NCAR EOL.
+Data-plotting Web application, developed at [**NCAR EOL**](https://www.eol.ucar.edu/).
 
 ## Docker
 
