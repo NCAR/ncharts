@@ -71,3 +71,24 @@ To perform operations for updating **JavaScript** and **CSS** assets, use the `a
 ```sh
 $ docker-compose -f docker/docker-compose-assets.yml run assets get_static_files.sh
 ```
+
+### Systemd
+
+Copy the host-specific `docker-compose-ncharts.service` file to `/etc/systemd/system`. *E.g.* for `datavis`:
+
+```sh
+$ cp etc/vagrant/systemd/system/docker-compose-ncharts.service /etc/systemd/system
+```
+
+Then enable and start the service:
+
+```sh
+$ systemctl enable /etc/systemd/system/docker-compose-ncharts.service
+$ systemctl start docker-compose-ncharts.service
+```
+
+If you make any changes to the `service` file, you'll need to load the changes into `systemd`:
+
+```sh
+$ systemctl reload docker-compose-ncharts.service
+```
