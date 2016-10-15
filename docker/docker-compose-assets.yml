@@ -13,6 +13,6 @@
 #
 
 assets:
-  image: ncareol/alpine-node-bower:0.0.1
+  image: ncareol/alpine-node-bower:0.0.2
   volumes:
     - ../:/app
