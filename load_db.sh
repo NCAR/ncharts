@@ -6,6 +6,7 @@ prod=true
 if $prod; then
     DJROOT=${DJROOT:-/var/django}
     DJVIRT=${DJVIRT:-$DJROOT/virtualenv/django}
+    export DJANGO_SETTINGS_MODULE=datavis.settings.production
     sudo chmod -R g+w /var/lib/django
     sudo chmod -R g+w /var/log/django
 else
