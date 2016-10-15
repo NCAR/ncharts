@@ -19,7 +19,7 @@
 },
 {
     "fields": {
-        "directory": "/home/maclean/git/isfs/projects/VERTEX/ISFS/netcdf/noqc_instrument",
+        "directory": "/net/isf/isfs/projects/VERTEX/ISFS/netcdf/noqc_instrument",
         "filenames": "isfs_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
@@ -45,7 +45,7 @@
 },
 {
     "fields": {
-        "directory": "/mnt/eddy/isfs/projects/VERTEX/ISFS/netcdf/geo_10sec",
+        "directory": "/net/isf/isfs/projects/VERTEX/ISFS/netcdf/geo_10sec",
         "filenames": "isfs_10sec_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
