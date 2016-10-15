@@ -1,0 +1,54 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2016-08-31T00:00:00+00:00", 
+        "end_time": "2016-11-01T00:00:00+00:00", 
+        "location": "Great Marsh Preserve, Lewes DE ", 
+        "name": "noqc_instrument", 
+        "long_name": "VERTEX, preliminary data, winds in instrument coordinates", 
+        "project": "VERTEX",
+	"url": "https://www.eol.ucar.edu/field_projects/vertex",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 40
+},
+{
+    "fields": {
+        "directory": "/home/maclean/git/isfs/projects/VERTEX/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 40
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2016-08-31T00:00:00+00:00", 
+        "end_time": "2016-11-01T00:00:00+00:00", 
+        "location": "Great Marsh Preserve, Lewes DE ", 
+        "name": "geo_10sec", 
+        "long_name": "VERTEX, preliminary data, 10 sec, winds in geographic coordinatees", 
+        "project": "VERTEX",
+	"url": "https://www.eol.ucar.edu/field_projects/vertex",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 41
+},
+{
+    "fields": {
+        "directory": "/mnt/eddy/isfs/projects/VERTEX/ISFS/netcdf/geo_10sec",
+        "filenames": "isfs_10sec_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 41
+}
+]
