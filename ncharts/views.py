@@ -402,6 +402,10 @@ class DatasetView(View):
                 client_state.track_real_time = False
                 client_state_needs_save = True
 
+        sel_stns = []
+        if client_state.stations:
+            sel_stns = json.loads(client_state.stations)
+
         # variables selected previously by user
         if client_state.variables:
             sel_vars = json.loads(client_state.variables)
@@ -456,6 +460,7 @@ class DatasetView(View):
 
         form = nc_forms.DataSelectionForm(
             initial={
+                'stations': sel_stns,
                 'variables': sel_vars,
                 'yvariable': client_state.yvariable,
                 'timezone': client_state.timezone,
@@ -472,7 +477,11 @@ class DatasetView(View):
 
         soundings = []
         dsetvars = {}
+        dsetstns = []
         try:
+            dsetstns = dset.get_station_names()
+            form.set_station_choices(dsetstns)
+
             dsetvars = dset.get_variables()
 
             # dvars = sorted(dsetvars.keys())
@@ -585,7 +594,11 @@ class DatasetView(View):
         soundings = []
         sounding_choices = []
         dsetvars = {}
+        dsetstns = []
         try:
+            dsetstns = dset.get_station_names()
+            form.set_station_choices(dsetstns)
+
             dsetvars = dset.get_variables()
             form.set_variable_choices(dsetvars)
             form.set_yvariable_choices(dsetvars)
@@ -626,6 +639,7 @@ class DatasetView(View):
                 post['track_real_time'] = form.cleaned_data['track_real_time']
                 form = nc_forms.DataSelectionForm(post, dataset=dset)
 
+            form.set_station_choices(dsetstns)
             form.set_variable_choices(dsetvars)
             form.set_yvariable_choices(dsetvars)
             if dset.dset_type == "sounding":
@@ -643,6 +657,7 @@ class DatasetView(View):
                 })
 
         # Save the client state from the form
+        sel_stns = form.cleaned_data['stations']
         sel_vars = form.cleaned_data['variables']
         sel_soundings = form.cleaned_data['soundings']
 
@@ -652,6 +667,7 @@ class DatasetView(View):
         start_time = form.get_cleaned_start_time()
 
         end_time = start_time + tdelta
+        client_state.stations = json.dumps(sel_stns)
         client_state.variables = json.dumps(sel_vars)
         client_state.start_time = start_time
         client_state.timezone = form.cleaned_data['timezone']
@@ -668,6 +684,7 @@ class DatasetView(View):
             post['track_real_time'] = form.cleaned_data['track_real_time']
             form = nc_forms.DataSelectionForm(post, dataset=dset)
 
+        form.set_station_choices(dsetstns)
         form.set_variable_choices(dsetvars)
         form.set_yvariable_choices(dsetvars)
 
@@ -721,11 +738,16 @@ class DatasetView(View):
         else:
             variables = {k:dsetvars[k] for k in sel_vars}
 
+        stndims = {}
+        if len(sel_stns) > 0:
+            stndims = {"station": [int(stn)-1 for stn in  sel_stns]}
+
         try:
             if isinstance(dset, nc_models.FileDataset):
                 ncdset = dset.get_netcdf_dataset()
                 ncdata = ncdset.read_time_series(
                     sel_vars, start_time=start_time, end_time=end_time,
+                    selectdim=stndims,
                     series=sel_soundings,
                     series_name_fmt=series_name_fmt)
             else:
@@ -788,7 +810,7 @@ class DatasetView(View):
 
                     client_state.save_data_times(vname, time_last_ok, time_last)
 
-            # As an easy compression, subtract first time from all times,
+            # A simple compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0[series_name] = 0
             if len(ser_data['time']) > 0:
@@ -809,13 +831,18 @@ class DatasetView(View):
         json_dim2 = mark_safe(json.dumps(
             {k: ncdata[k]['dim2'] for k in ncdata},
             cls=NChartsJSONEncoder).replace("'", r"\u0027"))
+        json_stns = mark_safe(json.dumps(
+            {k: ncdata[k]['stnnames'] for k in ncdata},
+            cls=NChartsJSONEncoder).replace("'", r"\u0027"))
 
-        def type_by_shape(shape):
+        def type_by_dims(dimnames):
             """Crude function to return a plot type, given a dimension.
             """
-            if len(shape) == 1:
+            if len(dimnames) == 1:
                 return 'time-series'
-            elif len(shape) == 2:
+            elif len(dimnames) == 2:
+                if dimnames[1] == "station":
+                    return 'time-series'
                 return 'heatmap'
             else:
                 return 'none'
@@ -827,7 +854,12 @@ class DatasetView(View):
                 ptype = "time-series"
                 if vname in ncdata['']['vmap']:
                     vindex = ncdata['']['vmap'][vname]
-                    ptype = type_by_shape(ncdata['']['data'][vindex].shape)
+                    vdimnames = dsetvars[vname]["dimnames"]
+                    # print("vname=",vname,",shape=",str(ncdata['']['data'][vindex].shape))
+                    # print("vname=",vname,",nbytes=",str(ncdata['']['data'][vindex].nbytes))
+                    # print("vname=",vname,",ndim=",str(ncdata['']['data'][vindex].ndim))
+                    # print("dsetvars[",vname,"]['dimnames']=",str(dsetvars[vname]["dimnames"]))
+                    ptype = type_by_dims(vdimnames)
                 var['plot_type'] = ptype
                 plot_types.add(ptype)
         else:
@@ -927,6 +959,7 @@ class DatasetView(View):
                 'data': json_data,
                 'vmap': json_vmap,
                 'dim2': json_dim2,
+                'stations': json_stns,
                 'time_length': client_state.time_length,
                 'soundings': mark_safe(json.dumps(soundings)),
                 'yvariable': yvar.replace("'", r"\u0027"),
@@ -990,6 +1023,8 @@ class DataView(View):
                     json.dumps(ajax_out),
                     content_type="application/json")
 
+        sel_stns = json.loads(client_state.stations)
+
         # selected variables
         sel_vars = json.loads(client_state.variables)
 
@@ -1013,6 +1048,10 @@ class DataView(View):
         timezone = client_state.timezone
         tnow = datetime.datetime.now(timezone)
 
+        stndims = {}
+        if len(sel_stns) > 0:
+            stndims = {"station": [int(stn)-1 for stn in sel_stns]}
+
         for vname in sel_vars:
 
             # timetag of last non-nan sample for this variable sent to client
@@ -1033,7 +1072,9 @@ class DataView(View):
             try:
                 if isinstance(dset, nc_models.FileDataset):
                     ncdata = ncdset.read_time_series(
-                        [vname], start_time=stime, end_time=etime)
+                        [vname], start_time=stime, end_time=etime,
+                        selectdim=stndims,
+                        )
                 else:
                     ncdata = dbcon.read_time_series(
                         [vname], start_time=stime, end_time=etime)
@@ -1080,8 +1121,9 @@ class DataView(View):
                                 stime.isoformat(), etime.isoformat(),
                                 datetime.datetime.fromtimestamp(
                                     time_last, tz=timezone).isoformat())
-                        ser_data['time'] = []
-                        ser_data['data'][vindex] = []
+                        # ser_data['time'] = []
+                        # ser_data['data'][vindex] = []
+                        continue
             except OSError as exc:
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 continue
@@ -1102,7 +1144,7 @@ class DataView(View):
 
             client_state.save_data_times(vname, time_last_ok, time_last)
 
-            # As an easy compression, subtract first time from all times,
+            # A simple compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0 = 0
             if len(ser_data['time']) > 0:
@@ -1114,13 +1156,17 @@ class DataView(View):
                     ser_data['dim2'][vname]['data'],
                     cls=NChartsJSONEncoder).replace("'", r"\u0027"))
 
+            dout = mark_safe(json.dumps(
+                    ser_data['data'][vindex], cls=NChartsJSONEncoder))
+
             ajax_out['data'].append({
                 'variable': vname,
                 'time0': time0,
                 'time': mark_safe(json.dumps(
                     [x - time0 for x in ser_data['time']])),
-                'data': mark_safe(json.dumps(
-                    ser_data['data'][vindex], cls=NChartsJSONEncoder)),
+                'data': dout,
+                'stations': mark_safe(json.dumps(
+                    ser_data['stnnames'][vname], cls=NChartsJSONEncoder).replace("'", r"\u0027")),
                 'dim2': dim2
             })
 

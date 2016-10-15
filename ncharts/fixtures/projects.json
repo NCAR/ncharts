@@ -128,5 +128,16 @@
     },
     "model": "ncharts.project", 
     "pk": "C130"
+},
+{
+    "fields": {
+        "location": "Great Marsh Preserve, Lewes DE",
+        "timezones": ["US/Eastern", "UTC"],
+	"long_name": "Study of the effect of the wake of a wind turbine on the atmosphere-surface exchange of momentum, sensible heat and water vapor.",
+        "start_year": "2016",
+        "end_year": "2016"
+    },
+    "model": "ncharts.project", 
+    "pk": "VERTEX"
 }
 ]

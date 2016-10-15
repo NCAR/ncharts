@@ -6,6 +6,7 @@ prod=true
 if $prod; then
     DJROOT=${DJROOT:-/var/django}
     DJVIRT=${DJVIRT:-$DJROOT/virtualenv/django}
+    export DJANGO_SETTINGS_MODULE=datavis.settings.production
     sudo chmod -R g+w /var/lib/django
     sudo chmod -R g+w /var/log/django
 else
@@ -14,13 +15,14 @@ fi
 
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
-python3 manage.py loaddata projects.json 
-python3 manage.py loaddata platforms.json 
-python3 manage.py loaddata variables.json 
-python3 manage.py loaddata timezones.json 
+for f in projects.json platforms.json variables.json timezones.json; do
+    echo $f
+    python3 manage.py loaddata $f
+done
 
 for f in ncharts/fixtures/datasets_*.json; do
     ff=${f##*/}
+    echo $ff
     python3 manage.py loaddata $ff
 done
 
