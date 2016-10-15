@@ -10,7 +10,7 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from django.views.decorators.cache import never_cache
 
