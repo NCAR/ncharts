@@ -668,7 +668,7 @@ class ClientState(models.Model):
 
     # station indices, -1: null station, otherwise non-negative number
     # stations = models.IntegerField(null=True)
-    stations = models.CharField(null=True, max_length=1024, \
+    stations = models.CharField(blank=True, default="", max_length=1024, \
         validators=[validate_comma_separated_integer_list])
 
     def __str__(self):
