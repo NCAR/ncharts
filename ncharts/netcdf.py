@@ -850,6 +850,10 @@ class NetCDFDataset(object):
                         mask=True, fill_value=fill_val).filled(),
                     axis=-1)
 
+            # if len(stnnums) > 0 then dsinfo['station_names'] must exist
+            dsinfo_stns = dsinfo['station_names']
+            stnnames.extend([dsinfo_stns[i] for i in stnnums])
+
         else:
             # variable is not in file, create NaN filled array
             # Determine shape of variable. Change the first, time dimension
@@ -870,8 +874,6 @@ class NetCDFDataset(object):
                     shape=shape, dtype=vdtype),
                 mask=True, fill_value=fill_val).filled()
 
-        dsinfo_stns = dsinfo['station_names']
-        stnnames.extend([dsinfo_stns[i] for i in stnnums])
         return vdata
 
     def read_time_series(
