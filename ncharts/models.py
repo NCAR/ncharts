@@ -23,6 +23,8 @@ from django.utils.translation import ugettext_lazy
 
 import datetime
 
+from django.core.validators import validate_comma_separated_integer_list
+
 from timezone_field import TimeZoneField
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
@@ -426,7 +428,7 @@ class Dataset(models.Model):
                 tabs["Others"]["variables"].append(var)
 
         # Remove empty tabs. Keep original order
-        for key, value in tabs.items():
+        for key, value in tabs.copy().items():
             if not value["variables"]:
                 tabs.pop(key)
 
@@ -497,6 +499,17 @@ class FileDataset(Dataset):
         ncdset = self.get_netcdf_dataset()
 
         return ncdset.get_variables()
+
+    def get_station_names(self):
+        """Return list of station names.
+
+        Raises:
+            exception.NoDataFoundException
+        """
+
+        ncdset = self.get_netcdf_dataset()
+
+        return ncdset.get_station_names()
 
     def get_series_tuples(
             self,
@@ -586,6 +599,9 @@ class DBDataset(Dataset):
         """
         return self.get_connection().get_variables()
 
+    def get_station_names(self):
+        return list()
+
     def get_start_time(self):
         """
         Raises:
@@ -649,6 +665,11 @@ class ClientState(models.Model):
 
     # list of sounding series, stringified by json
     soundings = models.TextField(blank=True)
+
+    # station indices, -1: null station, otherwise non-negative number
+    # stations = models.IntegerField(null=True)
+    stations = models.CharField(null=True, max_length=1024, \
+        validators=[validate_comma_separated_integer_list])
 
     def __str__(self):
         return 'ClientState for dataset: %s' % (self.dataset.name)

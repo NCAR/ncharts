@@ -10,18 +10,17 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
+import pytz
+import datetime
+import sys
+import logging
+
 from django import forms
 from django.contrib import messages
 
 from datetimewidget import widgets as dt_widgets
 
 from ncharts import exceptions as nc_exc
-
-import pytz
-
-import datetime
-
-import sys, logging
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
@@ -65,7 +64,7 @@ class FloatWithChoiceWidget(forms.MultiWidget):
             val = float(value)
             if val % 1 == 0:
                 value = '{:.0f}'.format(val)
-            if not val in TIME_LEN_CHOICES:
+            if val not in TIME_LEN_CHOICES:
                 return [value, '0']
         except ValueError:
             value = '1'
@@ -179,6 +178,13 @@ class DataSelectionForm(forms.Form):
         choices=[(c, c,) for c in TIME_UNITS_CHOICES],
         initial=TIME_UNITS_CHOICES[0], label='')
 
+    stations = forms.MultipleChoiceField(
+        label='Stations',
+        required=False, widget=forms.CheckboxSelectMultiple(
+            attrs={
+                # 'data-mini': 'true'
+            }))
+
     soundings = forms.MultipleChoiceField(
         label='Soundings',
         required=False, widget=forms.CheckboxSelectMultiple(
@@ -233,6 +239,28 @@ class DataSelectionForm(forms.Form):
         # choices: (value, label)
         self.fields['yvariable'].choices = sorted(
             [(n, n) for n in variables], key=lambda x: str.lower(x[0]))
+
+    def set_station_choices(self, station_names):
+        """Set the available variables in this form.
+
+        Args:
+            station_names: list of station names
+        """
+
+        # choices: (value, label)
+        choices = []
+
+        if len(station_names) > 0:
+            # a station name of None means no variables without a station
+            if station_names[0] is not None:
+                choices.append((0, "null"))
+                # choices.append(("0", "null"))
+            # choices.extend([('{}'.format(i+1), n) for i, n in \
+            # enumerate(station_names[1:])])
+            choices.extend([(i+1, n) for i, n in \
+                enumerate(station_names[1:])])
+
+        self.fields['stations'].choices = choices
 
     def clean(self):
         """Check the user's selections for correctness.
@@ -292,7 +320,7 @@ class DataSelectionForm(forms.Form):
         if not tunits in TIME_UNITS_CHOICES:
             raise forms.ValidationError('invalid time units: {}'.format(tunits))
 
-        if not 'time_length' in cleaned_data:
+        if 'time_length' not in cleaned_data:
             self.add_error('time_length', forms.ValidationError('invalid time length'))
 
         tdelta = self.get_cleaned_time_length()
@@ -319,11 +347,11 @@ class DataSelectionForm(forms.Form):
             cleaned_data['start_time'] = start_time.replace(tzinfo=None)
             self.clean_method_altered_data = True
 
-        if not 'variables' in cleaned_data or len(cleaned_data['variables']) == 0:
+        if 'variables' not in cleaned_data or len(cleaned_data['variables']) == 0:
             self.add_error('variables', forms.ValidationError('no variables selected'))
 
         if self.dataset.dset_type == "sounding":
-            if not 'soundings' in cleaned_data or \
+            if 'soundings' not in cleaned_data or \
                 len(cleaned_data['soundings']) == 0:
                 self.add_error('soundings', forms.ValidationError('no soundings selected'))
 
@@ -336,8 +364,8 @@ class DataSelectionForm(forms.Form):
             a datetime.timedelta.
         """
 
-        if not 'time_length' in self.cleaned_data or \
-                not 'time_length_units' in self.cleaned_data:
+        if 'time_length' not in self.cleaned_data or \
+                'time_length_units' not in self.cleaned_data:
             return None
 
         tlen = self.cleaned_data['time_length']   # normalized to float
@@ -351,8 +379,8 @@ class DataSelectionForm(forms.Form):
             A datetime.datetime, within the timezone of cleaned_data['timezone'].
 
         """
-        if not 'start_time' in self.cleaned_data or \
-                not 'timezone' in self.cleaned_data:
+        if 'start_time' not in self.cleaned_data or \
+                'timezone' not in self.cleaned_data:
             return None
 
         start_time = self.cleaned_data['start_time']
@@ -442,4 +470,3 @@ def get_time_length_fields(tdelta):
         tunits = 'second'
 
     return (tdelta, tunits)
-
