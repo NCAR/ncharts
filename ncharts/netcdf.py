@@ -320,7 +320,7 @@ class NetCDFDataset(object):
                     dsinfo['time_dim_name'] = tdim.name
 
                 if 'station' in ncfile.dimensions:
-                    if not dsinfo['nstations']:
+                    if dsinfo['nstations'] is None:
                         dsinfo['nstations'] = len(ncfile.dimensions[STATION_DIMENSION_NAME])
                         dsinfo['station_dim'] = STATION_DIMENSION_NAME
                         if 'station' in ncfile.variables:
@@ -466,12 +466,12 @@ class NetCDFDataset(object):
             raise nc_exc.NoDataFoundException(msg)
 
         # create station names if not found in NetCDF file
-        if not dsinfo['station_names']:
+        if dsinfo['nstations'] and not dsinfo['station_names']:
             dsinfo['station_names'] = ['']
             dsinfo['station_names'].extend(\
                 ['S{}'.format(i+1) for i in range(dsinfo['nstations'])])
 
-        if not dsinfo['null_station']:
+        if dsinfo['station_names'] and not dsinfo['null_station']:
             dsinfo['station_names'][0] = None
 
         # cache dsinfo
@@ -501,6 +501,9 @@ class NetCDFDataset(object):
         if not dsinfo['station_names']:
             self.get_variables()
             dsinfo = self.get_dataset_info()
+
+        if not dsinfo['station_names']:
+            return []
 
         return dsinfo['station_names'].copy()
 
