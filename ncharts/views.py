@@ -901,7 +901,7 @@ class DatasetView(View):
             elif ptype == 'sounding-profile':
                 # one profile plot per series name
                 for series_name in sorted(ncdata.keys()):
-                    vnames = sorted([v for v in variables if vsizes[series_name][v] > 0])
+                    vnames = sorted([v for v in variables])
                     units = [variables[v]['units'] for v in vnames]
                     long_names = [(variables[v]['long_name'] \
                         if 'long_name' in variables[v] else v) for v in vnames]
