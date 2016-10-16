@@ -16,6 +16,7 @@ To plot a set of variables over a period of time:
     <li>Choose a <b>Start Time</b> or the <b>Track Real Time</b> option</li>
     <li>Select a <b>Time Zone</b></li>
     <li>Select a time <b>Length</b> with units</li>
+    <li>If provided, select one or more <b>Stations</b></li>
     <li>Select one or more <b>Variables</b></li>
     <li>Hit <b>Plot</b></li>
 </ol>
@@ -42,6 +43,10 @@ When the plot is ready the screen will scroll down to display the plot.
     </ul>
 </ul>
 
+<h4>ISFS Stations</h4>
+For ISFS projects where measurements are repeated at more than one station, variables are stored in NetCDF form with a "station" dimension. In this case, NCharts will provide checkboxes for selecting one more more stations. The variable names will be shown on the plot with their station name. One of the selections may be the "null" station, which is used to select variables which were not sampled at multiple stations.  These variables will typically have a site suffix, of the form ".abc" indicating they were sampled at site abc.  
+
+<h4>Height vs Time Data</h4>
 If a time series variable has a additional dimension, such as height or bin number, a color-coded heatmap time series will be plotted, with an associated color key.
 <ul>
     <li>Heatmap Time Series</li>
