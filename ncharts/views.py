@@ -786,14 +786,19 @@ class DatasetView(View):
                 })
 
         time0 = {}
+        vsizes = {}
+
         for series_name in ncdata:
             ser_data = ncdata[series_name]
+            vsizes[series_name] = {}
             if series_name == "":
                 for vname in sel_vars:
+                    vsizes[series_name][vname] = 0
                     try:
                         # works for any shape, as long as time is the
                         # first dimension
                         vindex = ser_data['vmap'][vname]
+                        vsizes[series_name][vname] = ser_data['data'][vindex].size
                         lastok = np.where(~np.isnan(
                             ser_data['data'][vindex]))[0][-1]
                         time_last_ok = ser_data['time'][lastok]
@@ -879,7 +884,7 @@ class DatasetView(View):
             if ptype == 'heatmap':
                 for vname in sorted(variables): # returns sorted keys
                     var = variables[vname]
-                    if var['plot_type'] == ptype:
+                    if vsizes[''][vname] > 0 and var['plot_type'] == ptype:
                         plot_groups['g{}'.format(grpid)] = {
                             'series': "",
                             'variables': mark_safe(
@@ -896,7 +901,7 @@ class DatasetView(View):
             elif ptype == 'sounding-profile':
                 # one profile plot per series name
                 for series_name in sorted(ncdata.keys()):
-                    vnames = sorted([v for v in variables])
+                    vnames = sorted([v for v in variables if vsizes[series_name][v] > 0])
                     units = [variables[v]['units'] for v in vnames]
                     long_names = [(variables[v]['long_name'] \
                         if 'long_name' in variables[v] else v) for v in vnames]
@@ -928,7 +933,7 @@ class DatasetView(View):
                 # unique units
                 for units in uunits:
                     uvars = sorted([vname for vname, var in variables.items() \
-                        if var['plot_type'] == ptype and var['units'] == units])
+                        if vsizes[''][vname] > 0 and var['plot_type'] == ptype and var['units'] == units])
                     # uvars is a sorted list of variables with units and this plot type.
                     # Might be empty if the variable is of a different plot type
                     if len(uvars) > 0:

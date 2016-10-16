@@ -783,8 +783,6 @@
 
         $plots.each(function(plotindex) {
 
-            // console.log("time-series");
-
             // series name
             var sname =  $( this ).data("series");
             var vnames =  $( this ).data("variables");
@@ -853,6 +851,7 @@
 
             for (var iv = 0; iv < vnames.length; iv++ ) {
                 var vname = vnames[iv];
+                if (!(vname in plot_vmap[sname])) continue;
                 var var_index = plot_vmap[sname][vname];
                 var var_data = ser_data[var_index];
                 var stn_names = ser_stn_names[vname];
@@ -911,7 +910,7 @@
                         console.log("initial, plotvname=",plotvname,", series[",iv,"].length=",
                                 series[iv].data.length);
                     }
-                } 
+                }
             } 
 
             /*

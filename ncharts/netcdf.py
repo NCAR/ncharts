@@ -544,18 +544,14 @@ class NetCDFDataset(object):
                 dmatch = True
                 for dim in selectdim:
                     # some dimensions selected
-                    if not dim in vdims:
+                    if dim not in vdims:
                         # This variable does not have the selected dimension
                         # If all selected indices for the dimension are >= 0
                         # then don't return any values for this variable.
                         # -1 for a selected dimension means return values
                         # for the variable even if it doesn't have the dimension
-                        try:
-                            if all(i >= 0 for i in selectdim[dim]):
-                                dmatch = False
-                        except TypeError:   # not iterable
-                            if selectdim[dim] >= 0:
-                                dmatch = False
+                        if len(selectdim[dim]) > 0 and all(i >= 0 for i in selectdim[dim]):
+                            dmatch = False
                 if not dmatch:
                     continue
 
@@ -570,13 +566,8 @@ class NetCDFDataset(object):
                         vshape[idim] = 1
                     elif dim in selectdim:
                         # variable has a selected dimension
-                        try:
-                            if not all(i < 0 for i in selectdim[dim]):
-                                idx = [i for i in selectdim[dim] if i >= 0]
-                                vshape[idim] = len(idx)
-                        except TypeError:   # not iterable
-                            if selectdim[dim] >= 0:
-                                vshape[idim] = 1
+                        idx = [i for i in selectdim[dim] if i >= 0]
+                        vshape[idim] = len(idx)
 
                 # remove non-time shape values of 1
                 vshape = [dim for (idim, dim) in enumerate(vshape) \
@@ -771,6 +762,16 @@ class NetCDFDataset(object):
 
             var = ncfile.variables[nc_vname]
 
+            skip = False
+
+            # variable doesn't have a selected dimension, and selectdim is all 
+            # non-negative for that dimension, then don't read the variable
+            for dim in selectdim:
+                if dim not in var.dimensions:
+                    if len(selectdim[dim]) > 0 and all(i >= 0 for i in selectdim[dim]):
+                        skip = True
+                        continue
+
             # indices of variable to be read
             idx = ()
             stnnums = []   # station numbers
@@ -784,29 +785,19 @@ class NetCDFDataset(object):
                     idx += (0,)
                 elif dim in selectdim:
                     # variable has a selected dimension
-                    try:
-                        if all(i < 0 for i in selectdim[dim]):
-                            sized = len(ncfile.dimensions[dim])
-                            if dim == STATION_DIMENSION_NAME:
-                                stnnums = [i+1 for i in range(0,sized)]
-                            idx += (slice(0, sized), )
-                        else:
-                            idx += \
-                                (tuple([i for i in selectdim[dim] if i >= 0]),)
-                            if dim == STATION_DIMENSION_NAME:
-                                stnnums = [i+1 for i in  selectdim[dim] if i >= 0]
-                    except TypeError:   # not iterable
-                        if selectdim[dim] >= 0:
-                            idx = (selectdim[dim],)
-                        else:
-                            sized = len(ncfile.dimensions[dim])
-                            idx += (slice(0, sized), )
+                    mdim = tuple(i for i in selectdim[dim] if i >= 0)
+                    if len(mdim) == 0:
+                        skip = True
+                        continue
+                    idx += (tuple(mdim),)
+                    if dim == STATION_DIMENSION_NAME:
+                        stnnums = [i+1 for i in mdim]
                 else:
                     sized = len(ncfile.dimensions[dim])
+                    idx += (slice(0, sized), )
                     if dim == STATION_DIMENSION_NAME:
                         stnnums = [i+1 for i in range(0,sized)]
-                    idx += (slice(0, sized), )
-                    if not dim2:
+                    elif not dim2:
                         # dsinfo_vars[exp_vname]['shape'][idim] will
                         # be the largest value for this dimension
                         # in the set of files.
@@ -814,6 +805,9 @@ class NetCDFDataset(object):
                         dim2['data'] = [i for i in range(sized)]
                         dim2['name'] = dim
                         dim2['units'] = ''
+
+            if skip:
+                return None
 
             if debug and time_slice.stop - time_slice.start > 0:
                 _logger.debug(
@@ -1044,6 +1038,9 @@ class NetCDFDataset(object):
                         operator.mul, vshape, 1) * \
                         dsinfo_vars[exp_vname]["dtype"].itemsize
 
+                    if not vsize:
+                        continue
+
                     if total_size + vsize > size_limit:
                         raise nc_exc.TooMuchDataException(
                             "too much data requested, will exceed {} mbytes".
@@ -1059,7 +1056,6 @@ class NetCDFDataset(object):
                     if not exp_vname in odim2:
                         odim2[exp_vname] = dim2
 
-                    # print("stnnames=",str(stnnames))
                     ostns[exp_vname] = stnnames
 
                     if not exp_vname in ovmap:
