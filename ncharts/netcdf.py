@@ -20,6 +20,9 @@ import logging
 import threading
 import operator
 import hashlib
+import collections
+
+import django.utils.encoding
 
 from functools import reduce as reduce_
 
@@ -28,6 +31,8 @@ from ncharts import fileset as nc_fileset
 
 # __name__ is ncharts.netcdf
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
+
+STATION_DIMENSION_NAME = "station"
 
 def get_file_modtime(path):
     """ Utility to get the modification time of a file. """
@@ -86,6 +91,8 @@ class NetCDFDataset(object):
             "station".
         station_names: If a NetCDF character variable called "station"
             is found, a list of str values of the variable.
+        null_station: boolean. true if there are time-series variables without
+            a station dimension.
     """
     # pylint thinks this class is too big.
     # pylint: disable=too-many-instance-attributes
@@ -129,6 +136,7 @@ class NetCDFDataset(object):
             'nstations': None,
             'station_dim': None,
             'station_names': None,
+            'null_station': False,
             'variables': {},
         }
         return dsinfo
@@ -312,23 +320,24 @@ class NetCDFDataset(object):
                     dsinfo['time_dim_name'] = tdim.name
 
                 if 'station' in ncfile.dimensions:
-                    if not dsinfo['nstations']:
-                        dsinfo['nstations'] = len(ncfile.dimensions["station"])
-                        dsinfo['station_dim'] = "station"
+                    if dsinfo['nstations'] is None:
+                        dsinfo['nstations'] = len(ncfile.dimensions[STATION_DIMENSION_NAME])
+                        dsinfo['station_dim'] = STATION_DIMENSION_NAME
+                        if 'station' in ncfile.variables:
+                            dsinfo['station_names'] = ['']
+                            var = ncfile.variables[STATION_DIMENSION_NAME]
+                            if var.datatype == np.dtype('S1'):
+                                dsinfo['station_names'].extend(
+                                    [bytearray(netCDF4.chartostring(v)).decode("utf-8","strict").rstrip(' \0') for v in var])
                     elif not dsinfo['nstations'] == \
-                            len(ncfile.dimensions["station"]):
+                            len(ncfile.dimensions[STATION_DIMENSION_NAME]):
                         _logger.warning(
                             "%s: station dimension (%d) is "
                             "different than that of other files (%d)",
                             ncpath,
-                            len(ncfile.dimensions["station"]),
+                            len(ncfile.dimensions[STATION_DIMENSION_NAME]),
                             dsinfo['nstations'])
 
-                    if not dsinfo['station_names'] and 'station' in ncfile.variables:
-                        var = ncfile.variables["station"]
-                        if var.datatype == np.dtype('S1'):
-                            dsinfo['station_names'] = \
-                                [str(netCDF4.chartostring(v)) for v in var]
 
                 # look for a time variable
                 if not dsinfo['time_name']:
@@ -369,11 +378,18 @@ class NetCDFDataset(object):
 
                     # Check if we have found this variable in a earlier file
                     if not exp_vname in dsinfo_vars:
+
+                        # New variable
                         dsinfo_vars[exp_vname] = {}
                         dsinfo_vars[exp_vname]['netcdf_name'] = nc_vname
                         dsinfo_vars[exp_vname]['shape'] = var.shape
                         dsinfo_vars[
                             exp_vname]['dimnames'] = var.dimensions
+
+                        if dsinfo['station_dim'] and \
+                            not dsinfo['station_dim'] in var.dimensions:
+                                dsinfo['null_station'] = True
+
                         dsinfo_vars[exp_vname]['dtype'] = var.dtype
                         dsinfo_vars[exp_vname]['time_index'] = time_index
                         # Grab certain attributes
@@ -449,11 +465,48 @@ class NetCDFDataset(object):
             msg = "No variables found"
             raise nc_exc.NoDataFoundException(msg)
 
+        # create station names if not found in NetCDF file
+        if dsinfo['nstations'] and not dsinfo['station_names']:
+            dsinfo['station_names'] = ['']
+            dsinfo['station_names'].extend(\
+                ['S{}'.format(i+1) for i in range(dsinfo['nstations'])])
+
+        if dsinfo['station_names'] and not dsinfo['null_station']:
+            dsinfo['station_names'][0] = None
+
         # cache dsinfo
         dsvars = dsinfo_vars.copy()
         self.save_dataset_info(dsinfo)
 
         return dsvars
+
+    def get_station_names(
+            self):
+
+        """ return the station names of this dataset.
+
+        Args:
+
+        Returns:
+            A list of names, for stations 0:N. station number 0 is the
+            null station, for variables without a station dimension.
+            If all time series variables have a station dimension, then
+            the name of station 0 will be None, otherwise ''.
+        Raises:
+            OSError
+            nc_exc.NoDataFoundException
+        """
+
+        dsinfo = self.get_dataset_info()
+        if not dsinfo['station_names']:
+            self.get_variables()
+            dsinfo = self.get_dataset_info()
+
+        if not dsinfo['station_names']:
+            return []
+
+        return dsinfo['station_names'].copy()
+
 
     def resolve_variable_shapes(self, variables, selectdim):
         """Determine the shape of variables in this dataset.
@@ -491,18 +544,14 @@ class NetCDFDataset(object):
                 dmatch = True
                 for dim in selectdim:
                     # some dimensions selected
-                    if not dim in vdims:
+                    if dim not in vdims:
                         # This variable does not have the selected dimension
                         # If all selected indices for the dimension are >= 0
                         # then don't return any values for this variable.
                         # -1 for a selected dimension means return values
                         # for the variable even if it doesn't have the dimension
-                        try:
-                            if all(i >= 0 for i in selectdim[dim]):
-                                dmatch = False
-                        except TypeError:   # not iterable
-                            if selectdim[dim] >= 0:
-                                dmatch = False
+                        if len(selectdim[dim]) > 0 and all(i >= 0 for i in selectdim[dim]):
+                            dmatch = False
                 if not dmatch:
                     continue
 
@@ -517,13 +566,8 @@ class NetCDFDataset(object):
                         vshape[idim] = 1
                     elif dim in selectdim:
                         # variable has a selected dimension
-                        try:
-                            if not all(i < 0 for i in selectdim[dim]):
-                                idx = [i for i in selectdim[dim] if i >= 0]
-                                vshape[idim] = len(idx)
-                        except TypeError:   # not iterable
-                            if selectdim[dim] >= 0:
-                                vshape[idim] = 1
+                        idx = [i for i in selectdim[dim] if i >= 0]
+                        vshape[idim] = len(idx)
 
                 # remove non-time shape values of 1
                 vshape = [dim for (idim, dim) in enumerate(vshape) \
@@ -545,8 +589,7 @@ class NetCDFDataset(object):
             end_time: A datetime.datetme. Times less than end_time are read.
             times: A list of UTC timestamps, the times read are
                 appended to this list.
-            total_size: Add the total size of times read to this value.
-            size_limit: Raise an exception if the total_size exceeds size_limit.
+            size_limit: Raise an exception if size exceeds this value
 
         Returns:
             A built-in slice object, giving the start and stop indices of the
@@ -679,7 +722,7 @@ class NetCDFDataset(object):
 
     def read_time_series_data(
             self, ncfile, ncpath, exp_vname, time_slice, vshape,
-            selectdim, dim2):
+            selectdim, dim2, stnnames):
         """ Read values of a time-series variable from a netCDF4 dataset.
 
         Args:
@@ -688,14 +731,16 @@ class NetCDFDataset(object):
                 supported in netcdf version >= 4.1.2.
             exp_vname: Exported name of variable to read.
             time_slice: The slice() of time indices to read.
-            vshape: Shape of the variable in case it isn't in the file
-                an a filled array should be returned.
+            vshape: Shape of the variable, which is used to create a
+                filled array of missing values if the variable is not
+                found in the file.
             selectdim: A dict containing for each dimension name of type
                 string, the indices of the dimension to read.
                 For example: {"station":[3,4,5]} to read indices 3,4 and 5
                 (indexed from 0) of the station dimension for variables
                 which have that dimension.
             dim2: Values for second dimension of the variable, such as height.
+            stnnames: A list of the station names of the variable.
 
         Returns:
             A numpy.ma.array containing the data read.
@@ -717,8 +762,19 @@ class NetCDFDataset(object):
 
             var = ncfile.variables[nc_vname]
 
+            skip = False
+
+            # variable doesn't have a selected dimension, and selectdim is all 
+            # non-negative for that dimension, then don't read the variable
+            for dim in selectdim:
+                if dim not in var.dimensions:
+                    if len(selectdim[dim]) > 0 and all(i >= 0 for i in selectdim[dim]):
+                        skip = True
+                        continue
+
             # indices of variable to be read
             idx = ()
+            stnnums = []   # station numbers
             for idim, dim in enumerate(var.dimensions):
                 if dim == dsinfo['time_dim_name']:
                     idx += (time_slice,)
@@ -729,23 +785,19 @@ class NetCDFDataset(object):
                     idx += (0,)
                 elif dim in selectdim:
                     # variable has a selected dimension
-                    try:
-                        if all(i < 0 for i in selectdim[dim]):
-                            sized = len(ncfile.dimensions[dim])
-                            idx += (slice(0, sized), )
-                        else:
-                            idx += \
-                                (tuple([i for i in selectdim[dim] if i >= 0]),)
-                    except TypeError:   # not iterable
-                        if selectdim[dim] >= 0:
-                            idx = (selectdim[dim],)
-                        else:
-                            sized = len(ncfile.dimensions[dim])
-                            idx += (slice(0, sized), )
+                    mdim = tuple(i for i in selectdim[dim] if i >= 0)
+                    if len(mdim) == 0:
+                        skip = True
+                        continue
+                    idx += (tuple(mdim),)
+                    if dim == STATION_DIMENSION_NAME:
+                        stnnums = [i+1 for i in mdim]
                 else:
                     sized = len(ncfile.dimensions[dim])
                     idx += (slice(0, sized), )
-                    if not dim2:
+                    if dim == STATION_DIMENSION_NAME:
+                        stnnums = [i+1 for i in range(0,sized)]
+                    elif not dim2:
                         # dsinfo_vars[exp_vname]['shape'][idim] will
                         # be the largest value for this dimension
                         # in the set of files.
@@ -753,6 +805,9 @@ class NetCDFDataset(object):
                         dim2['data'] = [i for i in range(sized)]
                         dim2['name'] = dim
                         dim2['units'] = ''
+
+            if skip:
+                return None
 
             if debug and time_slice.stop - time_slice.start > 0:
                 _logger.debug(
@@ -788,6 +843,10 @@ class NetCDFDataset(object):
                             shape=shape, dtype=vdata.dtype),
                         mask=True, fill_value=fill_val).filled(),
                     axis=-1)
+
+            # if len(stnnums) > 0 then dsinfo['station_names'] must exist
+            dsinfo_stns = dsinfo['station_names']
+            stnnames.extend([dsinfo_stns[i] for i in stnnums])
 
         else:
             # variable is not in file, create NaN filled array
@@ -851,7 +910,8 @@ class NetCDFDataset(object):
                     containing the index into the series data for the variable,
                 'dim2': dict by variable name, of values for second dimension
                     of the data, such as height,
-            }
+                'stnnames': dict by variable name, of station names of the
+                    variable,
 
         Raises:
             OSError
@@ -941,12 +1001,14 @@ class NetCDFDataset(object):
                     'data': [],
                     'vmap': {},
                     'dim2': {},
+                    'stnnames': {},
                 }
 
             otime = res_data[series_name]['time']
             odata = res_data[series_name]['data']
             ovmap = res_data[series_name]['vmap']
             odim2 = res_data[series_name]['dim2']
+            ostns = res_data[series_name]['stnnames']
 
             try:
                 size1 = sys.getsizeof(otime)
@@ -976,18 +1038,25 @@ class NetCDFDataset(object):
                         operator.mul, vshape, 1) * \
                         dsinfo_vars[exp_vname]["dtype"].itemsize
 
+                    if not vsize:
+                        continue
+
                     if total_size + vsize > size_limit:
                         raise nc_exc.TooMuchDataException(
                             "too much data requested, will exceed {} mbytes".
                             format(size_limit/(1000 * 1000)))
 
                     dim2 = {}
+                    stnnames = []
+                    # print("selectdim=",str(selectdim))
                     vdata = self.read_time_series_data(
                         ncfile, ncpath, exp_vname, time_slice, vshape,
-                        selectdim, dim2)
+                        selectdim, dim2, stnnames)
 
                     if not exp_vname in odim2:
                         odim2[exp_vname] = dim2
+
+                    ostns[exp_vname] = stnnames
 
                     if not exp_vname in ovmap:
                         size1 = 0

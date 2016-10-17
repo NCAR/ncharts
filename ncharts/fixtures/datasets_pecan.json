@@ -284,7 +284,7 @@
 },
 {
     "fields": {
-        "directory": "/scr/hail1/rsfdata/pecan/nidas/netcdf", 
+        "directory": "/scr/hail1/rsfdata/pecan/raw/nidas/netcdf", 
         "filenames": "surface_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 

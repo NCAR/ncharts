@@ -74,6 +74,28 @@
         </div>
     </div>
 
+    {% if form.stations|length > 0 %}
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Stations</h3>
+                </div>
+                <div class="panel panel-body">
+                    <strong>{{ form.stations.errors }}</strong>
+                    <div class="input-group">
+                        <label>set all<input id="id_stations_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                        <label>clear all<input id="id_stations_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
+                    </div>
+                    <div id="station-checkbox">
+                        {% for stn in form.stations %}
+                        <label>{{ stn.choice_label }}{{ stn.tag }}&nbsp;&nbsp;</label>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     {% if dataset.dset_type == 'sounding' %}
     <div class="col-md-12">
         <div class="panel panel-default">
@@ -203,6 +225,7 @@ var plot_time0 = jQuery.parseJSON('{{ time0 }}');
 var plot_times = jQuery.parseJSON('{{ time }}');
 var plot_data = jQuery.parseJSON('{{ data }}');
 var plot_vmap = jQuery.parseJSON('{{ vmap }}');
+var plot_stns = jQuery.parseJSON('{{ stations }}');
 // dim2 are values for 2nd dimension for heatmap plots
 var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
 // url to use with ajax to get real time data
@@ -213,24 +236,24 @@ var sounding_yvar = '{{ yvariable }}';
 </script>
 
 {% for group,val in plot_groups.items %}
-{% if val.plot_type == 'sounding-profile' %}
-<div class="sounding-chart-wrapper">
+    {% if val.plot_type == 'sounding-profile' %}
+        <div class="sounding-chart-wrapper">
     {% else %}
-    <div class="time-series-chart-wrapper">
-        {% endif %}
-        <div class="chart-inner">
-            <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
-        </div>
-    </div>    
-
-    <script>
-var div = $("#{{ val.plot_type }}_{{ group }}")[0];
-jQuery.data(div,"series",'{{ val.series }}');
-jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
-jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
-jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
-jQuery.data(div,"dim2_name","{{ dim2.name }}");
-    </script>
-    {% endfor %}
+        <div class="time-series-chart-wrapper">
     {% endif %}
-    {% endblock %}
+            <div class="chart-inner">
+                <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
+            </div>
+        </div>    
+
+        <script>
+    var div = $("#{{ val.plot_type }}_{{ group }}")[0];
+    jQuery.data(div,"series",'{{ val.series }}');
+    jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
+    jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
+    jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
+    jQuery.data(div,"dim2_name","{{ dim2.name }}");
+        </script>
+{% endfor %}
+{% endif %}
+{% endblock %}

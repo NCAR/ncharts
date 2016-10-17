@@ -4,6 +4,7 @@ prod=true
 [ $# -gt 0 -a "$1" == -d ] && prod=false
 
 if $prod; then
+    export DJANGO_SETTINGS_MODULE=datavis.settings.production
     DJROOT=${DJROOT:-/var/django}
     DJVIRT=${DJVIRT:-$DJROOT/virtualenv/django}
     VAR_LIB_DIR=/var/lib/django
