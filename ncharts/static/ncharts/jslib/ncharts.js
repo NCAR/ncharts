@@ -348,6 +348,12 @@
                                         ", first_time=", local_ns.format_time(first_time),
                                         ", chart.series[",series_index,"].data.length=", series.data.length)
                             }
+                            // Update time axis title on LHS of plot
+                            chart.xAxis[0].setTitle({
+                                text: local_ns.format_time(
+                                    local_ns.get_start_time(),
+                                    "YYYY-MM-DD HH:mm ZZ") +
+                                    " (" + local_ns.plotTimezone + ")"});
                         }   // station index
                     }   // input ajax variable indec
 
@@ -911,7 +917,7 @@
                                 series[iv].data.length);
                     }
                 }
-            } 
+            }
 
             /*
              * A StockChart seems to have bugs. The data array chart.series[i].data
@@ -957,15 +963,6 @@
                         gapSize: 2,
                     },
                 },
-                subtitle: {
-                    text: "Start Time: " + date,
-                    style: {
-                        fontWeight: 'bold'
-                    },
-                    align: 'right',
-                    x: -30,
-                    y: 15
-                },
                 xAxis: {
                     type: 'datetime',
                     // opted not to add %Z to these formats.
@@ -983,7 +980,10 @@
                     startOnTick: false,
                     endOnTick: false,
                     title: {
-                        text: "time (" + local_ns.plotTimezone + ")"
+                        align: "low",
+                        text: local_ns.format_time(local_ns.get_start_time(),
+                                "YYYY-MM-DD HH:mm ZZ") +
+                            " (" + local_ns.plotTimezone + ")",
                     },
                     ordinal: false,
                 },
