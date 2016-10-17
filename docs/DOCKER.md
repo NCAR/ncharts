@@ -1,5 +1,12 @@
 # Using ncharts w/ Docker
 
+[Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) are used to containerize and orchestrate services required by **ncharts**:
+
+- `app`: **Python3** for running the **ncharts** **Django** application
+- `web`: **Nginx** front end for serving static assets and proxying dynamic requests to `app` backend
+- `cache`: **memcached** application cache
+- `assets`: **bower** for managing static assets
+
 ## Install Docker and Docker Compose
 
 ### RHEL
@@ -44,7 +51,7 @@ Use an existing `override` file, or create and link to your own:
 $ ln -s docker/docker-compose-dev.override.yml docker-compose.override.yml
 ```
 
-Start `ncharts` services w/ **Docker Compose**:
+Start **ncharts** services w/ **Docker Compose**:
 
 ```
 $ docker-compose up
@@ -58,7 +65,7 @@ Use an existing `override` file, or create and link to your own:
 $ ln -s docker/docker-compose-ops.override.yml docker-compose.override.yml
 ```
 
-Start `ncharts` services w/ **Docker Compose**:
+Start **ncharts** services w/ **Docker Compose**:
 
 ```sh
 $ EOL_DATAVIS_SECRET_KEY=abc123 docker-compose up
