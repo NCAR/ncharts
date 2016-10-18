@@ -13,10 +13,11 @@ file LICENSE in this package.
 """
 
 from datetime import datetime
+import logging
+import sys
+import threading
 import pytz
 import numpy as np
-import logging
-import sys, threading
 
 import psycopg2
 
@@ -71,11 +72,11 @@ class RAFDatabase(object):
                     try:
                         conn.rollback()
                     except psycopg2.Error as exc:
-                        _logger.warn("%s rollback: %s", conn, exc)
+                        _logger.warninging("%s rollback: %s", conn, exc)
                     try:
                         conn.close()
                     except psycopg2.Error as exc:
-                        _logger.warn("%s close: %s", conn, exc)
+                        _logger.warning("%s close: %s", conn, exc)
                     del RAFDatabase.__cached_connections[hashval]
                     conn = None
 
@@ -114,7 +115,7 @@ class RAFDatabase(object):
                     try:
                         conn.close()
                     except psycopg2.Error as exc:
-                        _logger.warn("%s close: %s", conn, exc)
+                        _logger.warning("%s close: %s", conn, exc)
                     del RAFDatabase.__cached_connections[hashval]
                     break
 
@@ -168,9 +169,15 @@ class RAFDatabase(object):
     SELECT name, units, long_name, ndims, dims, missing_value from variable_list;")
                     variables = {}
                     for var in cur:
+                        dimnames = ["time"]
+                        # make a bold assumption that a second dimension
+                        # is a particle-probe bin number
+                        if var[3] > 1:
+                            dimnames.append("bin")
                         variables[var[0]] = {
                             "units": var[1],
                             "long_name": var[2],
+                            "dimnames": dimnames,
                             "shape": var[4]
                             }
 
@@ -231,11 +238,11 @@ class RAFDatabase(object):
                         .format(vname, self.table))
                     start_time = cur.fetchone()
                     if not start_time:
-                        _logger.warn("%s: read %s: no data", conn, vname)
+                        _logger.warning("%s: read %s: no data", conn, vname)
                         raise nc_exc.NoDataFoundException("read {}".format(vname))
                     return pytz.utc.localize(start_time[0])
         except psycopg2.Error as exc:
-            _logger.warn("%s: read %s: %s", conn, vname, exc)
+            _logger.warning("%s: read %s: %s", conn, vname, exc)
             RAFDatabase.close_connection(conn)
             raise nc_exc.NoDataFoundException("read {}: {}".format(vname, exc))
 
