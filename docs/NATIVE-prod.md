@@ -87,6 +87,12 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo chmod g+sw /var/lib/django
   ```
 
+  Set environment variables by `source'ing` `docker/datavis-vars.sh`:
+
+  ```sh
+  . docker/datavis-vars.sh
+  ```
+
 6. Initialize the database
 
   This runs the django migrations commands, which should also handle the situation of one of the models changes, or is added or deleted:
