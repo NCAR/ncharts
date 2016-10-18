@@ -6,5 +6,6 @@
 #   source this file:
 #     $ . docker/datavis-vars.sh
 
-export DATAVIS_LOG_DIR=/var/log/django
-export DATAVIS_DB_DIR=/var/lib/django
+export DJANGO_SETTINGS_MODULE=datavis.settings.production
+export NCHARTS_LOG_DIR=/var/log/django
+export NCHARTS_DB_DIR=/var/lib/django

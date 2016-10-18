@@ -163,11 +163,11 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 10. Configure and start httpd server
 
-  A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. This can be passed to Apache from `systemd` by adding a `.conf` service file to `/etc/systemd/system/httpd.service.d/`, *e.g.* `datavis-secret-key.conf`:
+  A Django `SECRET_KEY` must be assigned via the `NCHARTS_SECRET_KEY` environment variable. This can be passed to Apache from `systemd` by adding a `.conf` service file to `/etc/systemd/system/httpd.service.d/`, *e.g.* `datavis-secret-key.conf`:
 
   ```
 [Service]
-Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
+Environment="NCHARTS_SECRET_KEY=abc-123-CHANGE-ME"
 ```
 
   If you're paranoid, and want to generate a new `SECRET_KEY`:

@@ -68,7 +68,7 @@ $ ln -s docker/docker-compose-ops.override.yml docker-compose.override.yml
 Start **ncharts** services w/ **Docker Compose**:
 
 ```sh
-$ EOL_DATAVIS_SECRET_KEY=abc123 docker-compose up
+$ NCHARTS_SECRET_KEY=abc123 docker-compose up
 ```
 
 ### Assets

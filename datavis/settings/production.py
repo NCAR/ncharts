@@ -8,11 +8,11 @@ DEBUG = False
 
 DEFAULT_LOG_DIR = LOG_DIR
 
-LOG_DIR   = os.getenv('DATAVIS_LOG_DIR',   DEFAULT_LOG_DIR)
-LOG_LEVEL = os.getenv('DATAVIS_LOG_LEVEL', 'WARNING')
-DB_DIR    = os.getenv('DATAVIS_DB_DIR',    BASE_DIR)
+LOG_DIR   = os.getenv('NCHARTS_LOG_DIR',   DEFAULT_LOG_DIR)
+LOG_LEVEL = os.getenv('NCHARTS_LOG_LEVEL', 'WARNING')
+DB_DIR    = os.getenv('NCHARTS_DB_DIR',    BASE_DIR)
 
-MEMCACHED_LOCATION = os.getenv('DATAVIS_MEMCACHED_LOCATION', 'unix:/var/run/django/django_memcached.sock')
+MEMCACHED_LOCATION = os.getenv('NCHARTS_MEMCACHED_LOCATION', 'unix:/var/run/django/django_memcached.sock')
 
 DATABASES = {
   'default': {
@@ -22,10 +22,10 @@ DATABASES = {
   }
 }
 
-SECRET_KEY = os.environ.get('EOL_DATAVIS_SECRET_KEY')
+SECRET_KEY = os.environ.get('NCHARTS_SECRET_KEY')
 
 if SECRET_KEY == None:
-  raise ValueError('EOL_DATAVIS_SECRET_KEY environment variable must be set when running with datavis.settings.production')
+  raise ValueError('NCHARTS_SECRET_KEY environment variable must be set when running with datavis.settings.production')
 
 #
 # Don't add those external host names to ALLOWED_HOSTS!

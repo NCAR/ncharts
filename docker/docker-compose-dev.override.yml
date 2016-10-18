@@ -12,7 +12,7 @@
 
 app:
   environment:
-    EOL_DATAVIS_SECRET_KEY: "abc123"
+    NCHARTS_SECRET_KEY: "abc123"
   ports:
     - '8000:8000'
 
