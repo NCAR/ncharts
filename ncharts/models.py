@@ -10,22 +10,23 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-import os, pytz, logging
-
+import os
+import logging
 from collections import OrderedDict
+import datetime
+
+import pytz
 
 from django.db import models
-
-from ncharts import netcdf, fileset, raf_database
 
 from django.core import exceptions as dj_exc
 from django.utils.translation import ugettext_lazy
 
-import datetime
-
 from django.core.validators import validate_comma_separated_integer_list
 
 from timezone_field import TimeZoneField
+
+from ncharts import netcdf, fileset, raf_database
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
@@ -84,12 +85,12 @@ class Project(models.Model):
     def make_tabs(cls, projects):
 
         """A class method for creating dictionary of projects based on their start years
-            and end years. The dictionary keys will be the years and the values will be 
-            the projects that happen within the corresponding years. The years and projects are sorted 
-            numerically and alphabetically. 
+            and end years. The dictionary keys will be the years and the values will be
+            the projects that happen within the corresponding years. The years and projects are sorted
+            numerically and alphabetically.
 
             Args: The Project class itself and the list of projects from netcdf.
-            Ret: The sorted dictionary of years and projects. 
+            Ret: The sorted dictionary of years and projects.
 
         """
 
@@ -97,7 +98,7 @@ class Project(models.Model):
         now = datetime.datetime.now()
 
         for project in projects:
-            if project.end_year == None:
+            if project.end_year is None:
                 project.end_year = now.year
             for year in list(range(project.start_year, project.end_year + 1)):
                 if year not in res:
@@ -107,9 +108,9 @@ class Project(models.Model):
         for year, projects in res.items():
             projects.sort(key=lambda x: x.name)
 
-        res = OrderedDict(sorted(res.items(), key=lambda x: x[0]))
+        odres = OrderedDict(sorted(res.items(), key=lambda x: x[0]))
 
-        return res
+        return odres
 
     def __str__(self):
         return self.name
@@ -264,8 +265,8 @@ class Dataset(models.Model):
 
         # _logger.debug("Dataset get_start_time, start_time=%s",
         #    self.start_time.isoformat())
-        if self.start_time.tzinfo == None or \
-                self.start_time.tzinfo.utcoffset(self.start_time) == None:
+        if self.start_time.tzinfo is None or \
+                self.start_time.tzinfo.utcoffset(self.start_time) is None:
             self.start_time = pytz.utc.localize(self.start_time)
             _logger.debug(
                 "Dataset localized start_time: %s",
@@ -283,8 +284,8 @@ class Dataset(models.Model):
 
         # _logger.debug("Dataset get_end_time, end_time=%s",
         #       self.end_time.isoformat())
-        if self.end_time.tzinfo == None or \
-                self.end_time.tzinfo.utcoffset(self.end_time) == None:
+        if self.end_time.tzinfo is None or \
+                self.end_time.tzinfo.utcoffset(self.end_time) is None:
             self.end_time = pytz.utc.localize(self.end_time)
             _logger.debug(
                 "Dataset localized end_time: %s",
@@ -489,16 +490,27 @@ class FileDataset(Dataset):
         Raises:
             exception.NoDataFoundException
         """
-        if len(self.variables.values()) > 0:
-            res = {}
-            for var in self.variables.all():
-                res[var.name] = \
-                    {"units": var.units, "long_name": var.long_name}
-            return res
 
         ncdset = self.get_netcdf_dataset()
+        ncvars = ncdset.get_variables()
 
-        return ncdset.get_variables()
+        if len(self.variables.values()) == 0:
+            return ncvars
+
+        # If variables exist in this model, then only provide
+        # those variables to the user, not the complete set from
+        # the NetCDF dataset.  Use the units and long_name attributes
+        # from the model, rather than the dataset. This overcomes
+        # issues with the weather station NetCDF files.
+        res = {}
+        for var in self.variables.all():
+            if var.name in ncvars:
+                res[var.name] = ncvars[var.name]
+            else:
+                res[var.name] = {}
+            res[var.name]["units"] = var.units
+            res[var.name]["long_name"] = var.long_name
+        return res
 
     def get_station_names(self):
         """Return list of station names.
@@ -518,7 +530,7 @@ class FileDataset(Dataset):
             end_time=pytz.utc.localize(datetime.datetime.max)):
         """Get the names of the series between the start and end times.
         """
-        if not self.dset_type == "sounding":
+        if self.dset_type != "sounding":
             return []
 
         files = self.get_fileset().scan(start_time, end_time)
@@ -536,7 +548,7 @@ class FileDataset(Dataset):
             end_time=pytz.utc.localize(datetime.datetime.max)):
         """Get the names of the series between the start and end times.
         """
-        if not self.dset_type == "sounding":
+        if self.dset_type != "sounding":
             return []
 
         files = self.get_fileset().scan(start_time, end_time)
