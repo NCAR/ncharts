@@ -11,20 +11,20 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-import os, sys, time
-import netCDF4
+import os
+import sys
+import time
 from datetime import datetime
-import pytz
-import numpy as np
 import logging
 import threading
 import operator
 import hashlib
-import collections
-
-import django.utils.encoding
 
 from functools import reduce as reduce_
+
+import numpy as np
+import netCDF4
+import pytz
 
 from ncharts import exceptions as nc_exc
 from ncharts import fileset as nc_fileset
@@ -328,7 +328,7 @@ class NetCDFDataset(object):
                             var = ncfile.variables[STATION_DIMENSION_NAME]
                             if var.datatype == np.dtype('S1'):
                                 dsinfo['station_names'].extend(
-                                    [bytearray(netCDF4.chartostring(v)).decode("utf-8","strict").rstrip(' \0') for v in var])
+                                    [bytearray(netCDF4.chartostring(v)).decode("utf-8", "strict").rstrip(' \0') for v in var])
                     elif not dsinfo['nstations'] == \
                             len(ncfile.dimensions[STATION_DIMENSION_NAME]):
                         _logger.warning(
@@ -388,7 +388,7 @@ class NetCDFDataset(object):
 
                         if dsinfo['station_dim'] and \
                             not dsinfo['station_dim'] in var.dimensions:
-                                dsinfo['null_station'] = True
+                            dsinfo['null_station'] = True
 
                         dsinfo_vars[exp_vname]['dtype'] = var.dtype
                         dsinfo_vars[exp_vname]['time_index'] = time_index
@@ -764,7 +764,7 @@ class NetCDFDataset(object):
 
             skip = False
 
-            # variable doesn't have a selected dimension, and selectdim is all 
+            # variable doesn't have a selected dimension, and selectdim is all
             # non-negative for that dimension, then don't read the variable
             for dim in selectdim:
                 if dim not in var.dimensions:
@@ -796,7 +796,7 @@ class NetCDFDataset(object):
                     sized = len(ncfile.dimensions[dim])
                     idx += (slice(0, sized), )
                     if dim == STATION_DIMENSION_NAME:
-                        stnnums = [i+1 for i in range(0,sized)]
+                        stnnums = [i+1 for i in range(0, sized)]
                     elif not dim2:
                         # dsinfo_vars[exp_vname]['shape'][idim] will
                         # be the largest value for this dimension
@@ -854,9 +854,8 @@ class NetCDFDataset(object):
             # to match the selected period.  The remaininng dimension
             # in dsinfo_vars[exp_vname]['shape'] is the largest of those
             # seen in the selected files.
-            shape = vshape
+            shape = list(vshape)
             shape[time_index] = time_slice.stop - time_slice.start
-            shape = tuple(shape)
 
             vdtype = dsinfo_vars[exp_vname]["dtype"]
             fill_val = (
@@ -1092,19 +1091,8 @@ class NetCDFDataset(object):
             # _logger.warning("%s: %s", str(self), repr(exc))
             raise exc
 
-        ncol_read = sum([len(cdata) for (i, cdata) in res_data.items()])
-        if ncol_read == 0:
-            exc = nc_exc.NoDataException(
-                "No variables named {} found between {} and {}".
-                format(
-                    repr(variables),
-                    start_time.isoformat(),
-                    end_time.isoformat()))
-            # _logger.warning("%s: %s", str(self), repr(exc))
-            raise exc
-
         if debug:
-            for series_name in res_data.keys():
+            for series_name in res_data:
                 for exp_vname in res_data[series_name]['vmap']:
                     var_index = res_data[series_name]['vmap'][exp_vname]
                     _logger.debug(
@@ -1116,4 +1104,3 @@ class NetCDFDataset(object):
                 "total_size=%d", total_size)
 
         return res_data
-
