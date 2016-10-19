@@ -12,9 +12,9 @@ To run in production mode, set `DJANGO_SETTINGS_MODULE` to `datavis.settings.pro
 export DJANGO_SETTINGS_MODULE=datavis.settings.production
 ```
 
-## Override
+## Override (optional)
 
-Settings can be overridden via an override file, `datavis/settings/override.py`. `override.py` is `.gitignore`d, so you can make environment-specific changes to settings without modifying files that are tracked in version control.
+Settings can be overridden via an optional override file, `datavis/settings/override.py`. `override.py` is `.gitignore`d, so you can make environment-specific changes to settings without modifying files that are tracked in version control.
 
 For example, production `ADMINS` for `datavis.eol.ucar.edu` are defined in `datavis/settings/override.datavis.eol.ucar.edu.py`. A symbolic link can made from this file to `override.py`
 
