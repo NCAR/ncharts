@@ -50,6 +50,8 @@ The following workflow makes use of **Docker Compose's** support of `override` f
 
 <https://docs.docker.com/compose/extends/>
 
+Link the `base` **Compose** file to `docker-compose.yml`:
+
 ```sh
 ln -s docker/docker-compose-base.yml docker-compose.yml
 ```
