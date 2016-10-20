@@ -7,6 +7,17 @@
 - `cache`: **memcached** application cache
 - `assets`: **bower** for managing static assets
 
+**Docker Compose** allows for file-based configuration of:
+
+- source Docker images or build directories or paths to `Dockerfile`s
+- environment variables
+- volumes
+- linked services
+- commands run by containers
+- *etc.*
+
+For complete details, see the [**Compose file reference**](https://docs.docker.com/compose/compose-file/).
+
 ## Install Docker and Docker Compose
 
 ### RHEL
