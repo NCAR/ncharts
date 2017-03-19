@@ -264,30 +264,4 @@
     "model": "ncharts.filedataset", 
     "pk": 25
 },
-{
-    "fields": {
-        "variables": [], 
-        "platforms": [
-            "S-PolKa"
-        ], 
-        "start_time": "2015-04-27T00:00:00+00:00", 
-        "end_time": "2015-07-17T17:00:00+00:00", 
-        "location": "McCracken Kansas", 
-        "name": "SPolSurface", 
-        "long_name": "S-PolKa Surface Met", 
-        "project": "PECAN",
-	"url": "http://data.eol.ucar.edu/master_list/?project=PECAN",
-	"status": "Preliminary"
-    }, 
-    "model": "ncharts.dataset", 
-    "pk": 26
-},
-{
-    "fields": {
-        "directory": "/scr/hail1/rsfdata/pecan/raw/nidas/netcdf", 
-        "filenames": "surface_%Y%m%d.nc"
-    }, 
-    "model": "ncharts.filedataset", 
-    "pk": 26
-}
 ]
