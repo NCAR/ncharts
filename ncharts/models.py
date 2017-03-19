@@ -412,10 +412,12 @@ class Dataset(models.Model):
 
         dsetvars = self.get_variables()
 
-        sites = self.get_site_names()
+        sites = []
 
         if self.get_station_names():
             sites.append("stations")
+
+        sites.extend(self.get_site_names())
 
         for site in sites:
             tabs = deepcopy(ISFS_TABS)

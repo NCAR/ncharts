@@ -202,14 +202,12 @@
     </div>
     {% if form.stations %}
     <div id="stations_box"
-        {% with sitenames=dataset|get_site_names  %}
         {% with stationnames=dataset|get_station_names  %}
-        {% if not sitenames and stationnames %}
+         {% if stationnames %}
             class="col-md-12"
         {% else %}
             class="col-md-12 hidden"
         {% endif %}
-        {% endwith %}
         {% endwith %}
         >
         <div class="panel panel-default">
