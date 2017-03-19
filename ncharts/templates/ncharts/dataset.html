@@ -118,10 +118,13 @@
                     <ul class="nav nav-tabs">
                         {% for lev1tab, lev1tabcontent in tabdict.items %}
                             {% if forloop.first %}
-                            <li class="active"><a data-toggle="tab" id="{{ lev1tab }}_lev1tab"
-                                href="#{{ lev1tab }}_lev1cont">{{ lev1tab }}</a></li> 
+                            <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_lev1cont"
+                                title="{{ lev1tab|get_lev1tab_tooltip }}"
+                                id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a></li> 
                             {% else %}
-                            <li><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane" id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a></li>
+                            <li><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane"
+                                title="{{ lev1tab|get_lev1tab_tooltip }}"
+                                id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a></li>
                             {% endif %}
                         {% endfor %}
                     </ul>
@@ -146,9 +149,11 @@
                             <ul class="nav nav-tabs">
                                 {% for lev2tab, vars in lev1tabcontent.items %}
                                     {% if forloop.first %}
-                                    <li class="active"><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ lev1tab }}_{{ lev2tab }}">{{ lev2tab }}</a></li> 
+                                    <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}"
+                                        title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li> 
                                     {% else %}
-                                    <li><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ lev1tab }}_{{ lev2tab }}">{{ lev2tab }}</a></li>
+                                    <li><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}"
+                                       title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>

@@ -417,10 +417,7 @@ class Dataset(models.Model):
         if self.get_station_names():
             sites.append("stations")
 
-        # print("len(variables)={}".format(len(variables)))
-
         for site in sites:
-            # print("site={}".format(site))
             tabs = deepcopy(ISFS_TABS)
             sitetabs[site] = tabs
 
@@ -429,15 +426,12 @@ class Dataset(models.Model):
                 # without a site name
                 tabvars = [var for var in variables \
                     if not 'site' in dsetvars[var.choice_label]]
-                # for var in tabvars:
-                #     print("stations, var=%s" % (var.choice_label))
             else:
                 # loop over variables with site name==site
                 tabvars = [var for var in variables \
                     if 'site' in dsetvars[var.choice_label] and \
                         dsetvars[var.choice_label]['site'] == site]
 
-            # print("site={}, len(tabvars)={}".format(site, len(tabvars)))
             for var in iter(tabvars):
                 vname = var.choice_label.split(".", 1)[0]
                 # higher moments have tic marks to indicate a deviation:

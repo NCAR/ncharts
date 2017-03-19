@@ -37,3 +37,11 @@ def get_station_names(dset):
 def make_project_tabs(projects):
     """Get the dictionary of years and projects from models.py"""
     return nc_models.Project.make_tabs(projects)
+
+@register.filter
+def get_lev1tab_tooltip(site):
+    if site == "stations":
+        return "Variables common to numbered stations"
+    else:
+        return "Variables unique to site " + site
+
