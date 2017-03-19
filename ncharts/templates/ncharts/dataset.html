@@ -111,44 +111,54 @@
                     <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                 </div>
                 {% if form.variables|length > 20 %}
-                {% with sitetabs=form.variables|make_tabs:dataset  %}
+                {% with tabdict=form.variables|make_tabs:dataset  %}
 
                 <div class="container" id="all-variable-checkboxes">
+                    {% if tabdict|length > 1 %}
                     <ul class="nav nav-tabs">
-                        {% for site, vartabs in sitetabs.items %}
+                        {% for lev1tab, lev1tabcontent in tabdict.items %}
                             {% if forloop.first %}
-                            <li class="active"><a data-toggle="tab" id="{{ site }}_site_tab"
-                                href="#{{ site }}_site">{{ site }}</a></li> 
+                            <li class="active"><a data-toggle="tab" id="{{ lev1tab }}_lev1tab"
+                                href="#{{ lev1tab }}_lev1cont">{{ lev1tab }}</a></li> 
                             {% else %}
-                            <li><a data-toggle="tab" href="#{{ site }}_site" id="{{ site }}_site_tab">{{ site }}</a></li>
+                            <li><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane" id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a></li>
                             {% endif %}
                         {% endfor %}
                     </ul>
-                    <div class="tab-content">
-                        {% for site, vartabs in sitetabs.items %}
-                        <div id="{{ site }}_site"
+                    {% endif %}
+                    <div 
+                        {% if tabdict|length > 1 %}
+                        class="tab-content"
+                        {% endif %}
+                        >
+                        {% for lev1tab, lev1tabcontent in tabdict.items %}
+                        <div id="{{ lev1tab }}_lev1pane"
                             {% if forloop.first %}
-                            class="tab-pane fade in active site-tab"
+                            {% if tabdict|length > 1 %}
+                                class="tab-pane fade in active lev1tab"
                             {% else %}
-                            class="tab-pane fade site-tab"
+                                class="nolev1tab"
+                            {% endif %}
+                            {% else %}
+                            class="tab-pane fade lev1tab"
                             {% endif %}
                             >
                             <ul class="nav nav-tabs">
-                                {% for tab, vars in vartabs.items %}
+                                {% for lev2tab, vars in lev1tabcontent.items %}
                                     {% if forloop.first %}
-                                    <li class="active"><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ site }}_{{ tab }}">{{ tab }}</a></li> 
+                                    <li class="active"><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ lev1tab }}_{{ lev2tab }}">{{ lev2tab }}</a></li> 
                                     {% else %}
-                                    <li><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ site }}_{{ tab }}">{{ tab }}</a></li>
+                                    <li><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ lev1tab }}_{{ lev2tab }}">{{ lev2tab }}</a></li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>
                             <div class="tab-content" id="variables">
-                                {% for tab, vars in vartabs.items %}
-                                <div id="{{ site }}_{{ tab }}"
+                                {% for lev2tab, vars in lev1tabcontent.items %}
+                                <div id="{{ lev1tab }}_{{ lev2tab }}"
                                     {% if forloop.first %}
-                                    class="tab-pane fade in active var-tab"
+                                    class="tab-pane fade in active lev2tab"
                                     {% else %}
-                                    class="tab-pane fade var-tab"
+                                    class="tab-pane fade lev2tab"
                                     {% endif %}
                                     >
                                     <div class="checkboxes">
@@ -256,12 +266,12 @@ var soundings = jQuery.parseJSON('{{ soundings }}');
 {% endif %}
 
 <script>
-$("#stations_site_tab").on('show.bs.tab', function(e) {
+$("#stations_lev1tab").on('show.bs.tab', function(e) {
     // console.log("tab show.bs.tab=" + e.target);
     // $("#stations_box").show();
     $("#stations_box").removeClass('hidden');
 })
-$("#stations_site_tab").on('hide.bs.tab', function(e) {
+$("#stations_lev1tab").on('hide.bs.tab', function(e) {
     // console.log("tab hide.bs.tab=" + e.target);
     // $("#stations_box").hide();
     $("#stations_box").addClass('hidden');

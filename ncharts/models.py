@@ -33,7 +33,7 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 # Categories of ISFS variables. Used in creating tabs
 ISFS_VARIABLE_TYPES = {
-    "Met": ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan"],
+    "Met": ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan", "Rainr"],
     "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote"],
     "Rad": ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome", "Wetness"],
     "Soil": ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", \
@@ -387,7 +387,13 @@ class Dataset(models.Model):
 
         if nres != nvars:
             _logger.error("%d variables unaccounted for in building tabs", (nvars - nres))
-        return comb_tabs
+
+        # Create a "fake" top level dictionary with a key of an
+        # empty string. This then has the same 2-level structure
+        # as the isfs_tabs.
+        tabs = OrderedDict()
+        tabs[''] = comb_tabs
+        return tabs
 
     def isfs_tabs(self, variables):
         """Create a tabs dictionary for ISFS variables

@@ -693,14 +693,28 @@
 
         $("#id_tab_clear").change(function() {
             if ($(this).prop("checked")) {
-                $('.site-tab.active .var-tab.active #variable_list :checked').prop('checked',false); 
+                /* If two levels of tabs, find tab-pane with both levels active,
+                 * and clear its checkboxes
+                 */
+                $('.lev1tab.active .lev2tab.active #variable_list :checked').prop('checked',false); 
+                /* If one level of tabs, find active level 2 tab-pane,
+                 * and check its checkboxes
+                 */
+                $('.nolev1tab .lev2tab.active #variable_list :checked').prop('checked',false); 
                 $(this).prop('checked',false);
             }
         });
 
         $("#id_tab_all").change(function() {
             if ($(this).prop("checked")) {
-                $('.site-tab.active .var-tab.active #variable_list :not(:checked)').prop('checked',true);
+                /* If two levels of tabs, find tab-pane with both levels active,
+                 * and check its checkboxes
+                 */
+                $('.lev1tab.active .lev2tab.active #variable_list :not(:checked)').prop('checked',true);
+                /* If one level of tabs, find active level 2 tab-pane,
+                 * and check its checkboxes
+                 */
+                $('.nolev1tab .lev2tab.active #variable_list :checked').prop('checked',true); 
                 $(this).prop('checked',false);
             }
         });
