@@ -193,10 +193,7 @@
                     // update time series plots from ajax data
                     var chart = $( this ).highcharts();
 
-                    var var_index;
-                    var stn_index;
-
-                    for (var_index = 0; var_index < ajaxin.data.length; var_index++) {
+                    for (var var_index = 0; var_index < ajaxin.data.length; var_index++) {
                         var var_data = ajaxin.data[var_index];
                         var itimes = $.parseJSON(var_data.time)
                         if (itimes.length == 0) {
@@ -206,13 +203,15 @@
                         var vdata = $.parseJSON(var_data.data);
 
                         var stn_names = $.parseJSON(var_data.stations);
-                        var nstns = Math.max(1,stn_names.length);
+                        // var nstns = Math.max(1,stn_names.length);
+                        var nstns = stn_names.length;
 
-                        for (stn_index = 0; stn_index < nstns; stn_index++) {
+                        for (var stn_index = 0; stn_index < nstns; stn_index++) {
 
                             var plotvname = var_data.variable;
-                            if (stn_names.length > stn_index) {
-                                plotvname += ' ' + stn_names[stn_index];
+                            var stn_name = stn_names[stn_index];
+                            if (stn_name.length > 0) {
+                                plotvname += ' ' + stn_name
                             }
 
                             var series_index;
@@ -679,7 +678,7 @@
         $("#id_variables_clear").change(function() {
             // console.log("id_variables_clear change, val=",$(this).prop("checked"));
             if ($(this).prop("checked")) {
-                $('#variable-checkbox :checked').prop('checked',false);
+                $('#all-variable-checkboxes :checked').prop('checked',false);
                 $(this).prop('checked',false);
             }
         });
@@ -687,21 +686,21 @@
         $("#id_variables_all").change(function() {
             // console.log("id_variables_all change, val=",$(this).prop("checked"));
             if ($(this).prop("checked")) {
-                $('#variable-checkbox :not(:checked)').prop('checked',true);
+                $('#all-variable-checkboxes :not(:checked)').prop('checked',true);
                 $(this).prop('checked',false);
             }
         });
 
         $("#id_tab_clear").change(function() {
             if ($(this).prop("checked")) {
-                $('.active :checked').prop('checked',false); 
+                $('.site-tab.active .var-tab.active #variable_list :checked').prop('checked',false); 
                 $(this).prop('checked',false);
             }
         });
 
         $("#id_tab_all").change(function() {
             if ($(this).prop("checked")) {
-                $('.active :not(:checked)').prop('checked',true);
+                $('.site-tab.active .var-tab.active #variable_list :not(:checked)').prop('checked',true);
                 $(this).prop('checked',false);
             }
         });
@@ -863,13 +862,15 @@
                 var stn_names = ser_stn_names[vname];
 
                 var vunit = vunits[iv];
-                var nstns = Math.max(1,stn_names.length);
+                // var nstns = Math.max(1,stn_names.length);
+                var nstns = stn_names.length;
                 // console.log("nstns=",nstns)
-                for (var is = 0; is < nstns; is++) {
+                for (var stn_index = 0; stn_index < nstns; stn_index++) {
                     var plotvname;
-                    // console.log("stn_names[",is,"]=",stn_names[is])
-                    if (stn_names.length > is) {
-                        plotvname = vname + ' ' + stn_names[is];
+
+                    var stn_name = stn_names[stn_index];
+                    if (stn_name.length > 0) {
+                        plotvname = vname + ' ' + stn_name;
                     }
                     else {
                         plotvname = vname;
@@ -884,10 +885,10 @@
             
                     var vseries = {};
                     var vdata = [];
-                    if (stn_names.length > 0) {
+                    if (stn_name.length > 0) {
                         for (var idata = 0; idata < ser_times.length; idata++) {
                             vdata.push([(ser_time0 + ser_times[idata])*1000,
-                                    var_data[idata][is]]);
+                                    var_data[idata][stn_index]]);
                         }
                     }
                     else {

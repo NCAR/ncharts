@@ -252,13 +252,12 @@ class DataSelectionForm(forms.Form):
 
         if len(station_names) > 0:
             # a station name of None means no variables without a station
-            if station_names[0] is not None:
-                choices.append((0, "null"))
-                # choices.append(("0", "null"))
+            # if station_names[0] is not None:
+            #     choices.append((0, "null"))
+            #     # choices.append(("0", "null"))
             # choices.extend([('{}'.format(i+1), n) for i, n in \
             # enumerate(station_names[1:])])
-            choices.extend([(i+1, n) for i, n in \
-                enumerate(station_names[1:])])
+            choices.extend([(i, n) for i, n in enumerate(station_names)])
 
         self.fields['stations'].choices = choices
 
@@ -373,7 +372,8 @@ class DataSelectionForm(forms.Form):
         return get_time_length(tlen, tunits)
 
     def get_cleaned_start_time(self):
-        """Return a timezone aware start_time from cleaned_data of the form.
+        """Return a timezone aware start_time from cleaned_data of the form,
+        or None if 'start_time' is not found in cleaned_data.
 
         Returns:
             A datetime.datetime, within the timezone of cleaned_data['timezone'].

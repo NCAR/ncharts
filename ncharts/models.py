@@ -13,6 +13,7 @@ file LICENSE in this package.
 import os
 import logging
 from collections import OrderedDict
+from copy import deepcopy
 import datetime
 
 import pytz
@@ -29,6 +30,29 @@ from timezone_field import TimeZoneField
 from ncharts import netcdf, fileset, raf_database
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
+
+# Categories of ISFS variables. Used in creating tabs
+ISFS_VARIABLE_TYPES = {
+    "Met": ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan"],
+    "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote"],
+    "Rad": ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome", "Wetness"],
+    "Soil": ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", \
+        "Tau63", "Lambdasoil", "asoil", "Cvsoil", "Gsfc"],
+    "3D_Wind": ["u", "v", "w", "ldiag", "diagbits", "spd", "spd_max", "dir"],
+    "Scalar": ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr", "irgadiag", "p"]}
+
+# Tab names and tooltips for ISFS variables, in the order they will appear
+ISFS_TABS = OrderedDict([
+    ("Met", {"tooltip":"Meteorological Variables", "variables":[]}),
+    ("Power", {"tooltip":"Battery and Solar Power", "variables":[]}),
+    ("Rad", {"tooltip":"Radiation Variables", "variables":[]}),
+    ("Soil", {"tooltip":"Soil Variables", "variables":[]}),
+    ("3D_Wind", {"tooltip":"3D Wind Variables", "variables":[]}),
+    ("Scalar", {"tooltip":"Fast Scalar Variables", "variables":[]}),
+    ("Other", {"tooltip":"Other Variables", "variables":[]}),
+    ("2ndMoment", {"tooltip":"variances, covariances", "variables":[]}),
+    ("3rdMoment", {"tooltip":"", "variables":[]}),
+    ("4thMoment", {"tooltip":"", "variables":[]})])
 
 class TimeZone(models.Model):
     """A timezone.
@@ -100,10 +124,8 @@ class Project(models.Model):
         for project in projects:
             if project.end_year is None:
                 project.end_year = now.year
-            for year in list(range(project.start_year, project.end_year + 1)):
-                if year not in res:
-                    res[year] = []
-                res[year].append(project)
+            for year in range(project.start_year, project.end_year + 1):
+                res[year] = res.get(year, []) + [project]
 
         for year, projects in res.items():
             projects.sort(key=lambda x: x.name)
@@ -379,67 +401,74 @@ class Dataset(models.Model):
             alphabetically sorted prior to this call.
         """
 
-        tabs = OrderedDict()
 
-        # This is the order that the tabs will appear
-        tabs["Met"] = {"tooltip":"Meteorological Variables", "variables":[]}
-        tabs["Power"] = {"tooltip":"Battery and Solar Power", "variables":[]}
-        tabs["Rad"] = {"tooltip":"Radiation Variables", "variables":[]}
-        tabs["Soil"] = {"tooltip":"Soil Variables", "variables":[]}
-        tabs["3D_Winds"] = {"tooltip":"3D Wind Variables", "variables":[]}
-        tabs["Scalars"] = {"tooltip":"Fast Scalar Variables", "variables":[]}
-        tabs["Others"] = {"tooltip":"Other Variables", "variables":[]}
-        tabs["2ndMoments"] = {"tooltip":"variances, covariances", "variables":[]}
-        tabs["3rdMoments"] = {"tooltip":"", "variables":[]}
-        tabs["4thMoments"] = {"tooltip":"", "variables":[]}
+        sitetabs = OrderedDict()
 
-        met_list = ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan"]
-        pow_list = ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote"]
-        rad_list = ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome", "Wetness"]
-        soil_list = ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", \
-            "Tau63", "Lambdasoil", "asoil", "Cvsoil", "Gsfc"]
-        wind_list = ["u", "v", "w", "ldiag", "diagbits", "spd", "spd_max", "dir"]
-        scalars_list = ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr", "irgadiag", "p"]
+        dsetvars = self.get_variables()
 
-        for var in iter(variables):
-            start_field = var.choice_label.split(".", 1)[0]
-            quote_num = start_field.count("'")
-            if quote_num == 0:
-                if start_field in met_list:
-                    tabs["Met"]["variables"].append(var)
-                elif start_field in pow_list:
-                    tabs["Power"]["variables"].append(var)
-                elif start_field in rad_list:
-                    tabs["Rad"]["variables"].append(var)
-                elif start_field in soil_list:
-                    tabs["Soil"]["variables"].append(var)
-                elif start_field in wind_list:
-                    tabs["3D_Winds"]["variables"].append(var)
-                elif start_field in scalars_list:
-                    tabs["Scalars"]["variables"].append(var)
-                else:
-                    tabs["Others"]["variables"].append(var)
-            elif quote_num == 2:
-                tabs["2ndMoments"]["variables"].append(var)
-            elif quote_num == 3:
-                tabs["3rdMoments"]["variables"].append(var)
-            elif quote_num == 4:
-                tabs["4thMoments"]["variables"].append(var)
+        sites = self.get_site_names()
+
+        if self.get_station_names():
+            sites.append("stations")
+
+        # print("len(variables)={}".format(len(variables)))
+
+        for site in sites:
+            # print("site={}".format(site))
+            tabs = deepcopy(ISFS_TABS)
+            sitetabs[site] = tabs
+
+            if site == "stations":
+                # loop over variables, checking for dataset variables
+                # without a site name
+                tabvars = [var for var in variables \
+                    if not 'site' in dsetvars[var.choice_label]]
+                # for var in tabvars:
+                #     print("stations, var=%s" % (var.choice_label))
             else:
-                tabs["Others"]["variables"].append(var)
+                # loop over variables with site name==site
+                tabvars = [var for var in variables \
+                    if 'site' in dsetvars[var.choice_label] and \
+                        dsetvars[var.choice_label]['site'] == site]
 
-        # Remove empty tabs. Keep original order
-        for key, value in tabs.copy().items():
-            if not value["variables"]:
-                tabs.pop(key)
+            # print("site={}, len(tabvars)={}".format(site, len(tabvars)))
+            for var in iter(tabvars):
+                vname = var.choice_label.split(".", 1)[0]
+                # higher moments have tic marks to indicate a deviation:
+                # e.g.   w'h2o'.3m is a covariance between w and h2o
+                quote_num = vname.count("'")
+                if quote_num == 0:
+                    match = False
+                    for tname, tvars in ISFS_VARIABLE_TYPES.items():
+                        if vname in tvars:
+                            # print("appending %s to %s for site %s" %
+                            #         (var.choice_label, tname, site))
+                            tabs[tname]["variables"].append(var)
+                            match = True
+                            break
+                    if not match:
+                        tabs["Other"]["variables"].append(var)
+                elif quote_num == 2:
+                    tabs["2ndMoment"]["variables"].append(var)
+                elif quote_num == 3:
+                    tabs["3rdMoment"]["variables"].append(var)
+                elif quote_num == 4:
+                    tabs["4thMoment"]["variables"].append(var)
+                else:
+                    tabs["Other"]["variables"].append(var)
 
-        return tabs
+            # Remove empty tabs. Keep original order
+            for key, value in tabs.copy().items():
+                if not value["variables"]:
+                    tabs.pop(key)
+
+        return sitetabs
 
     def make_tabs(self, variables):
 
         """Select the correct tabbing method for the corresponding platform.
             If the dataset if of ISFS platform, the isfs_tabs method is used.
-            Else, the alphabetic_tabs method is used.
+            Otherwise, the alphabetic_tabs method is used.
 
         """
 
@@ -522,6 +551,17 @@ class FileDataset(Dataset):
         ncdset = self.get_netcdf_dataset()
 
         return ncdset.get_station_names()
+
+    def get_site_names(self):
+        """Return list of site names.
+
+        Raises:
+            exception.NoDataFoundException
+        """
+
+        ncdset = self.get_netcdf_dataset()
+
+        return sorted(ncdset.get_site_names())
 
     def get_series_tuples(
             self,
@@ -612,6 +652,9 @@ class DBDataset(Dataset):
         return self.get_connection().get_variables()
 
     def get_station_names(self):
+        return list()
+
+    def get_site_names(self):
         return list()
 
     def get_start_time(self):
@@ -721,4 +764,3 @@ class ClientState(models.Model):
             return [vart.last_ok, vart.last]
         except VariableTimes.DoesNotExist:
             return [None, None]
-

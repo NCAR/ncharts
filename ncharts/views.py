@@ -297,7 +297,7 @@ class DatasetView(View):
     template_name = 'ncharts/dataset.html'
 
     def get(self, request, *args, project_name, dataset_name, **kwargs):
-        """Respond to a get request where the user has specified a
+        """Respond to a GET request where the user has specified a
         project and dataset.
 
         """
@@ -521,7 +521,7 @@ class DatasetView(View):
             })
 
     def post(self, request, *args, project_name, dataset_name, **kwargs):
-        """Respond to a post request where the user has sent back a form.
+        """Respond to a POST request where the user has sent back a form.
 
         Using the requested parameters in the form, such as start and end times
         and a list of variables, the dataset can be read, and the contents
@@ -738,9 +738,7 @@ class DatasetView(View):
         else:
             variables = {k:dsetvars[k] for k in sel_vars}
 
-        stndims = {}
-        if len(sel_stns) > 0:
-            stndims = {"station": [int(stn)-1 for stn in  sel_stns]}
+        stndims = {"station": [int(stn) for stn in  sel_stns]}
 
         try:
             if isinstance(dset, nc_models.FileDataset):
@@ -1053,9 +1051,7 @@ class DataView(View):
         timezone = client_state.timezone
         tnow = datetime.datetime.now(timezone)
 
-        stndims = {}
-        if len(sel_stns) > 0:
-            stndims = {"station": [int(stn)-1 for stn in sel_stns]}
+        stndims = {"station": [int(stn) for stn in sel_stns]}
 
         for vname in sel_vars:
 

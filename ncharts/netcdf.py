@@ -19,6 +19,7 @@ import logging
 import threading
 import operator
 import hashlib
+import re
 
 from functools import reduce as reduce_
 
@@ -28,6 +29,13 @@ import pytz
 
 from ncharts import exceptions as nc_exc
 from ncharts import fileset as nc_fileset
+
+# regular expression for extracting a site name from an ISFS variable
+_SITE_RE_PROG = re.compile("(\\.[0-9]+\\.?[0-9]*(c?m))?(\\.([^.]+))$")
+
+# for ISFS variables with no short_name attribute, such as a count
+# variable. The periods will be replaced by underscores
+_SITE_RE_PROG2 = re.compile("(_[0-9]+_?[0-9]*(c?m))?(_([^_]+))$")
 
 # __name__ is ncharts.netcdf
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
@@ -44,6 +52,37 @@ def get_file_modtime(path):
 
     return datetime.fromtimestamp(
         pstat.st_mtime, tz=pytz.utc)
+
+def get_isfs_site(varname):
+    """Use regular expression to extract a site name from an ISFS variable name.
+
+    The basic format of an ISFS variable name is
+        var[.sensor][.height][.site]
+    var: string, with no periods
+    sensor: string, with no periods
+    height: numeric field with optional decimal point, followed by 'm' or 'cm'
+    site: string, with no periods
+
+    Examples:
+        'T': site name is ''
+        'T.25m.tower': site name is 'tower'
+        'T.25m': site name is ''
+        'T.acme.25m.tower': site name is 'tower'
+        'T.acme.tower': site name is 'tower'
+        'T.tower': site name is 'tower' (note the possible confusion with sensor name)
+        'T.acme': site name is 'acme' (note the possible confusion with sensor name)
+    """
+
+    match = _SITE_RE_PROG.search(varname)
+    if not match:
+        match = _SITE_RE_PROG2.search(varname)
+    if match:
+        try:
+            # print("site for {}={}".format(varname,match.group(4)))
+            return match.group(4) if match.group(4) else ''
+        except IndexError:
+            pass
+    return ''
 
 class NetCDFDataset(object):
     """A dataset consisting of NetCDF files, within a period of time.
@@ -81,6 +120,7 @@ class NetCDFDataset(object):
                   'units': str value of "units" attribute if found,
                   'long_name': str value of "long_name" attribute if found,
                   'dtype': numpy.dtype of the variable
+                  'site': site suffix of a non-station variable
                }.
         base_time: str name of base_time variable if found in the dataset.
         time_dim:  str name of the time dimension in this dataset.
@@ -91,8 +131,8 @@ class NetCDFDataset(object):
             "station".
         station_names: If a NetCDF character variable called "station"
             is found, a list of str values of the variable.
-        null_station: boolean. true if there are time-series variables without
-            a station dimension.
+        sites: list of site names extracted from names of variables
+            without a station dimension
     """
     # pylint thinks this class is too big.
     # pylint: disable=too-many-instance-attributes
@@ -136,13 +176,13 @@ class NetCDFDataset(object):
             'nstations': None,
             'station_dim': None,
             'station_names': None,
-            'null_station': False,
+            'sites': set(),
             'variables': {},
         }
         return dsinfo
 
     def save_dataset_info(self, dsinfo):
-        """Save a copy of info for this dataset.
+        """Save a the info for this dataset.
         """
         with NetCDFDataset.__cache_lock:
             NetCDFDataset.__cached_dataset_info[self.cache_hash] = dsinfo
@@ -185,11 +225,25 @@ class NetCDFDataset(object):
         """
         return [f.path for f in self.get_files(start_time, end_time)]
 
-    def get_variables(
+    def scan_files(
             self,
             time_names=('time', 'Time', 'time_offset')):
-        """ Scan the set of files for time series variables, returning a dict
-        for information about the variables.
+        """ Scan the set of files, accumulating information about the dataset in a dict,
+        with the following keys:
+            file_mod_times: dictionary of file modification times by file name, of each
+                file just before it was last scanned.
+            base_time: name of base_time variable
+            time_dim_name: name of time dimension
+            time_name: name of time variable
+            nstations: size of the station dimension
+            station_dim: name of the station dimension
+            station_names: names of the stations
+            sites: names of ISFS sites extracted from the exported names
+                of those variables not associated with a numbered station
+            variables: dictionary of information for each variable.
+
+        If an element in file_mod_times exists for a file, that file is not scanned if
+        its current modification time has not been updated.
 
         The names of the variables in the dataset are converted to an exported
         form. If a variable has a 'short_name' attribute, it is used for the
@@ -199,21 +253,9 @@ class NetCDFDataset(object):
         Note, we don't read every file.  May want to have
         MAX_NUM_FILES_TO_PRESCAN be an attribute of the dataset.
 
-        Even better, would be nice to know that one only
-        needs to read a reduced set of files, perhaps just one!
-
         Args:
             time_names: List of allowed names for time variable.
 
-        Returns:
-            A dict of variables, keyed by the exported variable name.
-            Each value is a dict, containing the following keys:
-                shape: tuple containing the shape of the variable
-                dimnames: list of dimension names
-                dtype: NetCDF data type
-                time_index: index of the time dimension
-                units: units attribute of the NetCDF variable
-                long_name: long_name attribute of the NetCDF variable
         Raises:
             OSError
             nc_exc.NoDataFoundException
@@ -319,16 +361,19 @@ class NetCDFDataset(object):
                 if not dsinfo['time_dim_name']:
                     dsinfo['time_dim_name'] = tdim.name
 
-                if 'station' in ncfile.dimensions:
+                if STATION_DIMENSION_NAME in ncfile.dimensions:
                     if dsinfo['nstations'] is None:
                         dsinfo['nstations'] = len(ncfile.dimensions[STATION_DIMENSION_NAME])
                         dsinfo['station_dim'] = STATION_DIMENSION_NAME
-                        if 'station' in ncfile.variables:
-                            dsinfo['station_names'] = ['']
+                        if STATION_DIMENSION_NAME in ncfile.variables:
+                            dsinfo['station_names'] = []
                             var = ncfile.variables[STATION_DIMENSION_NAME]
                             if var.datatype == np.dtype('S1'):
-                                dsinfo['station_names'].extend(
-                                    [bytearray(netCDF4.chartostring(v)).decode("utf-8", "strict").rstrip(' \0') for v in var])
+                                snms = [bytearray(
+                                    netCDF4.chartostring(v)).decode(
+                                        "utf-8", "strict").rstrip(' \0') \
+                                                for v in var]
+                                dsinfo['station_names'].extend(snms)
                     elif not dsinfo['nstations'] == \
                             len(ncfile.dimensions[STATION_DIMENSION_NAME]):
                         _logger.warning(
@@ -380,69 +425,78 @@ class NetCDFDataset(object):
                     if not exp_vname in dsinfo_vars:
 
                         # New variable
-                        dsinfo_vars[exp_vname] = {}
-                        dsinfo_vars[exp_vname]['netcdf_name'] = nc_vname
-                        dsinfo_vars[exp_vname]['shape'] = var.shape
-                        dsinfo_vars[
-                            exp_vname]['dimnames'] = var.dimensions
+                        varinfo = {}
+                        varinfo['netcdf_name'] = nc_vname
+                        varinfo['shape'] = var.shape
+                        varinfo['dimnames'] = var.dimensions
+                        varinfo['dtype'] = var.dtype
+                        varinfo['time_index'] = time_index
 
-                        if dsinfo['station_dim'] and \
-                            not dsinfo['station_dim'] in var.dimensions:
-                            dsinfo['null_station'] = True
-
-                        dsinfo_vars[exp_vname]['dtype'] = var.dtype
-                        dsinfo_vars[exp_vname]['time_index'] = time_index
                         # Grab certain attributes
                         for att in ['units', 'long_name']:
                             if hasattr(var, att):
-                                dsinfo_vars[exp_vname][att] = getattr(var, att)
+                                varinfo[att] = getattr(var, att)
+
                         # Set default units to ''
-                        if not 'units' in dsinfo_vars[exp_vname]:
-                            dsinfo_vars[exp_vname]['units'] = ''
+                        if not 'units' in varinfo:
+                            varinfo['units'] = ''
+
+                        # For non-station variables, parse the name to
+                        # determine the possible site
+                        if not dsinfo['station_dim'] or \
+                            not dsinfo['station_dim'] in var.dimensions:
+                            site = get_isfs_site(exp_vname)
+                            if site:
+                                varinfo['site'] = site
+                                dsinfo['sites'].add(site)
+
+                        dsinfo_vars[exp_vname] = varinfo
                         continue
+
+                    varinfo = dsinfo_vars[exp_vname]
 
                     # variable has been found in an earlier ncfile
                     # check for consistancy across files
-                    if dsinfo_vars[exp_vname]['shape'][1:] != var.shape[1:]:
+                    if varinfo['shape'][1:] != var.shape[1:]:
                         # the above check works even if either shape
                         # has length 1
-                        if len(dsinfo_vars[exp_vname]['shape']) != \
+                        if len(varinfo['shape']) != \
                                 len(var.shape):
                             # changing number of dimensions, punt
                             _logger.error(
                                 "%s: %s: number of "
-                                "dimensions: %d and %d changes. "
+                                "dimensions is not consistent: %d and %d. "
                                 "Skipping this variable.",
                                 ncpath, nc_vname, len(var.shape),
-                                len(dsinfo_vars[exp_vname]['shape']))
+                                len(varinfo['shape']))
                             del dsinfo_vars[exp_vname]
                             continue
                         # here we know that shapes have same length and
                         # they must have len > 1. Allow final dimension
                         # to change.
                         ndim = len(var.shape)
-                        if (dsinfo_vars[exp_vname]['shape'][1:(ndim-1)] !=
+                        if (varinfo['shape'][1:(ndim-1)] !=
                                 var.shape[1:(ndim-1)]):
                             _logger.error(
                                 "%s: %s: incompatible shapes: "
                                 "%s and %s. Skipping this variable.",
                                 ncpath, nc_vname, repr(var.shape),
-                                repr(dsinfo_vars[exp_vname]['shape']))
+                                repr(varinfo['shape']))
                             del dsinfo_vars[exp_vname]
                             continue
                         # set shape to max shape (leaving the problem
                         # for later...)
-                        dsinfo_vars[exp_vname]['shape'] = tuple(
+                        varinfo['shape'] = tuple(
                             [max(i, j) for (i, j) in zip(
-                                dsinfo_vars[exp_vname]['shape'], var.shape)])
+                                varinfo['shape'], var.shape)])
 
-                    if dsinfo_vars[exp_vname]['dtype'] != var.dtype:
+                    if varinfo['dtype'] != var.dtype:
                         _logger.error(
                             "%s: %s: type=%s is different than "
                             "in other files",
                             ncpath, nc_vname, repr(var.dtype))
 
-                    if dsinfo_vars[exp_vname]['time_index'] != time_index:
+                    if varinfo['time_index'] != time_index:
                         _logger.error(
                             "%s: %s: time_index=%d is different than "
                             "in other files. Skipping this variable.",
@@ -450,13 +504,13 @@ class NetCDFDataset(object):
                         del dsinfo_vars[exp_vname]
 
                     for att in ['units', 'long_name']:
-                        if hasattr(var, att) and att in dsinfo_vars[exp_vname]:
-                            if getattr(var, att) != dsinfo_vars[exp_vname][att]:
+                        if hasattr(var, att) and att in varinfo:
+                            if getattr(var, att) != varinfo[att]:
                                 _logger.info(
                                     "%s: %s: %s=%s is different than previous value=%s",
                                     ncpath, nc_vname, att, getattr(var, att),
-                                    dsinfo_vars[exp_vname][att])
-                                dsinfo_vars[exp_vname][att] = getattr(var, att)
+                                    varinfo[att])
+                                varinfo[att] = getattr(var, att)
 
             finally:
                 ncfile.close()
@@ -465,20 +519,39 @@ class NetCDFDataset(object):
             msg = "No variables found"
             raise nc_exc.NoDataFoundException(msg)
 
-        # create station names if not found in NetCDF file
+        # create station names if a "station" variable is not found
+        # in NetCDF files. Names are S1, S2, etc for dimension index 0, 1
         if dsinfo['nstations'] and not dsinfo['station_names']:
-            dsinfo['station_names'] = ['']
             dsinfo['station_names'].extend(\
                 ['S{}'.format(i+1) for i in range(dsinfo['nstations'])])
 
-        if dsinfo['station_names'] and not dsinfo['null_station']:
-            dsinfo['station_names'][0] = None
-
         # cache dsinfo
-        dsvars = dsinfo_vars.copy()
         self.save_dataset_info(dsinfo)
 
-        return dsvars
+    def get_variables(self, time_names=('time', 'Time', 'time_offset')):
+        """Get the time series variables in a dataset.
+
+        Returns:
+            A dict of variables, keyed by the exported variable name.
+            Each value is a dict, containing the following keys:
+                shape: tuple containing the shape of the variable
+                netcdf_name: name of variable in NetCDF file
+                dimnames: list of dimension names
+                dtype: NetCDF data type
+                time_index: index of the time dimension
+                units: units attribute of the NetCDF variable
+                long_name: long_name attribute of the NetCDF variable
+                site(optional): site name, possibly an empty string,
+                    if a variable does not have a station dimension
+        Raises:
+            OSError
+            nc_exc.NoDataFoundException
+        """
+
+        # scan the dataset every time in case a file has been modified
+        self.scan_files()
+        dsinfo = self.get_dataset_info()
+        return dsinfo['variables'].copy()
 
     def get_station_names(
             self):
@@ -499,13 +572,37 @@ class NetCDFDataset(object):
 
         dsinfo = self.get_dataset_info()
         if not dsinfo['station_names']:
-            self.get_variables()
+            self.scan_files()
             dsinfo = self.get_dataset_info()
 
         if not dsinfo['station_names']:
             return []
 
         return dsinfo['station_names'].copy()
+
+    def get_site_names(
+            self):
+
+        """ return the site names of this dataset.
+
+        Args:
+
+        Returns:
+            A list of names, possibly None.
+        Raises:
+            OSError
+            nc_exc.NoDataFoundException
+        """
+
+        dsinfo = self.get_dataset_info()
+        if not dsinfo['sites']:
+            self.scan_files()
+            dsinfo = self.get_dataset_info()
+
+        if not dsinfo['sites']:
+            return []
+
+        return dsinfo['sites'].copy()
 
 
     def resolve_variable_shapes(self, variables, selectdim):
@@ -514,11 +611,11 @@ class NetCDFDataset(object):
         Args:
             variables: List of variable names.
             selectdim: A dict containing by dimension name,
-                the indices of the dimension to be read.
+                the indices of the dimension to be read, for
+                variables with that dimension.
                 For example: {"station":[3,4,5]} to read indices 3,4 and 5
                 (indexed from 0) of the station dimension for variables
-                which have that dimension. A index of -1 indicates that
-                variables which don't have the dimension are still to be read.
+                which have that dimension.
 
         Returns:
             Dict of resultant variable shapes, which may be different
@@ -527,7 +624,7 @@ class NetCDFDataset(object):
         """
         dsinfo = self.get_dataset_info()
         if len(dsinfo['variables']) == 0:
-            self.get_variables()
+            self.scan_files()
             dsinfo = self.get_dataset_info()
 
         dsinfo_vars = dsinfo['variables']
@@ -541,20 +638,6 @@ class NetCDFDataset(object):
                 time_index = dsinfo_vars[exp_vname]["time_index"]
                 vdims = dsinfo_vars[exp_vname]["dimnames"]
 
-                dmatch = True
-                for dim in selectdim:
-                    # some dimensions selected
-                    if dim not in vdims:
-                        # This variable does not have the selected dimension
-                        # If all selected indices for the dimension are >= 0
-                        # then don't return any values for this variable.
-                        # -1 for a selected dimension means return values
-                        # for the variable even if it doesn't have the dimension
-                        if len(selectdim[dim]) > 0 and all(i >= 0 for i in selectdim[dim]):
-                            dmatch = False
-                if not dmatch:
-                    continue
-
                 # determine selected shape for variable
                 for idim, dim in enumerate(vdims):
                     if dim == dsinfo['time_dim_name']:
@@ -566,7 +649,9 @@ class NetCDFDataset(object):
                         vshape[idim] = 1
                     elif dim in selectdim:
                         # variable has a selected dimension
-                        idx = [i for i in selectdim[dim] if i >= 0]
+                        # if len(selectdim[dim]) == 0:
+                        #     continue
+                        idx = [i for i in selectdim[dim]]
                         vshape[idim] = len(idx)
 
                 # remove non-time shape values of 1
@@ -741,6 +826,8 @@ class NetCDFDataset(object):
                 which have that dimension.
             dim2: Values for second dimension of the variable, such as height.
             stnnames: A list of the station names of the variable.
+                An empty string indicates the variable does not have a station
+                dimension
 
         Returns:
             A numpy.ma.array containing the data read.
@@ -764,14 +851,6 @@ class NetCDFDataset(object):
 
             skip = False
 
-            # variable doesn't have a selected dimension, and selectdim is all
-            # non-negative for that dimension, then don't read the variable
-            for dim in selectdim:
-                if dim not in var.dimensions:
-                    if len(selectdim[dim]) > 0 and all(i >= 0 for i in selectdim[dim]):
-                        skip = True
-                        continue
-
             # indices of variable to be read
             idx = ()
             stnnums = []   # station numbers
@@ -785,18 +864,19 @@ class NetCDFDataset(object):
                     idx += (0,)
                 elif dim in selectdim:
                     # variable has a selected dimension
-                    mdim = tuple(i for i in selectdim[dim] if i >= 0)
+                    mdim = tuple(i for i in selectdim[dim])
+                    # print("mdim=%s" % (str(mdim)))
                     if len(mdim) == 0:
                         skip = True
                         continue
                     idx += (tuple(mdim),)
                     if dim == STATION_DIMENSION_NAME:
-                        stnnums = [i+1 for i in mdim]
+                        stnnums = [i for i in mdim]
                 else:
                     sized = len(ncfile.dimensions[dim])
                     idx += (slice(0, sized), )
                     if dim == STATION_DIMENSION_NAME:
-                        stnnums = [i+1 for i in range(0, sized)]
+                        stnnums = [i for i in range(0, sized)]
                     elif not dim2:
                         # dsinfo_vars[exp_vname]['shape'][idim] will
                         # be the largest value for this dimension
@@ -807,6 +887,7 @@ class NetCDFDataset(object):
                         dim2['units'] = ''
 
             if skip:
+                # print("skipping %s" % (nc_vname))
                 return None
 
             if debug and time_slice.stop - time_slice.start > 0:
@@ -844,9 +925,11 @@ class NetCDFDataset(object):
                         mask=True, fill_value=fill_val).filled(),
                     axis=-1)
 
-            # if len(stnnums) > 0 then dsinfo['station_names'] must exist
-            dsinfo_stns = dsinfo['station_names']
-            stnnames.extend([dsinfo_stns[i] for i in stnnums])
+            if not stnnums:
+                stnnames.append('')
+            else:
+                dsinfo_stns = dsinfo['station_names']
+                stnnames.extend([dsinfo_stns[i] for i in stnnums])
 
         else:
             # variable is not in file, create NaN filled array
@@ -942,7 +1025,7 @@ class NetCDFDataset(object):
         dsinfo = self.get_dataset_info()
 
         if not dsinfo['time_name']:
-            self.get_variables()
+            self.scan_files()
             dsinfo = self.get_dataset_info()
 
         dsinfo_vars = dsinfo['variables']
@@ -1047,10 +1130,12 @@ class NetCDFDataset(object):
 
                     dim2 = {}
                     stnnames = []
-                    # print("selectdim=",str(selectdim))
                     vdata = self.read_time_series_data(
                         ncfile, ncpath, exp_vname, time_slice, vshape,
                         selectdim, dim2, stnnames)
+
+                    if vdata is None:
+                        continue
 
                     if not exp_vname in odim2:
                         odim2[exp_vname] = dim2

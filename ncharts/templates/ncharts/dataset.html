@@ -74,28 +74,6 @@
         </div>
     </div>
 
-    {% if form.stations|length > 0 %}
-        <div class="col-md-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Stations</h3>
-                </div>
-                <div class="panel panel-body">
-                    <strong>{{ form.stations.errors }}</strong>
-                    <div class="input-group">
-                        <label>set all<input id="id_stations_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
-                        <label>clear all<input id="id_stations_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
-                    </div>
-                    <div id="station-checkbox">
-                        {% for stn in form.stations %}
-                        <label>{{ stn.choice_label }}{{ stn.tag }}&nbsp;&nbsp;</label>
-                    {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-
     {% if dataset.dset_type == 'sounding' %}
     <div class="col-md-12">
         <div class="panel panel-default">
@@ -133,32 +111,59 @@
                     <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                 </div>
                 {% if form.variables|length > 20 %}
-                {% with tabs=form.variables|make_tabs:dataset  %}
+                {% with sitetabs=form.variables|make_tabs:dataset  %}
 
-                <div class="container" id="variable-checkbox">
-                    <ul class="tabrow">
-                        {% for tab, vars in tabs.items %}
-                        {% if forloop.first %}
-                        <li class="selected"><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ tab }}"> {{ tab }}</a></li> 
-                        {% else %}
-                        <li><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ tab }}"> {{ tab }}</a></li>
-                        {% endif %}
+                <div class="container" id="all-variable-checkboxes">
+                    <ul class="nav nav-tabs">
+                        {% for site, vartabs in sitetabs.items %}
+                            {% if forloop.first %}
+                            <li class="active"><a data-toggle="tab" id="{{ site }}_site_tab"
+                                href="#{{ site }}_site">{{ site }}</a></li> 
+                            {% else %}
+                            <li><a data-toggle="tab" href="#{{ site }}_site" id="{{ site }}_site_tab">{{ site }}</a></li>
+                            {% endif %}
                         {% endfor %}
                     </ul>
                     <div class="tab-content">
-                        {% for tab, vars in tabs.items %}
-                        <div id="{{ tab }}"
+                        {% for site, vartabs in sitetabs.items %}
+                        <div id="{{ site }}_site"
                             {% if forloop.first %}
-                            class="tab-pane fade in active"
+                            class="tab-pane fade in active site-tab"
                             {% else %}
-                            class="tab-pane fade"
+                            class="tab-pane fade site-tab"
                             {% endif %}
                             >
-                            {% for var in vars|get_item:"variables" %} 
-                            <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
-                                title="{{ variables|get_long_name:var.choice_label }}">
-                                {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
-                            {% endfor %}
+                            <ul class="nav nav-tabs">
+                                {% for tab, vars in vartabs.items %}
+                                    {% if forloop.first %}
+                                    <li class="active"><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ site }}_{{ tab }}">{{ tab }}</a></li> 
+                                    {% else %}
+                                    <li><a data-toggle="tab" title="{{ vars|get_item:'tooltip' }}" href="#{{ site }}_{{ tab }}">{{ tab }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                            <div class="tab-content" id="variables">
+                                {% for tab, vars in vartabs.items %}
+                                <div id="{{ site }}_{{ tab }}"
+                                    {% if forloop.first %}
+                                    class="tab-pane fade in active var-tab"
+                                    {% else %}
+                                    class="tab-pane fade var-tab"
+                                    {% endif %}
+                                    >
+                                    <div class="checkboxes">
+                                    {% for var in vars|get_item:"variables" %} 
+                                    <li class="col-md-2" id="variable_list">
+                                        <label data-toggle="tooltip"
+                                            title="{{ variables|get_long_name:var.choice_label }}">
+                                            {{ var.choice_label }}&nbsp;{{ var.tag }}
+                                        </label>
+                                    </li>
+                                    {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -169,7 +174,7 @@
                 </div>
                 {% endwith %}
                 {% else %}
-                <div class="container" id="variable-checkbox">
+                <div class="container" id="all-variable-checkboxes">
                     {% for var in form.variables %} 
                     <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
                         title="{{ variables|get_long_name:var.choice_label }}">
@@ -180,6 +185,37 @@
             </div>
         </div>
     </div>
+    {% if form.stations %}
+    <div id="stations_box"
+        {% with sitenames=dataset|get_site_names  %}
+        {% with stationnames=dataset|get_station_names  %}
+        {% if not sitenames and stationnames %}
+            class="col-md-12"
+        {% else %}
+            class="col-md-12 hidden"
+        {% endif %}
+        {% endwith %}
+        {% endwith %}
+        >
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Stations</h3>
+            </div>
+            <div class="panel panel-body">
+                <strong>{{ form.stations.errors }}</strong>
+                <div class="input-group">
+                    <label>set all<input id="id_stations_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                    <label>clear all<input id="id_stations_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
+                </div>
+                <div id="station-checkbox">
+                    {% for stn in form.stations %}
+                    <label>{{ stn.choice_label }}{{ stn.tag }}&nbsp;</label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% if dataset.dset_type == 'sounding' %}
     <div class="col-md-12">
         <div class="panel panel-default">
@@ -218,6 +254,19 @@
 var soundings = jQuery.parseJSON('{{ soundings }}');
 </script>
 {% endif %}
+
+<script>
+$("#stations_site_tab").on('show.bs.tab', function(e) {
+    // console.log("tab show.bs.tab=" + e.target);
+    // $("#stations_box").show();
+    $("#stations_box").removeClass('hidden');
+})
+$("#stations_site_tab").on('hide.bs.tab', function(e) {
+    // console.log("tab hide.bs.tab=" + e.target);
+    // $("#stations_box").hide();
+    $("#stations_box").addClass('hidden');
+})
+</script>
 
 {% if data %}
 <script>
