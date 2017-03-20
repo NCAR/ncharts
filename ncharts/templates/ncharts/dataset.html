@@ -118,7 +118,7 @@
                     <ul class="nav nav-tabs">
                         {% for lev1tab, lev1tabcontent in tabdict.items %}
                             {% if forloop.first %}
-                            <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_lev1cont"
+                            <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane"
                                 title="{{ lev1tab|get_lev1tab_tooltip }}"
                                 id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a></li> 
                             {% else %}
