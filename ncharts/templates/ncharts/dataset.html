@@ -127,14 +127,14 @@
                 <div class="row" id="all-variable-checkboxes">
                     <div class="col-md-12">
                     {% if tabdict|length > 1 %}
-                    <ul class="nav nav-tabs">
+                    <ul class="nav nav-pills">
                         {% for lev1tab, lev1tabcontent in tabdict.items %}
                             {% if forloop.first %}
-                            <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane"
+                            <li class="active"><a data-toggle="pill" href="#{{ lev1tab }}_lev1pane"
                                 id="{{ lev1tab }}_lev1tab"
                                 title="{{ lev1tab|get_lev1tab_tooltip }}">{{ lev1tab }}</a></li> 
                             {% else %}
-                            <li><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane"
+                            <li><a data-toggle="pill" href="#{{ lev1tab }}_lev1pane"
                                 id="{{ lev1tab }}_lev1tab"
                                 title="{{ lev1tab|get_lev1tab_tooltip }}">{{ lev1tab }}</a></li>
                             {% endif %}
@@ -158,13 +158,13 @@
                             class="tab-pane fade lev1tab"
                             {% endif %}
                             >
-                            <ul class="nav nav-tabs">
+                            <ul class="nav nav-pills">
                                 {% for lev2tab, vars in lev1tabcontent.items %}
                                     {% if forloop.first %}
-                                    <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
+                                    <li class="active"><a data-toggle="pill" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
                                         title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li> 
                                     {% else %}
-                                    <li><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
+                                    <li><a data-toggle="pill" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
                                        title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li>
                                     {% endif %}
                                 {% endfor %}

@@ -17,12 +17,12 @@
             {% if projects %}
                 {% with years=projects|make_project_tabs %}
                 <div class="container">
-                    <ul class="nav nav-tabs">
+                    <ul class="nav nav-pills">
                         {% for year in years %}
                         {% if forloop.first %}
-                        <li class="selected"><a data-toggle="tab" href="#{{ year }}"> {{ year }}</a></li> 
+                        <li class="selected"><a data-toggle="pill" href="#{{ year }}"> {{ year }}</a></li> 
                         {% else %}
-                        <li><a data-toggle="tab" href="#{{ year }}"> {{ year }}</a></li>
+                        <li><a data-toggle="pill" href="#{{ year }}"> {{ year }}</a></li>
                         {% endif %}
                         {% endfor %}
                     </ul>
