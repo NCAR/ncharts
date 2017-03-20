@@ -47,6 +47,7 @@
 <form action="{% url 'ncharts:dataset' dataset.project.name dataset.name %}" method="post">
     {% csrf_token %}
 
+    <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -73,8 +74,10 @@
             </div>
         </div>
     </div>
+    </div>
 
     {% if dataset.dset_type == 'sounding' %}
+    <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -96,26 +99,33 @@
             </div>
         </div>
     </div>
+    </div>
     {% endif %}
+    <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">Variables</h3>
             </div>
             <div class="panel panel-body">
-                <strong>{{ form.variables.errors }}</strong>
-                <div class="input-group">
-                    {% if form.variables|length <= 20 %}
-                    <label>set all<input id="id_variables_all"
-                        type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
-                    {% endif %}
-                    <label>clear all<input id="id_variables_clear"
-                        type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
+                <div class="row">
+                    <div class="col-md-12">
+                    <strong>{{ form.variables.errors }}</strong>
+                    <div class="input-group">
+                        {% if form.variables|length <= 20 %}
+                        <label>set all<input id="id_variables_all"
+                            type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                        {% endif %}
+                        <label>clear all<input id="id_variables_clear"
+                            type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
+                    </div>
+                    </div>
                 </div>
                 {% if form.variables|length > 20 %}
                 {% with tabdict=form.variables|make_tabs:dataset  %}
 
-                <div class="container" id="all-variable-checkboxes">
+                <div class="row" id="all-variable-checkboxes">
+                    <div class="col-md-12">
                     {% if tabdict|length > 1 %}
                     <ul class="nav nav-tabs">
                         {% for lev1tab, lev1tabcontent in tabdict.items %}
@@ -184,25 +194,34 @@
                         </div>
                         {% endfor %}
                     </div>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>set all in tab<input id="id_tab_all" type="checkbox" value="set tab"/>&nbsp;&nbsp;</label>
-                    <label>clear all in tab<input id="id_tab_clear" type="checkbox" value="clear tab"/>&nbsp;&nbsp;</label>
+                <div class="row">
+                    <div class="col-md-12">
+                    <div class="input-group">
+                        <label>set all in tab<input id="id_tab_all" type="checkbox" value="set tab"/>&nbsp;&nbsp;</label>
+                        <label>clear all in tab<input id="id_tab_clear" type="checkbox" value="clear tab"/>&nbsp;&nbsp;</label>
+                    </div>
+                    </div>
                 </div>
                 {% endwith %}
                 {% else %}
-                <div class="container" id="all-variable-checkboxes">
+                <div class="row" id="all-variable-checkboxes">
+                    <div class="col-md-12">
                     {% for var in form.variables %} 
-                    <li class="col-md-2" id="variable_list"><label data-toggle="tooltip"
+                    <li id="variable_list"><label data-toggle="tooltip"
                         title="{{ variables|get_long_name:var.choice_label }}">
                         {{ var.choice_label }}{{ var.tag }}&nbsp;&nbsp;</label></li>
                     {% endfor %}
+                    </div> 
                 </div> 
                 {% endif %}
             </div>
         </div>
     </div>
+    </div>
     {% if form.stations %}
+    <div class="row">
     <div id="stations_box"
         {% with stationnames=dataset|get_station_names  %}
          {% if stationnames %}
@@ -230,8 +249,10 @@
             </div>
         </div>
     </div>
+    </div>
     {% endif %}
     {% if dataset.dset_type == 'sounding' %}
+    <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -245,6 +266,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
     {% endif %}
     <div class="row">
@@ -284,40 +306,40 @@ $("#stations_lev1tab").on('hide.bs.tab', function(e) {
 </script>
 
 {% if data %}
-<script>
-var plot_time0 = jQuery.parseJSON('{{ time0 }}');
-var plot_times = jQuery.parseJSON('{{ time }}');
-var plot_data = jQuery.parseJSON('{{ data }}');
-var plot_vmap = jQuery.parseJSON('{{ vmap }}');
-var plot_stns = jQuery.parseJSON('{{ stations }}');
-// dim2 are values for 2nd dimension for heatmap plots
-var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
-// url to use with ajax to get real time data
-{% if form.track_real_time.value %}
-var ajaxurl = "{% url 'ncharts:ajax-data' dataset.project.name dataset.name %}";
-{% endif %}
-var sounding_yvar = '{{ yvariable }}';
-</script>
-
-{% for group,val in plot_groups.items %}
-    {% if val.plot_type == 'sounding-profile' %}
-        <div class="sounding-chart-wrapper">
-    {% else %}
-        <div class="time-series-chart-wrapper">
+    <script>
+    var plot_time0 = jQuery.parseJSON('{{ time0 }}');
+    var plot_times = jQuery.parseJSON('{{ time }}');
+    var plot_data = jQuery.parseJSON('{{ data }}');
+    var plot_vmap = jQuery.parseJSON('{{ vmap }}');
+    var plot_stns = jQuery.parseJSON('{{ stations }}');
+    // dim2 are values for 2nd dimension for heatmap plots
+    var plot_dim2 = jQuery.parseJSON('{{ dim2 }}');
+    // url to use with ajax to get real time data
+    {% if form.track_real_time.value %}
+    var ajaxurl = "{% url 'ncharts:ajax-data' dataset.project.name dataset.name %}";
     {% endif %}
-            <div class="chart-inner">
-                <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
-            </div>
-        </div>    
+    var sounding_yvar = '{{ yvariable }}';
+    </script>
+
+    {% for group,val in plot_groups.items %}
+        {% if val.plot_type == 'sounding-profile' %}
+            <div class="sounding-chart-wrapper">
+        {% else %}
+            <div class="time-series-chart-wrapper">
+        {% endif %}
+                <div class="chart-inner">
+                    <div id="{{ val.plot_type }}_{{ group }}" style="width:100%; height: 100%;" class="do_plot"></div>
+                </div>
+            </div>    
 
         <script>
-    var div = $("#{{ val.plot_type }}_{{ group }}")[0];
-    jQuery.data(div,"series",'{{ val.series }}');
-    jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
-    jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
-    jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
-    jQuery.data(div,"dim2_name","{{ dim2.name }}");
+        var div = $("#{{ val.plot_type }}_{{ group }}")[0];
+        jQuery.data(div,"series",'{{ val.series }}');
+        jQuery.data(div,"variables",jQuery.parseJSON('{{ val.variables }}'));
+        jQuery.data(div,"units",jQuery.parseJSON('{{ val.units }}'));
+        jQuery.data(div,"long_names",jQuery.parseJSON('{{ val.long_names }}'));
+        jQuery.data(div,"dim2_name","{{ dim2.name }}");
         </script>
-{% endfor %}
+    {% endfor %}
 {% endif %}
 {% endblock %}
