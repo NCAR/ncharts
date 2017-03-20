@@ -19,8 +19,8 @@
                 <div class="container">
                     <ul class="nav nav-pills">
                         {% for year in years %}
-                        {% if forloop.first %}
-                        <li class="selected"><a data-toggle="pill" href="#{{ year }}"> {{ year }}</a></li> 
+                        {% if forloop.last %}
+                        <li class="active"><a data-toggle="pill" href="#{{ year }}"> {{ year }}</a></li> 
                         {% else %}
                         <li><a data-toggle="pill" href="#{{ year }}"> {{ year }}</a></li>
                         {% endif %}
@@ -29,7 +29,7 @@
                     <div class="tab-content">
                         {% for year, projects in years.items %}
                         <div id="{{ year }}"
-                            {% if forloop.first %}
+                            {% if forloop.last %}
                             class="tab-pane fade in active"
                             {% else %}
                             class="tab-pane fade"
