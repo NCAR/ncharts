@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2012-09-20T00:00:00+00:00", 
+        "end_time": "2012-12-01T00:00:00+00:00", 
+        "location": "Pawnee National Grassland, Central Plains Experimental Range, Colorado",
+        "name": "geo_tilt_cor", 
+        "long_name": "SCP, preliminary data, winds in geographic, tilt-corrected coordinates", 
+        "project": "SCP",
+	"url": "https://www.eol.ucar.edu/field_projects/scp",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 8
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/SCP/ISFS/netcdf_geo_tilt_cor",
+        "filenames": "isfs_qc_gtc_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 8
+}
+]

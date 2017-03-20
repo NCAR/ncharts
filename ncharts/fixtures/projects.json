@@ -139,5 +139,16 @@
     },
     "model": "ncharts.project", 
     "pk": "VERTEX"
+},
+{
+    "fields": {
+        "location": "Pawnee National Grassland, Central Plains Experimental Range, Colorado",
+        "timezones": ["US/Mountain", "UTC"],
+	"long_name": "Study of the formation and maintenance of common shallow cold pools",
+        "start_year": "2012",
+        "end_year": "2012"
+    },
+    "model": "ncharts.project", 
+    "pk": "SCP"
 }
 ]
