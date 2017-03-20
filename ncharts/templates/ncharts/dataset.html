@@ -106,9 +106,11 @@
                 <strong>{{ form.variables.errors }}</strong>
                 <div class="input-group">
                     {% if form.variables|length <= 20 %}
-                    <label>set all<input id="id_variables_all" type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
+                    <label>set all<input id="id_variables_all"
+                        type="checkbox" value="set all"/>&nbsp;&nbsp;</label>
                     {% endif %}
-                    <label>clear all<input id="id_variables_clear" type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
+                    <label>clear all<input id="id_variables_clear"
+                        type="checkbox" value="clear all"/>&nbsp;&nbsp;</label>
                 </div>
                 {% if form.variables|length > 20 %}
                 {% with tabdict=form.variables|make_tabs:dataset  %}
@@ -119,12 +121,12 @@
                         {% for lev1tab, lev1tabcontent in tabdict.items %}
                             {% if forloop.first %}
                             <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane"
-                                title="{{ lev1tab|get_lev1tab_tooltip }}"
-                                id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a></li> 
+                                id="{{ lev1tab }}_lev1tab"
+                                title="{{ lev1tab|get_lev1tab_tooltip }}">{{ lev1tab }}</a></li> 
                             {% else %}
                             <li><a data-toggle="tab" href="#{{ lev1tab }}_lev1pane"
-                                title="{{ lev1tab|get_lev1tab_tooltip }}"
-                                id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a></li>
+                                id="{{ lev1tab }}_lev1tab"
+                                title="{{ lev1tab|get_lev1tab_tooltip }}">{{ lev1tab }}</a></li>
                             {% endif %}
                         {% endfor %}
                     </ul>
@@ -149,17 +151,17 @@
                             <ul class="nav nav-tabs">
                                 {% for lev2tab, vars in lev1tabcontent.items %}
                                     {% if forloop.first %}
-                                    <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}"
+                                    <li class="active"><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
                                         title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li> 
                                     {% else %}
-                                    <li><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}"
+                                    <li><a data-toggle="tab" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
                                        title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>
                             <div class="tab-content" id="variables">
                                 {% for lev2tab, vars in lev1tabcontent.items %}
-                                <div id="{{ lev1tab }}_{{ lev2tab }}"
+                                <div id="{{ lev1tab }}_{{ lev2tab }}_pane"
                                     {% if forloop.first %}
                                     class="tab-pane fade in active lev2tab"
                                     {% else %}
