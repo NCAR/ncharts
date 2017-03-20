@@ -148,8 +148,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # People who should receive emails of ERRORs
 ADMINS = (
-    ('Gordon Maclean', 'maclean@ucar.edu'),
-    # ('Hien Nguyen', 'hnguyen@ucar.edu'),
+    # ('Gordon Maclean', 'maclean@ucar.edu'),
 )
 EMAIL_HOST = "smtp.eol.ucar.edu"
 # Email address they appear to come from

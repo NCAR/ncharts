@@ -38,6 +38,11 @@ if SECRET_KEY == None:
 #
 ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210']
 
+# People who should receive emails of ERRORs
+ADMINS = (
+    ('Gordon Maclean', 'maclean@ucar.edu'),
+)
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
