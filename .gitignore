@@ -2,3 +2,5 @@ db.sqlite3
 __pycache__
 log
 /.vagrant*
+/docker-compose.yml
+/docker-compose.override.yml

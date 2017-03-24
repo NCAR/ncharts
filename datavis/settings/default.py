@@ -26,8 +26,7 @@ SECRET_KEY = 'abc-123-this-value-is-totally-insecure'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-VAR_RUN_DIR = BASE_DIR
-VAR_LIB_DIR = BASE_DIR
+DB_DIR  = BASE_DIR
 LOG_DIR = os.path.join(BASE_DIR, 'log')
 
 # ALLOWED_HOSTS are the server's IP names, NOT the names of allowed client hosts
@@ -116,7 +115,7 @@ WSGI_APPLICATION = 'datavis.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
         'OPTIONS': {'timeout': 20,},
     }
 }
@@ -235,4 +234,3 @@ LOGGING = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 INTERNAL_IPS = ['128.117']
-

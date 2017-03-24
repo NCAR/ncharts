@@ -179,16 +179,16 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   <http://127.0.0.1:8000/ncharts>
 
-12. To run your development environment in production mode, set two environment variable: `DJANGO_SETTINGS_MODULE` and `EOL_DATAVIS_SECRET_KEY`. `DJANGO_SETTINGS_MODULE` should be set to `datavis.settings.production`, while `EOL_DATAVIS_SECRET_KEY` can be set to anything. You can set these on the same line as `runserver.sh` invocation:
+12. To run your development environment in production mode, set two environment variable: `DJANGO_SETTINGS_MODULE` and `NCHARTS_SECRET_KEY`. `DJANGO_SETTINGS_MODULE` should be set to `datavis.settings.production`, while `EOL_NCHARTS_SECRET_KEY` can be set to anything. You can set these on the same line as `runserver.sh` invocation:
 
   ```sh
-EOL_DATAVIS_SECRET_KEY=1 DJANGO_SETTINGS_MODULE=datavis.settings.production ./runserver.sh
+NCHARTS_SECRET_KEY=1 DJANGO_SETTINGS_MODULE=datavis.settings.production ./runserver.sh
 ```
 
   or `export` them prior to invocation:
 
   ```sh
-export EOL_DATAVIS_SECRET_KEY=1
+export NCHARTS_SECRET_KEY=1
 export DJANGO_SETTINGS_MODULE=datavis.settings.production
 ./runserver.sh
 ```

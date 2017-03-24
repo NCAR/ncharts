@@ -1,0 +1,46 @@
+#
+# ABOUT
+#
+# Docker Compose override file for ops environments:
+# - add cache service via memcached
+# - ops-specific customization of app and web services
+#
+# USAGE
+#
+# symbolically link to this file from project root directory
+# $ ln -s docker/docker-compose-ops.override.yml docker-compose.override.yml
+#
+# set NCHARTS_SECRET_KEY:
+# $ export NCHARTS_SECRET_KEY=abc123
+# $ docker-compose up
+#
+
+app:
+  environment:
+    DJANGO_SETTINGS_MODULE: datavis.settings.production
+    # datavis(-dev).eol.ucar.edu settings
+    NCHARTS_DB_DIR:  /var/lib/django
+    NCHARTS_LOG_DIR: /var/log/django
+    # /datavis(-dev).eol.ucar.edu settings
+    NCHARTS_MEMCACHED_LOCATION: 'cache:11211'
+    NCHARTS_SECRET_KEY: ${EOL_NCHARTS_SECRET_KEY}
+  volumes:
+    # datavis(-dev).eol.ucar.edu settings
+    - /net/weather:/net/weather
+    - /var/log/django:/var/log/django
+    - /var/lib/django:/var/lib/django
+    # /datavis(-dev).eol.ucar.edu settings
+
+  links:
+    - cache
+  command: gunicorn -c datavis/settings/gunicorn.py datavis.wsgi:application
+
+#
+# https://hub.docker.com/_/memcached/
+#
+cache:
+  image: memcached
+
+web:
+  ports:
+    - '80:80'

@@ -8,24 +8,24 @@ DEBUG = False
 
 DEFAULT_LOG_DIR = LOG_DIR
 
-LOG_DIR     = '/var/log/django'
-LOG_LEVEL   = 'WARNING'
+LOG_DIR   = os.getenv('NCHARTS_LOG_DIR',   DEFAULT_LOG_DIR)
+LOG_LEVEL = os.getenv('NCHARTS_LOG_LEVEL', 'WARNING')
+DB_DIR    = os.getenv('NCHARTS_DB_DIR',    BASE_DIR)
 
-VAR_RUN_DIR = '/var/run/django'
-VAR_LIB_DIR = '/var/lib/django'
+MEMCACHED_LOCATION = os.getenv('NCHARTS_MEMCACHED_LOCATION', 'unix:/var/run/django/django_memcached.sock')
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
-        'OPTIONS': {'timeout': 20,},
-    }
+  'default': {
+    'ENGINE': 'django.db.backends.sqlite3',
+    'NAME': os.path.join(DB_DIR, 'db.sqlite3'),
+    'OPTIONS': {'timeout': 20,},
+  }
 }
 
-SECRET_KEY = os.environ.get('EOL_DATAVIS_SECRET_KEY')
+SECRET_KEY = os.environ.get('NCHARTS_SECRET_KEY')
 
 if SECRET_KEY == None:
-  raise ValueError('EOL_DATAVIS_SECRET_KEY environment variable must be set when running with datavis.settings.production')
+  raise ValueError('NCHARTS_SECRET_KEY environment variable must be set when running with datavis.settings.production')
 
 #
 # Don't add those external host names to ALLOWED_HOSTS!
@@ -36,13 +36,12 @@ if SECRET_KEY == None:
 # client's browser. Setting ALLOWED_HOSTS to the various names for datavis will
 # result in packets being ignored if they contain other than the following:
 #
-ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210']
+ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', 'local.docker', '128.117.82.210']
 
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR, 'django_memcached.sock'),
-        # 'LOCATION': '127.0.0.1:11211',
+        'LOCATION': MEMCACHED_LOCATION,
         'TIMEOUT': 300, # 300 seconds is the default
     }
 }
@@ -51,15 +50,14 @@ CACHE_MIDDLEWARE_ALIAS = 'default'
 CACHE_MIDDLEWARE_SECONDS = 300
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
-if LOG_DIR != DEFAULT_LOG_DIR:
+#
+# iterate over LOGGING['handlers'] and update filenames w/ new LOG_DIR and
+# LOG_LEVEL, as needed
+#
 
-  #
-  # iterate over LOGGING['handlers'] and update filenames w/ new LOG_DIR
-  #
+for key, value in LOGGING['handlers'].items():
+  if 'filename' in value and LOG_DIR != DEFAULT_LOG_DIR:
+    value['filename'] = value['filename'].replace(DEFAULT_LOG_DIR, LOG_DIR)
 
-  for key, value in LOGGING['handlers'].items():
-    if 'filename' in value:
-      value['filename'] = value['filename'].replace(DEFAULT_LOG_DIR, LOG_DIR)
-
-    if 'level' in value:
-      value['level'] = LOG_LEVEL
+  if 'level' in value:
+    value['level'] = LOG_LEVEL
