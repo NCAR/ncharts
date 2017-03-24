@@ -63,3 +63,6 @@ if LOG_DIR != DEFAULT_LOG_DIR:
 
     if 'level' in value:
       value['level'] = LOG_LEVEL
+
+if override_file_exists():
+  from .override import *

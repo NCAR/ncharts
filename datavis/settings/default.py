@@ -17,6 +17,10 @@ import os, socket, getpass
 
 BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+def override_file_exists():
+  override_filepath = os.path.normpath(os.path.join(os.path.dirname(__file__),'override.py'))
+  return os.path.exists(override_filepath)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
@@ -146,11 +150,6 @@ STATIC_URL = '/static/'
 #	Alias /static/ /var/django/ncharts/static/
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-# People who should receive emails of ERRORs
-ADMINS = (
-    ('Gordon Maclean', 'maclean@ucar.edu'),
-    # ('Hien Nguyen', 'hnguyen@ucar.edu'),
-)
 EMAIL_HOST = "smtp.eol.ucar.edu"
 # Email address they appear to come from
 SERVER_EMAIL = getpass.getuser() + '@' + socket.getfqdn()
@@ -236,3 +235,5 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 INTERNAL_IPS = ['128.117']
 
+if override_file_exists():
+  from .override import *
