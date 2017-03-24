@@ -130,13 +130,19 @@
                     <ul class="nav nav-pills">
                         {% for lev1tab, lev1tabcontent in tabdict.items %}
                             {% if forloop.first %}
-                            <li class="active"><a data-toggle="pill" href="#{{ lev1tab }}_lev1pane"
-                                id="{{ lev1tab }}_lev1tab"
-                                title="{{ lev1tab|get_lev1tab_tooltip }}">{{ lev1tab }}</a></li> 
+                            <li class="active" data-toggle="tooltip"
+                                title="{{ lev1tab|get_lev1tab_tooltip }}">
+                                <a data-toggle="pill"
+                                    href="#{{ lev1tab }}_lev1pane"
+                                    id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a>
+                            </li> 
                             {% else %}
-                            <li><a data-toggle="pill" href="#{{ lev1tab }}_lev1pane"
-                                id="{{ lev1tab }}_lev1tab"
-                                title="{{ lev1tab|get_lev1tab_tooltip }}">{{ lev1tab }}</a></li>
+                            <li data-toggle="tooltip"
+                                title="{{ lev1tab|get_lev1tab_tooltip }}">
+                                <a data-toggle="pill"
+                                   href="#{{ lev1tab }}_lev1pane"
+                                   id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a>
+                            </li>
                             {% endif %}
                         {% endfor %}
                     </ul>
@@ -161,11 +167,17 @@
                             <ul class="nav nav-pills">
                                 {% for lev2tab, vars in lev1tabcontent.items %}
                                     {% if forloop.first %}
-                                    <li class="active"><a data-toggle="pill" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
-                                        title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li> 
+                                    <li class="active" data-toggle="tooltip"
+                                        title="{{ vars|get_item:'tooltip' }}">
+                                        <a data-toggle="pill"
+                                           href="#{{ lev1tab }}_{{ lev2tab }}_pane">{{ lev2tab }}</a>
+                                    </li>
                                     {% else %}
-                                    <li><a data-toggle="pill" href="#{{ lev1tab }}_{{ lev2tab }}_pane"
-                                       title="{{ vars|get_item:'tooltip' }}">{{ lev2tab }}</a></li>
+                                    <li data-toggle="tooltip"
+                                        title="{{ vars|get_item:'tooltip' }}">
+                                        <a data-toggle="pill"
+                                            href="#{{ lev1tab }}_{{ lev2tab }}_pane">{{ lev2tab }}</a>
+                                    </li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>
