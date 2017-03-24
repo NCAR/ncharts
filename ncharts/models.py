@@ -354,6 +354,7 @@ class Dataset(models.Model):
             char1 = vname[0].upper()
             if not char1 in tabs:
                 tabs[char1] = {"variables":[]}
+                tabs[char1]["tooltip"] = char1 + " variables"
             tabs[char1]["variables"].append(var)
 
         # Combine neighboring tabs if they each contain
@@ -377,6 +378,7 @@ class Dataset(models.Model):
                 if not nctab in comb_tabs:
                     comb_tabs[nctab] = {"variables":[]}
                 comb_tabs[nctab]["variables"] = comb_tabs[ctab]["variables"] + vals["variables"]
+                comb_tabs[nctab]["tooltip"] = nctab + " variables"
                 del comb_tabs[ctab]
                 ctab = nctab
 
