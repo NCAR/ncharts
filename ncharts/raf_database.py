@@ -275,7 +275,7 @@ class RAFDatabase(object):
                 'vmap': dict by variable name,
                     containing the index into the series data for the variable,
                 'dim2': dict by variable name, of values for second
-                    dimension of the data, such as height,
+                    dimension of the data, such as height.
             }
         Raises:
             nc_exc.NoDataFoundException

@@ -202,11 +202,9 @@
                         var itime0 = var_data.time0;
                         var vdata = $.parseJSON(var_data.data);
 
-                        var stn_names = $.parseJSON(var_data.stations);
-                        // var nstns = Math.max(1,stn_names.length);
-                        var nstns = stn_names.length;
+                        var stn_names = var_data.stations;
 
-                        for (var stn_index = 0; stn_index < nstns; stn_index++) {
+                        for (var stn_index = 0; stn_index < stn_names.length; stn_index++) {
 
                             var plotvname = var_data.variable;
                             var stn_name = stn_names[stn_index];
@@ -873,13 +871,15 @@
                 if (!(vname in plot_vmap[sname])) continue;
                 var var_index = plot_vmap[sname][vname];
                 var var_data = ser_data[var_index];
-                var stn_names = ser_stn_names[vname];
+
+                var stn_names = [''];
+                if (vname in ser_stn_names) {
+                    stn_names = ser_stn_names[vname];
+                }
 
                 var vunit = vunits[iv];
-                // var nstns = Math.max(1,stn_names.length);
-                var nstns = stn_names.length;
-                // console.log("nstns=",nstns)
-                for (var stn_index = 0; stn_index < nstns; stn_index++) {
+
+                for (var stn_index = 0; stn_index < stn_names.length; stn_index++) {
                     var plotvname;
 
                     var stn_name = stn_names[stn_index];

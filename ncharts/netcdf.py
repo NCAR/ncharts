@@ -438,7 +438,7 @@ class NetCDFDataset(object):
                                 varinfo[att] = getattr(var, att)
 
                         # Set default units to ''
-                        if not 'units' in varinfo:
+                        if 'units' not in varinfo:
                             varinfo['units'] = ''
 
                         # For non-station variables, parse the name to
@@ -549,7 +549,7 @@ class NetCDFDataset(object):
         """
 
         # scan the dataset every time in case a file has been modified
-        self.scan_files()
+        self.scan_files(time_names=time_names)
         dsinfo = self.get_dataset_info()
         return dsinfo['variables'].copy()
 
@@ -826,8 +826,8 @@ class NetCDFDataset(object):
                 which have that dimension.
             dim2: Values for second dimension of the variable, such as height.
             stnnames: A list of the station names of the variable.
-                An empty string indicates the variable does not have a station
-                dimension
+                A list of length one containing an empty string indicates
+                the variable does not have a station dimension.
 
         Returns:
             A numpy.ma.array containing the data read.
@@ -976,7 +976,13 @@ class NetCDFDataset(object):
                 which have that dimension.
             size_limit: Limit on the total size in bytes to read, used to
                 screen huge requests.
-            series: A list of series to be read by name.
+            series: A list of series to be read by name. For soundings
+                a series name is something like "Aug23_0000Z", as
+                created by series_fmt from the time associated with
+                a file.  In this way the data read can be split into
+                named series.  If series_fmt is None, the series name
+                should be a list of one empty string, [''],
+                and all data are concatenated together in time order.
             series_fmt: a datetime.strftime format to create a
                 series name for the data found in each file, based
                 on the time associated with the file.
@@ -992,8 +998,11 @@ class NetCDFDataset(object):
                     containing the index into the series data for the variable,
                 'dim2': dict by variable name, of values for second dimension
                     of the data, such as height,
-                'stnnames': dict by variable name, of station names of the
-                    variable,
+                'stnnames': dict by variable name, of the list of the
+                    station names for the variable that were read,
+                    as selected by selectdim. A list of length 1 containing
+                    an empty string indicates the variable does not have
+                    a station dimension.
 
         Raises:
             OSError

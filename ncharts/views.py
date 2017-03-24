@@ -10,6 +10,14 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
+import json
+import math
+import logging
+import datetime
+import collections
+
+import numpy as np
+
 from django.shortcuts import render, get_object_or_404, redirect
 
 from django.http import HttpResponse, Http404
@@ -24,12 +32,6 @@ from django.contrib import messages
 from ncharts import models as nc_models
 from ncharts import forms as nc_forms
 from ncharts import exceptions as nc_exc
-
-import json, math, logging
-import numpy as np
-import datetime
-
-import collections
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
@@ -184,6 +186,9 @@ class NChartsJSONEncoder(json.JSONEncoder):
                 #   len(obj.shape))
                 return [roundcheck(v) for v in obj]
         elif isinstance(obj, str):
+            # ISFS variable names may have a single quote in names: "w't'".
+            # replace it with "\u0027", which json.dumps will convert
+            # back into a single quote
             return json.JSONEncoder.default(self, obj.replace("'", r"\u0027"))
         else:
             return json.JSONEncoder.default(self, obj)
@@ -552,7 +557,7 @@ class DatasetView(View):
             return redirect(
                 'ncharts:dataset', project_name=project_name,
                 dataset_name=dataset_name)
- 
+
         proj = nc_models.Project.objects.get(name=project_name)
         projs = nc_models.Project.objects.all()
         plats = nc_models.Platform.objects.all()
@@ -743,14 +748,14 @@ class DatasetView(View):
         try:
             if isinstance(dset, nc_models.FileDataset):
                 ncdset = dset.get_netcdf_dataset()
-                ncdata = ncdset.read_time_series(
+                indata = ncdset.read_time_series(
                     sel_vars, start_time=start_time, end_time=end_time,
                     selectdim=stndims,
                     series=sel_soundings,
                     series_name_fmt=series_name_fmt)
             else:
                 dbcon = dset.get_connection()
-                ncdata = dbcon.read_time_series(
+                indata = dbcon.read_time_series(
                     sel_vars, start_time=start_time, end_time=end_time)
 
         except nc_exc.TooMuchDataException as exc:
@@ -786,8 +791,8 @@ class DatasetView(View):
         time0 = {}
         vsizes = {}
 
-        for series_name in ncdata:
-            ser_data = ncdata[series_name]
+        for series_name in indata:
+            ser_data = indata[series_name]
             vsizes[series_name] = {}
             if series_name == "":
                 for vname in sel_vars:
@@ -824,18 +829,20 @@ class DatasetView(View):
                     x in ser_data['time']]
 
         json_time0 = mark_safe(json.dumps(time0))
-        json_time = mark_safe(json.dumps({k: ncdata[k]['time'] for k in ncdata}))
+        json_time = mark_safe(json.dumps({sn: indata[sn]['time'] for sn in indata}))
         json_data = mark_safe(json.dumps(
-            {k: ncdata[k]['data'] for k in ncdata},
+            {sn: indata[sn]['data'] for sn in indata},
             cls=NChartsJSONEncoder))
         json_vmap = mark_safe(json.dumps(
-            {k: ncdata[k]['vmap'] for k in ncdata},
+            {sn: indata[sn]['vmap'] for sn in indata},
             cls=NChartsJSONEncoder).replace("'", r"\u0027"))
         json_dim2 = mark_safe(json.dumps(
-            {k: ncdata[k]['dim2'] for k in ncdata},
+            {sn: indata[sn]['dim2'] for sn in indata},
             cls=NChartsJSONEncoder).replace("'", r"\u0027"))
+
+        # indata may not have stnnames element
         json_stns = mark_safe(json.dumps(
-            {k: ncdata[k]['stnnames'] for k in ncdata},
+            {sn: (indata[sn]['stnnames'] if 'stnnames' in indata[sn] else {}) for sn in indata},
             cls=NChartsJSONEncoder).replace("'", r"\u0027"))
 
         def type_by_dims(dimnames):
@@ -851,16 +858,16 @@ class DatasetView(View):
                 return 'none'
 
         plot_types = set()
-        if len(ncdata) == 1 and '' in ncdata:
+        if len(indata) == 1 and '' in indata:
             # one series, named ''
             for vname, var in variables.items():
                 ptype = "time-series"
-                if vname in ncdata['']['vmap']:
-                    vindex = ncdata['']['vmap'][vname]
+                if vname in indata['']['vmap']:
+                    vindex = indata['']['vmap'][vname]
                     vdimnames = dsetvars[vname]["dimnames"]
-                    # print("vname=",vname,",shape=",str(ncdata['']['data'][vindex].shape))
-                    # print("vname=",vname,",nbytes=",str(ncdata['']['data'][vindex].nbytes))
-                    # print("vname=",vname,",ndim=",str(ncdata['']['data'][vindex].ndim))
+                    # print("vname=",vname,",shape=",str(indata['']['data'][vindex].shape))
+                    # print("vname=",vname,",nbytes=",str(indata['']['data'][vindex].nbytes))
+                    # print("vname=",vname,",ndim=",str(indata['']['data'][vindex].ndim))
                     # print("dsetvars[",vname,"]['dimnames']=",str(dsetvars[vname]["dimnames"]))
                     ptype = type_by_dims(vdimnames)
                 var['plot_type'] = ptype
@@ -898,7 +905,7 @@ class DatasetView(View):
                         grpid += 1
             elif ptype == 'sounding-profile':
                 # one profile plot per series name
-                for series_name in sorted(ncdata.keys()):
+                for series_name in sorted(indata.keys()):
                     vnames = sorted([v for v in variables])
                     units = [variables[v]['units'] for v in vnames]
                     long_names = [(variables[v]['long_name'] \
@@ -925,7 +932,7 @@ class DatasetView(View):
                         units = variables[vname]['units']
                     else:
                         variables[vname]['units'] = units
-                    if not units in uunits:
+                    if units not in uunits:
                         uunits.append(units)
 
                 # unique units
@@ -1072,16 +1079,16 @@ class DataView(View):
 
             try:
                 if isinstance(dset, nc_models.FileDataset):
-                    ncdata = ncdset.read_time_series(
+                    indata = ncdset.read_time_series(
                         [vname], start_time=stime, end_time=etime,
                         selectdim=stndims,
                         )
                 else:
-                    ncdata = dbcon.read_time_series(
+                    indata = dbcon.read_time_series(
                         [vname], start_time=stime, end_time=etime)
 
                 # one series
-                ser_data = ncdata['']
+                ser_data = indata['']
                 if not vname in ser_data['vmap']:
                     continue
                 vindex = ser_data['vmap'][vname]
@@ -1151,23 +1158,29 @@ class DataView(View):
             if len(ser_data['time']) > 0:
                 time0 = ser_data['time'][0]
 
+            # dim2 are floats, so we encode them to strings with
+            # the NChartsJSONEncoder
             dim2 = []
             if vname in ser_data['dim2'] and 'data' in ser_data['dim2'][vname]:
                 dim2 = mark_safe(json.dumps(
                     ser_data['dim2'][vname]['data'],
-                    cls=NChartsJSONEncoder).replace("'", r"\u0027"))
+                    cls=NChartsJSONEncoder))
+
+            stns = ['']
+            if 'stnnames' in ser_data and vname in ser_data['stnnames']:
+                stns = ser_data['stnnames'][vname]
 
             dout = mark_safe(json.dumps(
-                    ser_data['data'][vindex], cls=NChartsJSONEncoder))
+                ser_data['data'][vindex], cls=NChartsJSONEncoder))
 
+            # ajax_out['data'] is a list of dictionaries
             ajax_out['data'].append({
-                'variable': vname,
+                'variable': vname,  # need to replace apostrophes?
                 'time0': time0,
                 'time': mark_safe(json.dumps(
                     [x - time0 for x in ser_data['time']])),
                 'data': dout,
-                'stations': mark_safe(json.dumps(
-                    ser_data['stnnames'][vname], cls=NChartsJSONEncoder).replace("'", r"\u0027")),
+                'stations': stns,
                 'dim2': dim2
             })
 
@@ -1178,4 +1191,3 @@ class DataView(View):
         return HttpResponse(
             json.dumps(ajax_out),
             content_type="application/json")
-
