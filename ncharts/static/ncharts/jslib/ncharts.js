@@ -712,7 +712,7 @@
                 /* If one level of tabs, find active level 2 tab-pane,
                  * and check its checkboxes
                  */
-                $('.nolev1tab .lev2tab.active #variable_list :checked').prop('checked',true); 
+                $('.nolev1tab .lev2tab.active #variable_list :not(:checked)').prop('checked',true); 
                 $(this).prop('checked',false);
             }
         });
