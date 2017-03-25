@@ -150,5 +150,16 @@
     },
     "model": "ncharts.project", 
     "pk": "SCP"
+},
+{
+    "fields": {
+        "location": "Perdigão, Portugal",
+        "timezones": ["Europe/Lisbon", "UTC"],
+	"long_name": "Study of atmospheric flow in complex terrain at high spatial resolution",
+        "start_year": "2016",
+        "end_year": "2017"
+    },
+    "model": "ncharts.project", 
+    "pk": "Perdigao"
 }
 ]
