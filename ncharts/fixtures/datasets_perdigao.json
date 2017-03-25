@@ -19,7 +19,7 @@
 },
 {
     "fields": {
-        "directory": "/scr/tmp/isf/Perdigao/netcdf/noqc_instrument",
+        "directory": "/scr/tmp/isfs/Perdigao/netcdf/noqc_instrument",
         "filenames": "isfs_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
