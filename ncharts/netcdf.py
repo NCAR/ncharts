@@ -35,7 +35,7 @@ _SITE_RE_PROG = re.compile("(\\.[0-9]+\\.?[0-9]*(c?m))?(\\.([^.]+))$")
 
 # for ISFS variables with no short_name attribute, such as a count
 # variable. The periods will be replaced by underscores
-_SITE_RE_PROG2 = re.compile("(_[0-9]+_?[0-9]*(c?m))?(_([^_]+))$")
+# _SITE_RE_PROG2 = re.compile("(_[0-9]+_?[0-9]*(c?m))?(_([^_]+))$")
 
 # __name__ is ncharts.netcdf
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
@@ -74,8 +74,8 @@ def get_isfs_site(varname):
     """
 
     match = _SITE_RE_PROG.search(varname)
-    if not match:
-        match = _SITE_RE_PROG2.search(varname)
+    # if not match:
+    #     match = _SITE_RE_PROG2.search(varname)
     if match:
         try:
             # print("site for {}={}".format(varname,match.group(4)))
