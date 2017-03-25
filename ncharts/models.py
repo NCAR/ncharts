@@ -34,7 +34,7 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 # Categories of ISFS variables. Used in creating tabs
 ISFS_VARIABLE_TYPES = {
     "Met": ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan", "Rainr"],
-    "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote"],
+    "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote", "Vdsm"],
     "Rad": ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome", "Wetness"],
     "Soil": ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", \
         "Tau63", "Lambdasoil", "asoil", "Cvsoil", "Gsfc"],
