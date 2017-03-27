@@ -43,5 +43,5 @@ def get_lev1tab_tooltip(site):
     if site == "stations":
         return "Variables common to numbered stations"
     else:
-        return "Variables unique to site " + site
+        return "Variables of site " + site
 
