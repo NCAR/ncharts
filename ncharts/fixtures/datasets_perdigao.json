@@ -8,8 +8,8 @@
         "start_time": "2016-11-29T00:00:00+00:00", 
         "end_time": "2017-09-01T00:00:00+00:00", 
         "location": "Perdigão, Portugal",
-        "name": "noqc_instrument", 
-        "long_name": "Perdigao, preliminary data, winds in instrument coordinates", 
+        "name": "5min_noqc_instrument", 
+        "long_name": "Perdigao, preliminary 5 minute statistics, winds in instrument coordinates", 
         "project": "Perdigao",
 	"url": "https://www.eol.ucar.edu/field_projects/perdigao",
 	"status": "Preliminary"
