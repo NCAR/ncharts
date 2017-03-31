@@ -359,7 +359,7 @@ class DatasetView(View):
             if dset.get_end_time() < tnow or isinstance(dset, nc_models.DBDataset):
                 try:
                     stime = dset.get_start_time()
-                except nc_exc.NoDataFoundException as exc:
+                except nc_exc.NoDataException as exc:
                     stime = tnow - tdelta
             else:
                 stime = tnow - tdelta
@@ -397,7 +397,7 @@ class DatasetView(View):
                 if dset.get_end_time() < tnow or isinstance(dset, nc_models.DBDataset):
                     try:
                         stime = dset.get_start_time()
-                    except nc_exc.NoDataFoundException as exc:
+                    except nc_exc.NoDataException as exc:
                         stime = tnow - tdelta
                 else:
                     stime = tnow - tdelta
@@ -508,8 +508,8 @@ class DatasetView(View):
                 s_choices = [(s, s) for s in s_choices]
                 form.fields['soundings'].choices = s_choices
 
-        except (nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
-            _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
+        except (nc_exc.NoDataException) as exc:
+            _logger.warning("%s, %s: get_variables: %s", project_name, dset, exc)
             form.no_data("No variables found in {}: {} ".format(str(dset), exc))
 
         dsets = proj.dataset_set.all()
@@ -537,7 +537,7 @@ class DatasetView(View):
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404 as exc:
-            _logger.warn("post: %s", exc)
+            _logger.warning("post: %s", exc)
             messages.warning(request, exc)
             return redirect(
                 'ncharts:dataset', project_name=project_name,
@@ -619,8 +619,8 @@ class DatasetView(View):
                 sounding_choices = [(s, s) for s in sounding_choices]
                 form.fields['soundings'].choices = sounding_choices
 
-        except (nc_exc.NoDataFoundException, nc_exc.NoDataException) as exc:
-            _logger.warn("%s, %s: get_variables: %s", project_name, dset, exc)
+        except (nc_exc.NoDataException) as exc:
+            _logger.warning("%s, %s: get_variables: %s", project_name, dset, exc)
             form.no_data("No variables found in {}: {}".format(dset, exc))
 
         if not form.is_valid():
@@ -709,7 +709,7 @@ class DatasetView(View):
             if yvar not in dsetvars.keys():
                 exc = nc_exc.NoDataException(
                     "variable {} not found in {}".format(yvar, dset))
-                _logger.warn(repr(exc))
+                _logger.warning(repr(exc))
                 form.no_data(repr(exc))
                 return render(
                     request, self.template_name,
@@ -759,7 +759,7 @@ class DatasetView(View):
                     sel_vars, start_time=start_time, end_time=end_time)
 
         except nc_exc.TooMuchDataException as exc:
-            _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
+            _logger.warning("%s, %s: %s", project_name, dataset_name, exc)
             form.too_much_data(repr(exc))
             return render(
                 request, self.template_name,
@@ -773,8 +773,8 @@ class DatasetView(View):
                     'platforms': plats
                 })
 
-        except (OSError, nc_exc.NoDataException, nc_exc.NoDataFoundException) as exc:
-            _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
+        except (OSError, nc_exc.NoDataException) as exc:
+            _logger.warning("%s, %s: %s", project_name, dataset_name, exc)
             form.no_data(repr(exc))
             return render(
                 request, self.template_name,
@@ -994,7 +994,7 @@ class DataView(View):
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
         except Http404 as exc:
-            _logger.warn("AJAX DataView get: %s", exc)
+            _logger.warning("AJAX DataView get: %s", exc)
             ajax_out['redirect'] = \
                 request.build_absolute_uri(
                     reverse(
@@ -1016,8 +1016,8 @@ class DataView(View):
         elif isinstance(dset, nc_models.DBDataset):
             try:
                 dbcon = dset.get_connection()
-            except nc_exc.NoDataFoundException as exc:
-                _logger.warn(
+            except nc_exc.NoDataException as exc:
+                _logger.warning(
                     "%s, %s, %d, database connection failed: %s",
                     project_name, dataset_name, client_state.id, exc)
                 ajax_out['redirect'] = \
@@ -1039,7 +1039,7 @@ class DataView(View):
         sel_vars = json.loads(client_state.variables)
 
         if not len(sel_vars):
-            _logger.warn(
+            _logger.warning(
                 "%s, %s: variables not found for id=%d",
                 project_name, dataset_name, client_state.id)
             ajax_out['redirect'] = \
@@ -1066,7 +1066,7 @@ class DataView(View):
             # timetag of last sample for this variable sent to client
             [time_last_ok, time_last] = client_state.get_data_times(vname)
             if not time_last_ok:
-                _logger.warn(
+                _logger.warning(
                     "%s, %s: data times not found for client id=%d, " \
                     "variable=%s",
                     project_name, dataset_name, client_state.id, vname)
@@ -1136,9 +1136,9 @@ class DataView(View):
                 _logger.error("%s, %s: %s", project_name, dataset_name, exc)
                 continue
             except nc_exc.TooMuchDataException as exc:
-                _logger.warn("%s, %s: %s", project_name, dataset_name, exc)
+                _logger.warning("%s, %s: %s", project_name, dataset_name, exc)
                 continue
-            except (nc_exc.NoDataException, nc_exc.NoDataFoundException, KeyError) as exc:
+            except (nc_exc.NoDataException, KeyError) as exc:
                 # KeyError: variable not found in data
                 if debug:
                     _logger.debug(

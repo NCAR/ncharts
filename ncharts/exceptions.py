@@ -20,17 +20,8 @@ class TooMuchDataException(Exception):
     #     return repr(self.msg)
 
 class NoDataException(Exception):
-    """Exception subclass if no data is requested.
-    """
-    def __init__(self, msg):
-        super().__init__(msg)
-        # self.msg = msg
-    # def __str__(self):
-    #     return repr(self.msg)
-
-class NoDataFoundException(Exception):
-    """Exception subclass if no data is found, such as
-    database connection is bad or no files found.
+    """Exception subclass if no data is requested, or no data is
+    available to satisfy the request.
     """
     def __init__(self, msg):
         super().__init__(msg)

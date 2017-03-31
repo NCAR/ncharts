@@ -72,7 +72,7 @@ class RAFDatabase(object):
                     try:
                         conn.rollback()
                     except psycopg2.Error as exc:
-                        _logger.warninging("%s rollback: %s", conn, exc)
+                        _logger.warning("%s rollback: %s", conn, exc)
                     try:
                         conn.close()
                     except psycopg2.Error as exc:
@@ -136,7 +136,7 @@ class RAFDatabase(object):
                 the time-series data to be read.
 
         Raises:
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         try:
@@ -150,7 +150,7 @@ class RAFDatabase(object):
             self.password = password
             self.table = table
         except psycopg2.Error as exc:
-            raise nc_exc.NoDataFoundException(
+            raise nc_exc.NoDataException(
                 "Database not available: {}".format(exc))
 
     def get_variables(self):
@@ -159,7 +159,7 @@ class RAFDatabase(object):
         missing values.
 
         Raises:
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         try:
@@ -185,7 +185,7 @@ class RAFDatabase(object):
         except psycopg2.Error as exc:
             # psycopg.connections are thread safe
             RAFDatabase.close_connection(conn)
-            raise nc_exc.NoDataFoundException(
+            raise nc_exc.NoDataException(
                 "No variables found: {}".format(exc))
 
     def read_times(
@@ -195,7 +195,7 @@ class RAFDatabase(object):
         """Read datetimes from the table within a range.
 
         Raises:
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         start_time = start_time.replace(tzinfo=None)
@@ -216,7 +216,7 @@ class RAFDatabase(object):
                     return [pytz.utc.localize(x[0]).timestamp() for x in cur]
         except psycopg2.Error as exc:
             RAFDatabase.close_connection(conn)
-            raise nc_exc.NoDataFoundException(
+            raise nc_exc.NoDataException(
                 "read {}: {}".format(vname, exc))
 
 
@@ -224,7 +224,7 @@ class RAFDatabase(object):
         """Read first datatime from the database table.
 
         Raises:
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         vname = "datetime"
@@ -239,12 +239,12 @@ class RAFDatabase(object):
                     start_time = cur.fetchone()
                     if not start_time:
                         _logger.warning("%s: read %s: no data", conn, vname)
-                        raise nc_exc.NoDataFoundException("read {}".format(vname))
+                        raise nc_exc.NoDataException("read {}".format(vname))
                     return pytz.utc.localize(start_time[0])
         except psycopg2.Error as exc:
             _logger.warning("%s: read %s: %s", conn, vname, exc)
             RAFDatabase.close_connection(conn)
-            raise nc_exc.NoDataFoundException("read {}: {}".format(vname, exc))
+            raise nc_exc.NoDataException("read {}: {}".format(vname, exc))
 
 
     def read_time_series(
@@ -278,7 +278,7 @@ class RAFDatabase(object):
                     dimension of the data, such as height.
             }
         Raises:
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         total_size = 0
@@ -368,7 +368,7 @@ class RAFDatabase(object):
 
         except psycopg2.Error as exc:
             RAFDatabase.close_connection(conn)
-            raise nc_exc.NoDataFoundException(
+            raise nc_exc.NoDataException(
                 (operation + ": {}").format(exc))
 
 

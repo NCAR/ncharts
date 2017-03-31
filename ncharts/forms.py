@@ -10,10 +10,10 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-import pytz
 import datetime
 import sys
 import logging
+import pytz
 
 from django import forms
 from django.contrib import messages
@@ -311,7 +311,7 @@ class DataSelectionForm(forms.Form):
                 start_time = self.dataset.get_start_time().astimezone(timezone)
                 cleaned_data['start_time'] = start_time.replace(tzinfo=None)
                 self.clean_method_altered_data = True
-        except nc_exc.NoDataFoundException:
+        except nc_exc.NoDataException:
             self.add_error('start_time', forms.ValidationError("dataset start time not available"))
 
         tunits = cleaned_data['time_length_units']

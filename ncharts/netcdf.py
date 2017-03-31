@@ -258,7 +258,7 @@ class NetCDFDataset(object):
 
         Raises:
             OSError
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         dsinfo = self.get_dataset_info()
@@ -517,7 +517,7 @@ class NetCDFDataset(object):
 
         if not n_files_read:
             msg = "No variables found"
-            raise nc_exc.NoDataFoundException(msg)
+            raise nc_exc.NoDataException(msg)
 
         # create station names if a "station" variable is not found
         # in NetCDF files. Names are S1, S2, etc for dimension index 0, 1
@@ -545,7 +545,7 @@ class NetCDFDataset(object):
                     if a variable does not have a station dimension
         Raises:
             OSError
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         # scan the dataset every time in case a file has been modified
@@ -567,7 +567,7 @@ class NetCDFDataset(object):
             the name of station 0 will be None, otherwise ''.
         Raises:
             OSError
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         dsinfo = self.get_dataset_info()
@@ -591,7 +591,7 @@ class NetCDFDataset(object):
             A list of names, possibly None.
         Raises:
             OSError
-            nc_exc.NoDataFoundException
+            nc_exc.NoDataException
         """
 
         dsinfo = self.get_dataset_info()
@@ -1006,7 +1006,6 @@ class NetCDFDataset(object):
 
         Raises:
             OSError
-            nc_exc.NoDataFoundException
             nc_exc.NoDataException
 
         The 'data' element in the returned dict is a list of numpy arrays,
@@ -1178,7 +1177,7 @@ class NetCDFDataset(object):
 
         if ntimes == 0:
             exc = nc_exc.NoDataException(
-                "No data found between {} and {}".
+                "No data between {} and {}".
                 format(
                     start_time.isoformat(),
                     end_time.isoformat()))

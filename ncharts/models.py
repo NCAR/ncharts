@@ -54,6 +54,88 @@ ISFS_TABS = OrderedDict([
     ("3rdMoment", {"tooltip":"", "variables":[]}),
     ("4thMoment", {"tooltip":"", "variables":[]})])
 
+def alphabetic_tabs(variables):
+    """Create a dictionary of tabs for the elements in variables.
+
+    This is so that a large number of checkbox widgets for the
+    selection of data variables to be plotted can be split into
+    tabbed panes.
+
+    The tab names can be created from the first character of the
+    variable names, or in a platform-dependent way, by a
+    category determined from the variable name.
+
+    Args:
+        variables: a django.forms.forms.BoundField, such as
+        from form['variables'], where form is an instance
+        of ncharts.forms.DataSelectionForm, which has a
+        class member named variables of type
+        forms.MultipleChoiceField. The variables have been
+        alphabetically sorted prior to this call.
+
+    Each element returned by iterating over variables is
+    a django.forms.widgets.CheckboxChoiceInput.
+    An instance of CheckboxChoiceInput has a choice_label
+    attribute containing the label part of the choice tuple,
+    (the variable name) and a tab attribute, which when
+    rendered in a template, creates the checkbox html.
+
+    References to these widgets are copied into lists
+    under each tab.
+    """
+
+    nvars = len(variables)
+
+    tabs = OrderedDict()
+
+    for var in iter(variables):
+        vname = var.choice_label
+        char1 = vname[0].upper()
+        if not char1 in tabs:
+            tabs[char1] = {"variables":[]}
+            tabs[char1]["tooltip"] = char1 + " variables"
+        tabs[char1]["variables"].append(var)
+
+    # Combine neighboring tabs if they each contain
+    # fewer than tab_limit elements
+    tab_limit = 10
+    comb_tabs = OrderedDict()
+    for tab, vals in tabs.items():
+
+        # Sort by first letter
+        # vals.sort(key=lambda x: x.choice_label.lower())
+
+        # pylint thinks ctab could be used before assignment
+        # pylint: disable=used-before-assignment
+        if len(comb_tabs) == 0 or \
+                len(comb_tabs[ctab]["variables"]) > tab_limit or \
+                len(vals["variables"]) > tab_limit:
+            ctab = tab
+            comb_tabs[ctab] = vals
+        else:
+            nctab = ctab[0] + "-" + tab
+            if not nctab in comb_tabs:
+                comb_tabs[nctab] = {"variables":[]}
+            comb_tabs[nctab]["variables"] = comb_tabs[ctab]["variables"] + vals["variables"]
+            comb_tabs[nctab]["tooltip"] = nctab + " variables"
+            del comb_tabs[ctab]
+            ctab = nctab
+
+    # Double check that we didn't lose any variables
+    nres = 0
+    for tab, vals in comb_tabs.items():
+        nres += len(vals["variables"])
+
+    if nres != nvars:
+        _logger.error("%d variables unaccounted for in building tabs", (nvars - nres))
+
+    # Create a "fake" top level dictionary with a key of an
+    # empty string. This then has the same 2-level structure
+    # as the isfs_tabs.
+    tabs = OrderedDict()
+    tabs[''] = comb_tabs
+    return tabs
+
 class TimeZone(models.Model):
     """A timezone.
 
@@ -315,88 +397,6 @@ class Dataset(models.Model):
 
         return self.end_time
 
-    def alphabetic_tabs(self, variables):
-        """Create a dictionary of tabs for the elements in variables.
-
-        This is so that a large number of checkbox widgets for the
-        selection of data variables to be plotted can be split into
-        tabbed panes.
-
-        The tab names can be created from the first character of the
-        variable names, or in a platform-dependent way, by a
-        category determined from the variable name.
-
-        Args:
-            variables: a django.forms.forms.BoundField, such as
-            from form['variables'], where form is an instance
-            of ncharts.forms.DataSelectionForm, which has a
-            class member named variables of type
-            forms.MultipleChoiceField. The variables have been
-            alphabetically sorted prior to this call.
-
-        Each element returned by iterating over variables is
-        a django.forms.widgets.CheckboxChoiceInput.
-        An instance of CheckboxChoiceInput has a choice_label
-        attribute containing the label part of the choice tuple,
-        (the variable name) and a tab attribute, which when
-        rendered in a template, creates the checkbox html.
-
-        References to these widgets are copied into lists
-        under each tab.
-        """
-
-        nvars = len(variables)
-
-        tabs = OrderedDict()
-
-        for var in iter(variables):
-            vname = var.choice_label
-            char1 = vname[0].upper()
-            if not char1 in tabs:
-                tabs[char1] = {"variables":[]}
-                tabs[char1]["tooltip"] = char1 + " variables"
-            tabs[char1]["variables"].append(var)
-
-        # Combine neighboring tabs if they each contain
-        # fewer than tab_limit elements
-        tab_limit = 10
-        comb_tabs = OrderedDict()
-        for tab, vals in tabs.items():
-
-            # Sort by first letter
-            # vals.sort(key=lambda x: x.choice_label.lower())
-
-            # pylint thinks ctab could be used before assignment
-            # pylint: disable=used-before-assignment
-            if len(comb_tabs) == 0 or \
-                    len(comb_tabs[ctab]["variables"]) > tab_limit or \
-                    len(vals["variables"]) > tab_limit:
-                ctab = tab
-                comb_tabs[ctab] = vals
-            else:
-                nctab = ctab[0] + "-" + tab
-                if not nctab in comb_tabs:
-                    comb_tabs[nctab] = {"variables":[]}
-                comb_tabs[nctab]["variables"] = comb_tabs[ctab]["variables"] + vals["variables"]
-                comb_tabs[nctab]["tooltip"] = nctab + " variables"
-                del comb_tabs[ctab]
-                ctab = nctab
-
-        # Double check that we didn't lose any variables
-        nres = 0
-        for tab, vals in comb_tabs.items():
-            nres += len(vals["variables"])
-
-        if nres != nvars:
-            _logger.error("%d variables unaccounted for in building tabs", (nvars - nres))
-
-        # Create a "fake" top level dictionary with a key of an
-        # empty string. This then has the same 2-level structure
-        # as the isfs_tabs.
-        tabs = OrderedDict()
-        tabs[''] = comb_tabs
-        return tabs
-
     def isfs_tabs(self, variables):
         """Create a tabs dictionary for ISFS variables
 
@@ -521,7 +521,7 @@ class FileDataset(Dataset):
         """Return the time series variable names of this dataset.
 
         Raises:
-            exception.NoDataFoundException
+            exception.NoDataException
         """
 
         ncdset = self.get_netcdf_dataset()
@@ -549,7 +549,7 @@ class FileDataset(Dataset):
         """Return list of station names.
 
         Raises:
-            exception.NoDataFoundException
+            exception.NoDataException
         """
 
         ncdset = self.get_netcdf_dataset()
@@ -560,7 +560,7 @@ class FileDataset(Dataset):
         """Return list of site names.
 
         Raises:
-            exception.NoDataFoundException
+            exception.NoDataException
         """
 
         ncdset = self.get_netcdf_dataset()
@@ -637,7 +637,7 @@ class DBDataset(Dataset):
         """Return a database connection for this DBDataset.
 
         Raises:
-            exception.NoDataFoundException
+            exception.NoDataException
         """
 
         return raf_database.RAFDatabase(
@@ -651,7 +651,7 @@ class DBDataset(Dataset):
         """Return the time series variables in this DBDataset.
 
         Raises:
-            exception.NoDataFoundException
+            exception.NoDataException
         """
         return self.get_connection().get_variables()
 
@@ -664,7 +664,7 @@ class DBDataset(Dataset):
     def get_start_time(self):
         """
         Raises:
-            exception.NoDataFoundException
+            exception.NoDataException
         """
         return self.get_connection().get_start_time()
 
