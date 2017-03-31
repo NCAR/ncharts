@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # formerly datavis/settings.py
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os, socket, getpass
+import os
+import socket
+import getpass
 
 BASE_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
@@ -212,7 +214,10 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
-        }
+        },
+        'null': {
+            'class': 'django.utils.log.NullHandler',
+        },
     },
     'loggers': {
         'django': {
@@ -228,10 +233,15 @@ LOGGING = {
             'handlers': ['ncharts_debug', 'ncharts', 'mail_admins'],
             'level': 'DEBUG',
         },
+        # django correctly prevents DisallowedHost accesses.
+        # We'll suppress the log messages.
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
     }
 }
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 INTERNAL_IPS = ['128.117']
-
