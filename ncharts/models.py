@@ -485,7 +485,7 @@ class Dataset(models.Model):
         if is_isfs:
             return self.isfs_tabs(variables)
         else:
-            return self.alphabetic_tabs(variables)
+            return alphabetic_tabs(variables)
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
