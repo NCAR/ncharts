@@ -14,6 +14,7 @@ fi
 
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
+[ -d static ] || mkdir static
 chmod -R ug+w static
 
 python3 manage.py findstatic ncharts/jslib/ncharts.js
