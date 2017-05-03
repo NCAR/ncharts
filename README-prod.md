@@ -74,20 +74,38 @@ The following is for RedHat systems, such as CentOS or Fedora.
   Create and set permissions on `LOG_DIR`, `VAR_RUN_DIR` and `VAR_LIB_DIR`, per their values set in `datavis/settings/production.py`:
 
   ```sh
-  mkdir /var/log/django
+  sudo mkdir /var/log/django
   sudo chgrp apache /var/log/django
   sudo chmod g+sw /var/log/django
 
-  mkdir /var/run/django
+  sudo mkdir /var/run/django
   sudo chgrp apache /var/run/django
   sudo chmod g+sw /var/run/django
 
-  mkdir /var/lib/django
+  sudo mkdir /var/lib/django
   sudo chgrp apache /var/lib/django
   sudo chmod g+sw /var/lib/django
   ```
+6. Create the key
+  A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. To generate a new `SECRET_KEY`:
 
-6. Initialize the database
+  ```sh
+  key=$(python3 -c 'import random; import string; print("".join([random.SystemRandom().choice(string.digits + string.ascii_letters + string.punctuation) for i in range(100)]))')
+  export EOL_DATAVIS_SECRET_KEY=$key
+```
+The key can be passed to Apache from `systemd` by adding a `.conf` service file to `/etc/systemd/system/httpd.service.d/`, *e.g.* `datavis-secret-key.conf`:
+
+  ```
+[Service]
+Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
+```
+  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted"
+
+  ```sh
+  sudo systemctl daemon-reload
+  sudo systemctl restart httpd
+```
+7. Initialize the database
 
   This runs the django migrations commands, which should also handle the situation of one of the models changes, or is added or deleted:
 
@@ -106,13 +124,13 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   Then run the migration script again.
 
-7. Load the models from the `.json` files in `ncharts/fixtures`:
+8. Load the models from the `.json` files in `ncharts/fixtures`:
 
   ```sh
   ./load_db.sh
 ```
 
-8. Fetch the static files
+9. Fetch the static files
 
   To fetch the static files of the supporting software used by ncharts, such as jquery, bootstrap and highcharts do:
 
@@ -140,7 +158,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
-9. Memcached:
+10. Memcached:
 
   The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings/production.py`:
 
@@ -161,27 +179,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo systemctl start memcached_django.service
 ```
 
-10. Configure and start httpd server
-
-  A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. This can be passed to Apache from `systemd` by adding a `.conf` service file to `/etc/systemd/system/httpd.service.d/`, *e.g.* `datavis-secret-key.conf`:
-
-  ```
-[Service]
-Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
-```
-
-  If you're paranoid, and want to generate a new `SECRET_KEY`:
-
-  ```sh
-  python -c 'import random; import string; print "".join([random.SystemRandom().choice(string.digits + string.letters + string.punctuation) for i in range(100)])'
-```
-
-  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted"
-
-  ```sh
-  sudo systemctl daemon-reload
-  sudo systemctl restart httpd
-```
+11. Configure and start httpd server
 
   Install the httpd configuration files:
 
@@ -210,11 +208,11 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl start httpd.service
 ```
 
-11. Test!
+12. Test!
 
    <http://localhost/ncharts>
 
-12. Clearing expired sessions and unattached ClientState objects
+13. Clearing expired sessions and unattached ClientState objects
 
   This is done from a crontab on the server:
 
