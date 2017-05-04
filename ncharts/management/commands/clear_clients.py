@@ -1,4 +1,4 @@
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 
 from ncharts.models import ClientState
 from ncharts import views as nc_views
@@ -6,9 +6,8 @@ from ncharts import views as nc_views
 from django.contrib.sessions.models import Session
 
 
-class Command(NoArgsCommand):
-    def handle_noargs(self, **options):
-
+class Command(BaseCommand):
+    def handle(self, **options):
 
         clnts = ClientState.objects.all()
 
