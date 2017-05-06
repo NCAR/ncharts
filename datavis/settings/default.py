@@ -234,10 +234,16 @@ LOGGING = {
             'level': 'DEBUG',
         },
         # django correctly prevents DisallowedHost accesses.
-        # We'll suppress the log messages.
+        # Just put them in the log file, don't email
         'django.security.DisallowedHost': {
-            'handlers': ['null'],
-            'propagate': False,
+            'handlers': ['django'],
+            'propagate': False, # don't pass on to django logger
+        },
+        # Put CSRF errors in log file, don't email. When nessus
+        # is run, many CSRF errors are generated.
+        'django.security.csrf': {
+            'handlers': ['django'],
+            'propagate': False, # don't pass on to django logger
         },
     }
 }
