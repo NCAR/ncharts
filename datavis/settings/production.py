@@ -46,7 +46,8 @@ ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 
 
 # People who should receive emails of ERRORs
 ADMINS = (
-    ('Gordon Maclean', 'maclean@ucar.edu'),
+    # ('Gordon Maclean', 'maclean@ucar.edu'),
+    ('Gary Granger', 'granger@ucar.edu'),
 )
 
 CACHES = {
