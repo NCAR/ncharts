@@ -2,15 +2,14 @@
 Note that the json parser is more picky than python, the last entry in a dictionary or list should NOT be followed by a comma.
 
 Adding a platform
-    Edit platform.json.
+    Edit platform.json, and copy/paste the lines of an existing platform.
 
 Adding a project
-    Edit projects.json, and copy paste the json lines for an existing project.
+    Edit projects.json, and copy/paste the json lines from an existing project to add your new project.
 
     The primary key, "pk", for a project is its name, which should be unique to each.
 
-
-    For a name of local time zone for the project, look at the directories in /usr/share/zoneinfo, for example "Europe/Lisbon".
+    For a name of local timezone for the project, look at the directories in /usr/share/zoneinfo, for example "Europe/Lisbon".
     Check that the timezone is listed in timezones.json. If not, add it.
 
     Once you've added a project, then in platforms.json, add that project to every platform which will provide
@@ -24,11 +23,11 @@ Adding a dataset
 
    To see a sorted listing of the current primary keys:
 
-        fgrep -h pk dataset* | cut -d: -f 2 | sort -u -n
+        fgrep -h '"pk"' dataset* | cut -d: -f 2 | sort -u -n
 
    Choose a primary key that is not listed.
 
-2. If your adding a dataset for a new project, copy an existing datasets_XXXXX.json to a new file.
+2. If you're adding a dataset for a new project, copy an existing datasets_XXXXX.json to a new file.
     If you keep the prefix "datasets" on the file, then it's easier to check the primary keys for datasets,
     as above.
 
@@ -53,3 +52,16 @@ Adding a dataset
    For datasets served by a database, currently the GV-LRT and C130-LRT, the second section will be
    for a "model": "ncharts.dbdataset", and have fields, such as "dbname", "user", "host", and "table".
    For these datasets, one specifies an end_time in the future, typically Dec 31 of the current year.
+
+
+Uploading changes to the ncharts database
+
+    After making a change to a json file, go to the top ncharts directory, and run
+        ./load_db.sh
+    You'll need the value of the EOL_DATAVIS_SECRET_KEY environment variable to run
+    the above on a production server.
+
+Deleting a project, platform, or datasets
+    Use the admin URL for ncharts from within the EOL firewall to delete a
+    one or more of the above from the ncharts django database.
+    
