@@ -40,6 +40,10 @@ Adding a dataset
    start and end time, location, a short name, and a long name. For a project that is currently
    running you can enter an end_time in the future.
 
+   Under "fields", the "variables" entry is typically empty. This is only used for the weather
+   station datasets, to add meta-data, such as units, and long_name to the variables, since
+   this information is not found in the NetCDF files.
+
    The second section will be:
         "model": "ncharts.filedataset",
    and that section is where one specifies the "directory" and "filenames" under the "fields" entry.
