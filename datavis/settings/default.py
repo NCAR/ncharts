@@ -169,45 +169,24 @@ LOGGING = {
         },
     },
     'handlers': {
-        'django_debug': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'django_debug.log'),
-            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
-            'formatter': 'verbose'
-        },
         'django': {
-            'level': 'WARNING',
+            'level': 'DEBUG',   # changed in production.py
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'django.log'),
             'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
-        'datavis_debug': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'datavis_debug.log'),
-            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
-            'formatter': 'verbose'
-        },
         'datavis': {
-            'level': 'WARNING',
+            'level': 'DEBUG',   # changed in production.py
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'datavis.log'),
             'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
         'ncharts': {
-            'level': 'WARNING',
+            'level': 'DEBUG',   # changed in production.py
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(LOG_DIR, 'ncharts.log'),
-            'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
-            'formatter': 'verbose'
-        },
-        'ncharts_debug': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'ncharts_debug.log'),
             'when': 'W6', 'interval': 1, 'backupCount': 10, 'utc': False,
             'formatter': 'verbose'
         },
@@ -220,29 +199,34 @@ LOGGING = {
         },
     },
     'loggers': {
+        # django logger mails error events to admins when DEBUG=False
         'django': {
-            'handlers':['django', 'django_debug', 'mail_admins'],
+            'handlers':['django'],
+            'level':'DEBUG',   # changed in production.py
             'propagate': True,
-            'level':'DEBUG',
         },
         'datavis': {
-            'handlers':['datavis', 'datavis_debug', 'mail_admins'],
-            'level':'DEBUG',
+            'handlers':['datavis', 'mail_admins'],
+            'level':'DEBUG',   # changed in production.py
         },
         'ncharts': {
-            'handlers': ['ncharts_debug', 'ncharts', 'mail_admins'],
-            'level': 'DEBUG',
+            'handlers': ['ncharts', 'mail_admins'],
+            'level': 'DEBUG',   # changed in production.py
         },
         # django correctly prevents DisallowedHost accesses.
         # Just put them in the log file, don't email
+        # Don't propagate to 'django' logger
         'django.security.DisallowedHost': {
             'handlers': ['django'],
+            'level': 'DEBUG',   # changed in production.py
             'propagate': False, # don't pass on to django logger
         },
         # Put CSRF errors in log file, don't email. When nessus
         # is run, many CSRF errors are generated.
+        # django versions < 1.11 log CSRF failures to django.request
         'django.security.csrf': {
             'handlers': ['django'],
+            'level': 'DEBUG',   # changed in production.py
             'propagate': False, # don't pass on to django logger
         },
     }

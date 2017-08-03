@@ -46,8 +46,8 @@ ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 
 
 # People who should receive emails of ERRORs
 ADMINS = (
-    # ('Gordon Maclean', 'maclean@ucar.edu'),
-    ('Gary Granger', 'granger@ucar.edu'),
+    ('Gordon Maclean', 'maclean@ucar.edu'),
+    # ('Gary Granger', 'granger@ucar.edu'),
 )
 
 CACHES = {
@@ -67,11 +67,17 @@ if LOG_DIR != DEFAULT_LOG_DIR:
 
   #
   # iterate over LOGGING['handlers'] and update filenames w/ new LOG_DIR
+  # and set level to LOG_LEVEL, except for mail_admins handler
   #
 
     for key, value in LOGGING['handlers'].items():
         if 'filename' in value:
             value['filename'] = value['filename'].replace(DEFAULT_LOG_DIR, LOG_DIR)
+
+        if key != 'mail_admins' and 'level' in value:
+            value['level'] = LOG_LEVEL
+
+    for key, value in LOGGING['loggers'].items():
 
         if 'level' in value:
             value['level'] = LOG_LEVEL
