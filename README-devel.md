@@ -8,19 +8,27 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 1. Install required packages
 
-  Redhat does not (yet!) provide an RPM for python3 in CentOS, even CentOS7.
-
-  RPMs for python3 and python3-devel are available on the EOL yum repo for CentOS7, but not CentOS6. See the SEW wiki at http://wiki.eol.ucar.edu/sew/EOL_YUM_Repository.
+   As of Aug 2017, python34 is available from the EPEL repositories for
+   RHEL7 systems.
 
   To install the required RPMs:
 
-**TODO:** manual install of `pip`, no longer in EOL yum repo
+  On RHEL7:
+  ```sh
+  sudo yum install python34 python34-libs python34-setuptools python34-devel
+        memcached netcdf-devel hdf5-devel postgresql-devel
+  sudo easy_install-3.4 pip
+```
+
+  On Fedora:
 
   ```sh
   sudo yum install python3 python3-pip python3-memcached \
         memcached python3-mod_wsgi python3-devel netcdf-devel hdf5-devel \
         postgresql-devel
+```
 
+  ```sh
   sudo python3 -m pip install virtualenv
 
   sudo python3 -m pip install virtualenvwrapper
@@ -75,6 +83,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
    source $HOME/virtualenvs/django/bin/activate
 
    python3 -m pip install --upgrade django
+   python3 -m pip install --upgrade mod_wsgi
    python3 -m pip install --upgrade numpy
    python3 -m pip install --upgrade pytz
    python3 -m pip install --upgrade netCDF4
@@ -88,6 +97,11 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python3 -m pip install django-datetime-widget
   python3 -m pip install django-timezone-field
   python3 -m pip install python3-memcached
+```
+
+  Display django version:
+  ```sh
+  python3 manage.py version
 ```
 
 5. Configuration

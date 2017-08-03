@@ -49,6 +49,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   source $DJVIRT/bin/activate
 
   python3 -m pip install --upgrade django
+  python3 -m pip install --upgrade mod_wsgi
   python3 -m pip install --upgrade numpy
   python3 -m pip install --upgrade pytz
   python3 -m pip install --upgrade netCDF4
@@ -61,10 +62,16 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python3 -m pip install python3-memcached
 ```
 
-  Install mod_wsgi.  This RPM for CentOS7 is on the EOL repo:
-
+  On RHEL:
   ```sh
-  sudo yum install httpd python3-mod_wsgi
+  sudo mod_wsgi-express install-module
+  sudo sh -c "cat > /etc/httpd/conf.modules.d/10-wsgi-python3.conf"
+# NOTE: mod_wsgi_python3 can not coexist in the same apache process as
+# mod_wsgi (python2).  Only load if mod_wsgi is not already loaded.
+
+<IfModule !wsgi_module>
+    LoadModule wsgi_module modules/mod_wsgi-py34.cpython-34m.so
+</IfModule>
 ```
 
 5. Configuration
