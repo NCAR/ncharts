@@ -1,0 +1,54 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2017-08-01T00:00:00+00:00", 
+        "end_time": "2017-08-24T00:00:00+00:00", 
+        "location": "Grand Island, NE ", 
+        "name": "noqc_instrument", 
+        "long_name": "ARTSE, preliminary data, winds in instrument coordinates", 
+        "project": "ARTSE",
+	"url": "https://www.eol.ucar.edu/field_projects/artse",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 43
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/ARTSE/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 43
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2017-08-01T00:00:00+00:00", 
+        "end_time": "2017-08-24T00:00:00+00:00", 
+        "location": "Grand Island, NE ", 
+        "name": "geo_10sec", 
+        "long_name": "ARTSE, preliminary data, 10 sec, winds in geographic coordinates", 
+        "project": "ARTSE",
+	"url": "https://www.eol.ucar.edu/field_projects/artse",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 44
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/ARTSE/ISFS/netcdf/geo_10sec",
+        "filenames": "isfs_10sec_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 44
+}
+]

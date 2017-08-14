@@ -161,5 +161,16 @@
     },
     "model": "ncharts.project", 
     "pk": "Perdigao"
+},
+{
+    "fields": {
+        "location": "Grand Island, Nebraska",
+        "timezones": ["US/Central", "UTC"],
+	"long_name": "Evolution of surface layer fluxes surrounding a total solar eclipse",
+        "start_year": "2017",
+        "end_year": "2017"
+    },
+    "model": "ncharts.project", 
+    "pk": "ARTSE"
 }
 ]
