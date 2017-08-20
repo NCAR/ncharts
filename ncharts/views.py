@@ -1,4 +1,4 @@
-# -*- mode: C++; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
+# -*- mode: python; indent-tabs-mode: nil; c-basic-offset: 4; -*-
 # vim: set shiftwidth=4 softtabstop=4 expandtab:
 
 """Views used by ncharts django web app.
@@ -307,12 +307,8 @@ class DatasetView(View):
 
         """
 
-        debug = False
-
-        if debug:
-            _logger.debug(
-                "DatasetView get, dataset %s of project %s",
-                dataset_name, project_name)
+        _logger.debug("DatasetView get, dataset %s of project %s",
+                      dataset_name, project_name)
 
         proj = get_object_or_404(nc_models.Project.objects, name=project_name)
         projs = nc_models.Project.objects.all()
@@ -351,8 +347,7 @@ class DatasetView(View):
         tnow = datetime.datetime.now(timezone.tz)
 
         if not client_state:
-            # _logger.debug('DatasetView get, dset.variables=%s',
-            #   dset.variables)
+            _logger.debug('DatasetView get, dset.variables=%s', dset.variables)
 
             tdelta = datetime.timedelta(days=1)
 
@@ -414,17 +409,13 @@ class DatasetView(View):
         # variables selected previously by user
         if client_state.variables:
             sel_vars = json.loads(client_state.variables)
-            if debug:
-                _logger.debug(
-                    "get, old session, same dataset, " \
-                    "project=%s, dataset=%s, variables=%s",
-                    project_name, dataset_name, client_state.variables)
+            _logger.debug("get, old session, same dataset, "
+                          "project=%s, dataset=%s, variables=%s",
+                          project_name, dataset_name, client_state.variables)
         else:
-            if debug:
-                _logger.debug(
-                    "get, old session, same dataset, "
-                    "project=%s, dataset=%s, no variables",
-                    project_name, dataset_name)
+            _logger.debug("get, old session, same dataset, "
+                          "project=%s, dataset=%s, no variables",
+                          project_name, dataset_name)
             sel_vars = []
 
         # If the end_time of the dataset has passed
@@ -450,12 +441,10 @@ class DatasetView(View):
         # with values set as approproate for the dataset timezone
         form_start_time = client_state.start_time.astimezone(timezone.tz).replace(tzinfo=None)
 
-        if debug:
-            _logger.debug(
-                "DatasetView get, old session, same dataset, "
-                "project=%s, dataset=%s, start_time=%s, vars=%s",
-                project_name, dataset_name,
-                client_state.start_time, client_state.variables)
+        _logger.debug("DatasetView get, old session, same dataset, "
+                      "project=%s, dataset=%s, start_time=%s, vars=%s",
+                      project_name, dataset_name,
+                      client_state.start_time, client_state.variables)
 
         sel_soundings = []
         if client_state.soundings:
@@ -533,6 +522,8 @@ class DatasetView(View):
         sent back to the user.
         """
 
+        _logger.debug("DatasetView.post(project=%s, dataset=%s)" %
+                      (project_name, dataset_name))
         try:
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
