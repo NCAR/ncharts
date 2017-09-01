@@ -83,7 +83,6 @@ The following is for RedHat systems, such as CentOS or Fedora.
    source $HOME/virtualenvs/django/bin/activate
 
    python3 -m pip install --upgrade django
-   python3 -m pip install --upgrade mod_wsgi
    python3 -m pip install --upgrade numpy
    python3 -m pip install --upgrade pytz
    python3 -m pip install --upgrade netCDF4
@@ -99,14 +98,12 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python3 -m pip install python3-memcached
 ```
 
-  Display django version:
-  ```sh
-  python3 manage.py version
-```
-
 5. Configuration
-
-  Edit `datavis/settings.py` and set `DEBUG = True`. Note that this results in the following settings:
+   ```sh
+   cd $DJROOT/ncharts
+   ```
+   
+  In `datavis/settings/default.py` DEBUG is set to True`. Note that this results in the following settings:
 
   ```sh
   VAR_RUN_DIR = BASE_DIR
@@ -114,7 +111,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   LOG_DIR = os.path.join(BASE_DIR,'log')
 ```
 
-  `BASE_DIR` is set in `datavis/settings.py` as the parent directory of datavis, which, in this configuration is `$DJROOT/ncharts`
+  `BASE_DIR` is set in `datavis/settings/default.py` as the parent directory of datavis, which, in this configuration is `$DJROOT/ncharts`
 
   The memcached socket is on `VAR_RUN_DIR`.
   The database is on `VAR_LIB_DIR`.
@@ -123,6 +120,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   ```sh
   mkdir $DJROOT/ncharts/log
+```
+  Display the django version:
+  ```sh
+  python3 manage.py version 
 ```
 
 6. Initialize the database.
