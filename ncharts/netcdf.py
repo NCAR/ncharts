@@ -369,10 +369,8 @@ class NetCDFDataset(object):
                             dsinfo['station_names'] = []
                             var = ncfile.variables[STATION_DIMENSION_NAME]
                             if var.datatype == np.dtype('S1'):
-                                snms = [bytearray(
-                                    netCDF4.chartostring(v)).decode(
-                                        "utf-8", "strict").rstrip(' \0') \
-                                                for v in var]
+
+                                snms = [str(netCDF4.chartostring(v)) for v in var]
                                 dsinfo['station_names'].extend(snms)
                     elif not dsinfo['nstations'] == \
                             len(ncfile.dimensions[STATION_DIMENSION_NAME]):
