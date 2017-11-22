@@ -19,7 +19,7 @@
 },
 {
     "fields": {
-        "directory": "/scr/tmp/isfs/Perdigao/netcdf/noqc_instrument",
+        "directory": "/scr/isfs/projects/Perdigao/netcdf/noqc_instrument",
         "filenames": "isfs_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
@@ -45,7 +45,7 @@
 },
 {
     "fields": {
-        "directory": "/scr/tmp/isfs/projects/Perdigao/netcdf/noqc_geo_notiltcor",
+        "directory": "/scr/isfs/projects/Perdigao/netcdf/noqc_geo_notiltcor",
         "filenames": "isfs_notiltcor_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
