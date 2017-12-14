@@ -60,7 +60,7 @@
         "start_time": "2017-08-01T00:00:00+00:00", 
         "end_time": "2017-08-24T00:00:00+00:00", 
         "location": "Grand Island, NE ", 
-        "name": "prelim_geo_tiltcor", 
+        "name": "prelim_geo_notiltcor", 
         "long_name": "ARTSE, preliminary data, winds in geographic coordinates", 
         "project": "ARTSE",
 	"url": "https://www.eol.ucar.edu/field_projects/artse",
@@ -72,7 +72,7 @@
 {
     "fields": {
         "directory": "/net/isf/isfs/projects/ARTSE/ISFS/netcdf/prelim_geo_notiltcor",
-        "filenames": "isfs_tc_%Y%m%d.nc"
+        "filenames": "isfs_notc_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 45
