@@ -71,7 +71,7 @@
 },
 {
     "fields": {
-        "directory": "/net/isf/isfs/projects/ARTSE/ISFS/netcdf/prelim_geo_tiltcor",
+        "directory": "/net/isf/isfs/projects/ARTSE/ISFS/netcdf/prelim_geo_notiltcor",
         "filenames": "isfs_tc_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
