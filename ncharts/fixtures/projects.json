@@ -113,7 +113,7 @@
         "timezones": ["UTC"],
 	"long_name": "NCAR Gulfstream V",
         "start_year": "2015",
-        "end_year": "2016"
+        "end_year": "2018"
     },
     "model": "ncharts.project", 
     "pk": "GV"
@@ -124,7 +124,7 @@
         "timezones": ["UTC"],
 	"long_name": "NCAR C130 Hercules",
         "start_year": "2015",
-        "end_year": "2016"
+        "end_year": "2018"
     },
     "model": "ncharts.project", 
     "pk": "C130"

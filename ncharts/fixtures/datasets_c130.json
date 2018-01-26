@@ -6,7 +6,7 @@
             "C130"
         ], 
         "start_time": "2015-01-01T00:00:00+00:00", 
-        "end_time": "2017-12-31T00:00:00+00:00", 
+        "end_time": "2018-12-31T00:00:00+00:00", 
         "name": "C130-LRT", 
         "long_name": "NCAR Hercules C130, low-rate realtime data", 
         "project": "C130",
