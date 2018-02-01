@@ -7,7 +7,7 @@
 }(function($,window,document) {
 
     // Put local variables and functions into this namespace
-    local_ns = {}
+    local_ns = {};
 
     local_ns.debug_level = 0;
 
@@ -20,7 +20,7 @@
             return e1['x'] >= val ? (( index = i), true) : false;
         });
         return index;
-    }
+    };
 
     local_ns.unique = function(arr) {
         return arr.filter(function(value, index, array) {
@@ -36,13 +36,13 @@
             global: {
                 getTimezoneOffset: function(timestamp) {
                     var timezoneOffset =
-            -moment.tz(timestamp,local_ns.plotTimezone).utcOffset();
-        // console.log("timezoneOffset=",timezoneOffset);
-        return timezoneOffset;
+                        -moment.tz(timestamp,local_ns.plotTimezone).utcOffset();
+                    // console.log("timezoneOffset=",timezoneOffset);
+                    return timezoneOffset;
                 },
-            // Documentation on this seems wrong. With the current
-            // logic here, we must set this to true.
-            useUTC: true,
+                // Documentation on this seems wrong. With the current
+                // logic here, we must set this to true.
+                useUTC: true,
             }
         });
     };
@@ -51,14 +51,14 @@
         var mom = moment(val).tz(local_ns.pickerTimezone);
         // format it, and set it on the picker
         return mom.format(format);
-    }
+    };
 
     local_ns.update_start_time = function(start_time) {
         var dstr = local_ns.format_time(start_time,'YYYY-MM-DD HH:mm');
         // console.log("updating start_time, dstr=",dstr);
         $("input#id_start_time").val(dstr);
         local_ns.update_sounding_boxes(start_time);
-    }
+    };
 
     local_ns.last_scroll = Date.now() - 60 * 1000;
     local_ns.scroll = function(offset) {
@@ -66,9 +66,9 @@
         // Don't scroll more often than 30 seconds
         if (now > local_ns.last_scroll + 30 * 1000) {
             $('html,body').animate({scrollTop: offset},1000);
-            local_ns.last_scroll = now
+            local_ns.last_scroll = now;
         }
-    }
+    };
 
     local_ns.update_sounding_boxes = function(start_time) {
 
@@ -111,12 +111,12 @@
         catch (err) {
             return;
         }
-    }
+    };
 
     local_ns.get_start_time = function() {
-        var dstr = $("input#id_start_time").val();;
+        var dstr = $("input#id_start_time").val();
         return moment.tz(dstr,'YYYY-MM-DD HH:mm',local_ns.pickerTimezone);
-    }
+    };
 
     // set the value of local_ns.time_length in units of milliseconds
     local_ns.update_time_length = function(time_length,time_length_units,update) {
@@ -138,17 +138,17 @@
             local_ns.update_start_time(Date.now() - local_ns.time_length);
         }
 
-        if (update == true) {
+        if (update) {
             local_ns.update_sounding_boxes(local_ns.get_start_time());
         }
-    }
+    };
 
     // Add support for %Z time formatter
     Highcharts.dateFormats = {
         Z: function (timestamp) {
             // console.log("zone.abbr=",local_ns.zone.abbr(timestamp));
             return local_ns.zone.abbr(timestamp);
-        }
+        },
     };
 
     local_ns.do_ajax = function() {
@@ -195,8 +195,8 @@
 
                     for (var var_index = 0; var_index < ajaxin.data.length; var_index++) {
                         var var_data = ajaxin.data[var_index];
-                        var itimes = $.parseJSON(var_data.time)
-                        if (itimes.length == 0) {
+                        var itimes = $.parseJSON(var_data.time);
+                        if (itimes.length === 0) {
                             continue;
                         }
                         var itime0 = var_data.time0;
@@ -209,7 +209,7 @@
                             var plotvname = var_data.variable;
                             var stn_name = stn_names[stn_index];
                             if (stn_name.length > 0) {
-                                plotvname += ' ' + stn_name
+                                plotvname += ' ' + stn_name;
                             }
 
                             var series_index;
@@ -234,7 +234,7 @@
                             */
 
                             // shouldn't often happen in this ajax function
-                            if (series.data.length == 0 && local_ns.debug_level) {
+                            if (series.data.length === 0 && local_ns.debug_level) {
                                 console.log("ajax, series_index=",series_index,", vname=",vname,
                                         ", series.data.length=",series.data.length);
                             }
@@ -274,7 +274,7 @@
 
                                 // later time than all in chart, add with possible shift
                                 if (ix == series.data.length) {
-                                    var shift = (first_time &&
+                                    var shift = (first_time !== null &&
                                             (tx > first_time + local_ns.time_length));
 
                                     series.addPoint([tx,dx],redraw,shift);
@@ -291,7 +291,7 @@
                                         }
                                         catch(err) {
                                             var first_time_str = "null";
-                                            if (first_time) {
+                                            if (first_time !== null) {
                                                 first_time_str = local_ns.format_time(first_time);
                                             }
                                             console.log("error ",err," in accessing first chart time, ",
@@ -327,14 +327,14 @@
                                 }
                             }
 
-                            var npts = 0
-                                while ((l = series.data.length) > 1 &&
-                                        series.data[l-1].x >
-                                        series.data[0].x + local_ns.time_length) {
-                                            series.removePoint(0,true);
-                                            first_time = series.data[0].x;
-                                            npts++;
-                                        }
+                            var npts = 0;
+                            while ((l = series.data.length) > 1 &&
+                                    series.data[l-1].x >
+                                    series.data[0].x + local_ns.time_length) {
+                                        series.removePoint(0,true);
+                                        first_time = series.data[0].x;
+                                        npts++;
+                                    }
                             if (npts && local_ns.debug_level) {
                                 console.log("var=",vname," removed ",npts," points, time_length=",
                                         local_ns.time_length);
@@ -343,14 +343,15 @@
                                 console.log("time-series ajax function done, var= ",vname,
                                         ", itimes.length=",itimes.length,
                                         ", first_time=", local_ns.format_time(first_time),
-                                        ", chart.series[",series_index,"].data.length=", series.data.length)
+                                        ", chart.series[",series_index,"].data.length=", series.data.length);
                             }
                             // Update time axis title on LHS of plot
-                            chart.xAxis[0].setTitle({
-                                text: local_ns.format_time(
-                                    local_ns.get_start_time(),
-                                    "YYYY-MM-DD HH:mm ZZ") +
-                                    " (" + local_ns.plotTimezone + ")"});
+                            if (first_time !== null) {
+                                chart.xAxis[0].setTitle({
+                                    text: local_ns.format_time(first_time,
+                                        "YYYY-MM-DD HH:mm ZZ") +
+                                        " (" + local_ns.plotTimezone + ")"});
+                            }
                         }   // station index
                     }   // input ajax variable indec
 
@@ -365,13 +366,16 @@
                     var chart = $( this ).highcharts();
 
                     var extr =  chart.colorAxis[0].getExtremes();
+
+                    var cminval;
+                    var cmaxval;
                     // on the first ajax callback, this seems to be undefined
                     if (extr.dataMin === undefined) {
-                        var cminval = chart.colorAxis[0].min;
-                        var cmaxval = chart.colorAxis[0].max;
+                        cminval = chart.colorAxis[0].min;
+                        cmaxval = chart.colorAxis[0].max;
                     } else {
-                        var cminval = extr.dataMin;
-                        var cmaxval = extr.dataMax;
+                        cminval = extr.dataMin;
+                        cmaxval = extr.dataMax;
                     }
                     if (local_ns.debug_level) {
                         console.log("heatmap, colorAxis dataMin=",cminval,
@@ -393,8 +397,9 @@
                         }
 
                         var var_index;
-                        for (var_index = 0; var_index < ajaxin.data.length; var_index++)
-                            if (ajaxin.data[var_index].variable == vname) break;
+                        for (var_index = 0; var_index < ajaxin.data.length; var_index++) {
+                            if (ajaxin.data[var_index].variable == vname) { break; }
+                        }
 
                         if (var_index == ajaxin.data.length) continue;
 
@@ -402,7 +407,7 @@
 
                         var itimes = $.parseJSON(var_data.time);
 
-                        if (itimes.length == 0) {
+                        if (itimes.length === 0) {
                             continue;
                         }
 
@@ -454,7 +459,7 @@
                                     series.addPoint(
                                             [tx,dim2[j],dx], redraw,shift);
                                 }
-                                if (shift || !first_time) {
+                                if (shift || first_time === null) {
                                     first_time = series.data[0].x;
                                     ix -= dim2.length;
                                 }
@@ -496,7 +501,7 @@
                                         series.addPoint(
                                                 [tx,dim2[j],dx], redraw,false);
                                     }
-                                    if (ctx > tx && ix == 0) {
+                                    if (ctx > tx && ix === 0) {
                                         first_time = series.data[0].x;
                                     }
                                 }
@@ -533,7 +538,7 @@
                             console.log("heatmap ajax function done, var= ",vname,
                                     ", itimes.length=",itimes.length,
                                     ", first_time=", local_ns.format_time(first_time),
-                                    ", chart.series[",iv,"].data.length=", series.data.length)
+                                    ", chart.series[",iv,"].data.length=", series.data.length);
                         }
                     }
                     if (local_ns.colorAxisRecomputeCntr > 0) {
@@ -576,7 +581,7 @@
 
                 // update the start time on the datetimepicker from
                 // first time in chart (milliseconds)
-                if (first_time) {
+                if (first_time !== null) {
                     local_ns.update_start_time(first_time);
                 }
 
@@ -590,7 +595,7 @@
                 setTimeout(local_ns.do_ajax,local_ns.ajaxTimeout);
             }
         });
-    }
+    };
 
     $(function() {
 
@@ -784,9 +789,9 @@
         // console.log("track_real_time=",local_ns.track_real_time);
         // Everything below here depends on plot_times and plot_data
         // being passed.
-        if (window.plot_times === undefined) return
+        if (window.plot_times === undefined) return;
 
-        var first_time = null;
+        var first_time = local_ns.get_start_time();
 
         // Plot time series
         var $plots = $("div[id^='time-series']");
@@ -801,12 +806,10 @@
         $plots.each(function(plotindex) {
 
             // series name
-            var sname =  $( this ).data("series");
-            var vnames =  $( this ).data("variables");
-            var vunits =  $( this ).data("units");
-            var long_names =  $( this ).data("long_names");
-            var date = $("input#id_start_time").val();
-
+            var sname = $( this ).data("series");
+            var vnames = $( this ).data("variables");
+            var vunits = $( this ).data("units");
+            var long_names = $( this ).data("long_names");
 
             // console.log("time-series, plot_times[''].length=",plot_times[''].length);
             // console.log("vnames=",vnames,", vunits=",vunits);
@@ -820,7 +823,8 @@
             var unique_units = local_ns.unique(vunits);
 
             // create a yAxis
-            for (var unit of unique_units) {
+            for (var j = 0; j < unique_units.length; j++) {
+                var unit = unique_units[j];
                 ya = {
                     title: {
                         text: unit,
@@ -899,14 +903,15 @@
             
                     var vseries = {};
                     var vdata = [];
+                    var idata;
                     if (stn_name.length > 0) {
-                        for (var idata = 0; idata < ser_times.length; idata++) {
+                        for (idata = 0; idata < ser_times.length; idata++) {
                             vdata.push([(ser_time0 + ser_times[idata])*1000,
                                     var_data[idata][stn_index]]);
                         }
                     }
                     else {
-                        for (var idata = 0; idata < ser_times.length; idata++) {
+                        for (idata = 0; idata < ser_times.length; idata++) {
                             vdata.push([(ser_time0 + ser_times[idata])*1000,
                                     var_data[idata]]);
                         }
@@ -971,7 +976,7 @@
                                     ['Week from %Y-%m-%d', '%Y-%m-%d', '-%Y-%m-%d'],
                                 month:
                                     ['%Y-%m', '%Y-%m', '-%Y-%m'],
-                                year: ['%Y', '%Y', '-%Y']
+                                year:
                                     ['%Y', '%Y', '-%Y'],
                             }
                         },
@@ -990,13 +995,13 @@
                         hour: '%H:%M',
                         day: '%Y<br/>%m-%d',
                         month: '%Y<br/>%m',
-                        year: '%Y'
+                        year: '%Y',
                     },
                     startOnTick: false,
                     endOnTick: false,
                     title: {
                         align: "low",
-                        text: local_ns.format_time(local_ns.get_start_time(),
+                        text: local_ns.format_time(first_time,
                                 "YYYY-MM-DD HH:mm ZZ") +
                             " (" + local_ns.plotTimezone + ")",
                     },
@@ -1050,7 +1055,7 @@
                     // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
                     style: {"color": "#333333", "fontSize": "14px"},
                     margin: 5,
-                }
+                },
             });
         });
 
@@ -1119,111 +1124,110 @@
                 $( this ).highcharts({
                     chart: {
                         borderWidth: 1,
-                    type: 'heatmap',
-                    zoomType: 'xy',
-                    panning: true,
-                    panKey: 'shift',
-                    spacing: [10, 10, 5, 5], // top,right,bot,left
-                    plotOptions: {
-                        series: {
-                            dataGrouping: {
-                                dateTimeLabelFormats: {
-                                    millisecond:
-                    ['%Y-%m-%d %H:%M:%S.%L %Z', '%Y-%m-%d %H:%M:%S.%L', '-%H:%M:%S.%L %Z'],
-                    second:
-                    ['%Y-%m-%d %H:%M:%S %Z', '%Y-%m-%d %H:%M:%S', '-%H:%M:%S %Z'],
-                    minute:
-                    ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
-                    hour:
-                    ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
-                    day:
-                        ['%Y-%m-%d %Z', '%Y-%m-%d', '-%m-%d %Z'],
-                    week:
-                        ['Week from %Y-%m-%d', '%Y-%m-%d', '-%Y-%m-%d'],
-                    month:
-                        ['%Y-%m', '%Y-%m', '-%Y-%m'],
-                    year: ['%Y', '%Y', '-%Y']
-                        ['%Y', '%Y', '-%Y'],
-                                }
-                            }
-                        }
+                        type: 'heatmap',
+                        zoomType: 'xy',
+                        panning: true,
+                        panKey: 'shift',
+                        spacing: [10, 10, 5, 5], // top,right,bot,left
+                        plotOptions: {
+                            series: {
+                                dataGrouping: {
+                                    dateTimeLabelFormats: {
+                                        millisecond:
+                                            ['%Y-%m-%d %H:%M:%S.%L %Z', '%Y-%m-%d %H:%M:%S.%L', '-%H:%M:%S.%L %Z'],
+                                        second:
+                                            ['%Y-%m-%d %H:%M:%S %Z', '%Y-%m-%d %H:%M:%S', '-%H:%M:%S %Z'],
+                                        minute:
+                                            ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                        hour:
+                                            ['%Y-%m-%d %H:%M %Z', '%Y-%m-%d %H:%M', '-%H:%M %Z'],
+                                        day:
+                                            ['%Y-%m-%d %Z', '%Y-%m-%d', '-%m-%d %Z'],
+                                        week:
+                                            ['Week from %Y-%m-%d', '%Y-%m-%d', '-%Y-%m-%d'],
+                                        month:
+                                            ['%Y-%m', '%Y-%m', '-%Y-%m'],
+                                        year:
+                                            ['%Y', '%Y', '-%Y'],
+                                    },
+                                },
+                            },
+                        },
                     },
+                    credits: {  // highcharts.com link
+                        enabled: (plotindex == nplots-1),
                     },
-                        credits: {  // highcharts.com link
-                            enabled: (plotindex == nplots-1),
+                    title: {
+                        text: long_name + '(' + units + ')',
+                        // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
+                        style: {"color": "#333333", "fontSize": "14px"},
+                        margin: 0,
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        dateTimeLabelFormats: {
+                            millisecond: '%H:%M:%S.%L',
+                            second: '%H:%M:%S',
+                            minute: '%H:%M',
+                            hour: '%H:%M',
+                            day: '%Y<br/>%m-%d',
+                            month: '%Y<br/>%m',
+                            year: '%Y',
                         },
                         title: {
-                            text: long_name + '(' + units + ')',
-                            // style: {"color": "black", "fontSize": "14px", "fontWeight": "bold", "text-decoration": "underline"},
-                            style: {"color": "#333333", "fontSize": "14px"},
                             margin: 0,
+                            text: "time (" + local_ns.plotTimezone + ")",
                         },
-                        xAxis: {
-                            type: 'datetime',
-                            dateTimeLabelFormats: {
-                                millisecond: '%H:%M:%S.%L',
-                                second: '%H:%M:%S',
-                                minute: '%H:%M',
-                                hour: '%H:%M',
-                                day: '%Y<br/>%m-%d',
-                                month: '%Y<br/>%m',
-                                year: '%Y'
-                            },
-                            title: {
-                                margin: 0,
-                                text: "time (" + local_ns.plotTimezone + ")",
-                            },
-                            ordinal: false,
+                        ordinal: false,
+                    },
+                    yAxis: {
+                        title: {
+                            text: dim2_name + '(' + dim2_units + ')',
                         },
-                        yAxis: {
-                            title: {
-                                text: dim2_name + '(' + dim2_units + ')'
-                            },
-                            min: mindim2,
-                            max: maxdim2,
-                            tickWidth: 2,
-                        },
-                        colorAxis: {
-                            stops: [
-                                [0, '#3060cf'],
+                        min: mindim2,
+                        max: maxdim2,
+                        tickWidth: 2,
+                    },
+                    colorAxis: {
+                        stops: [
+                            [0, '#3060cf'],
                             [0.5, '#fffbbc'],
-                            [0.9, '#c4463a']
-                                ],
-                            min: minval,
-                            max: maxval,
-                            reversed: false,
-                            // maxPadding: 0.2, does seem to have an effect
-                            // minPadding: 0.2,
-                            startOnTick: false,
-                            endOnTick: false,
-                            // minColor: '#FFFFFF',
-                            // maxColor: Highcharts.getOptions().colors[0]
-                        },
-                        legend: {
-                            title: vname,
-                            align: 'right',
-                            layout: 'vertical',
-                            margin: 15,
-                            verticalAlign: 'bottom',
-                            useHTML: true,
-                        },
-                        tooltip: {
-                            enabled: true,
-                            /*
-                               headerFormat: vname + "<br/>",
-                               */
-                            headerFormat: '',
-                            pointFormat:
-                                vname + '={point.value}, ' + dim2_name +
+                            [0.9, '#c4463a'] ],
+                        min: minval,
+                        max: maxval,
+                        reversed: false,
+                        // maxPadding: 0.2, does seem to have an effect
+                        // minPadding: 0.2,
+                        startOnTick: false,
+                        endOnTick: false,
+                        // minColor: '#FFFFFF',
+                        // maxColor: Highcharts.getOptions().colors[0]
+                    },
+                    legend: {
+                        title: vname,
+                        align: 'right',
+                        layout: 'vertical',
+                        margin: 15,
+                        verticalAlign: 'bottom',
+                        useHTML: true,
+                    },
+                    tooltip: {
+                        enabled: true,
+                        /*
+                           headerFormat: vname + "<br/>",
+                           */
+                        headerFormat: '',
+                        pointFormat:
+                            vname + '={point.value}, ' + dim2_name +
                                 '={point.y}, {point.x:%Y-%m-%d %H:%M:%S.%L %Z}',
-                            // xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
-                        },
-                        series:[{
-                            name: vname,
-                            data: chart_data,
-                            colsize: colsize,
-                            rowsize: rowsize,
-                        }],
+                        // xDateFormat: '%Y-%m-%d %H:%M:%S.%L %Z',
+                    },
+                    series:[{
+                        name: vname,
+                        data: chart_data,
+                        colsize: colsize,
+                        rowsize: rowsize,
+                    }],
                 });
             }
         });
@@ -1239,7 +1243,7 @@
             var vnames =  $( this ).data("variables");
             var vunits =  $( this ).data("units");
             var long_names =  $( this ).data("long_names");
-            if (long_names.length == 0) {
+            if (long_names.length === 0) {
                 long_names = vnames;
             }
 
@@ -1304,12 +1308,12 @@
                 last_val_init = -Number.MAX_VALUE;
                 alt_ok = function(x,xlast) {
                     return x !== null && x > xlast;
-                }
+                };
             } else {
                 last_val_init = Number.MAX_VALUE;
                 alt_ok = function(x,xlast) {
                     return x !== null && x < xlast;
-                }
+                };
             }
 
             var yAxes = [];
@@ -1319,7 +1323,7 @@
             for (var iv = 0; iv < vnames.length; iv++) {
                 var vname = vnames[iv];
                 if (vname == yvar) continue;
-                var var_index = plot_vmap[sname][vname];
+                var_index = plot_vmap[sname][vname];
                 var vunit = vunits[iv];
                 var vdata = [];
                 var last_val = last_val_init;
@@ -1327,7 +1331,7 @@
                     var x = altitudes[idata];
                     if (alt_ok(x,last_val)) {
                         var y = ser_data[var_index][idata];
-                        vdata.push([x,y])
+                        vdata.push([x,y]);
                             last_val = x;
                     }
                 }
@@ -1349,7 +1353,7 @@
                         // minorTickWidth: 0,
                         // gridLineWidth: (yAxes.length == 0 ? 1 : 0),
                         gridLineWidth: 1,
-                        opposite: (unitIndex % 2 != 0),
+                        opposite: (unitIndex % 2 !== 0),
                         /* Need to start/end on tick if you have
                          * gridlines on multiple axes */
                         startOnTick: true,
@@ -1425,11 +1429,7 @@
             local_ns.ajaxTimeout = 10 * 1000;   // 10 seconds
             if ('' in plot_times && plot_times[''].length > 1) {
                 // set ajax update period to 1/2 the data deltat
-                local_ns.ajaxTimeout = Math.max(
-                    local_ns.ajaxTimeout,
-                    Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) /
-                        (plot_times[''].length - 1) * 1000 / 2)
-                );
+                local_ns.ajaxTimeout = Math.max(local_ns.ajaxTimeout, Math.ceil((plot_times[''][plot_times[''].length-1] - plot_times[''][0]) / (plot_times[''].length - 1) * 1000 / 2));
             }
             if (local_ns.debug_level > 2) {
                 // update more frequently for debugging
@@ -1450,6 +1450,4 @@
             local_ns.scroll(plot_top);
         }
     });     // end of DOM-is-ready function
-})
-);
-
+}));
