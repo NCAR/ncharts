@@ -6,7 +6,7 @@
             "GV"
         ], 
         "start_time": "2015-01-01T00:00:00+00:00", 
-        "end_time": "2018-12-31T00:00:00+00:00", 
+        "end_time": "2030-01-01T00:00:00+00:00", 
         "name": "GV-LRT", 
         "long_name": "NCAR Gulfstream V, low-rate realtime data", 
         "project": "GV",
