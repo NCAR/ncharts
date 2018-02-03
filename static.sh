@@ -20,4 +20,4 @@ chmod -R ug+w static
 python3 manage.py findstatic ncharts/jslib/ncharts.js
 python3 manage.py collectstatic
 
-chmod -R -w static
+chmod -R a-w static
