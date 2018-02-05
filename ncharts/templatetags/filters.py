@@ -1,5 +1,6 @@
 from django import template
 from ncharts import models as nc_models
+import datetime
 
 register = template.Library()
 
@@ -32,6 +33,13 @@ def get_site_names(dset):
 @register.filter
 def get_station_names(dset):
     return dset.get_station_names()
+
+@register.filter
+def get_end_time_string(dset):
+    et = dset.get_end_time()
+    if et > datetime.datetime.now(tz=datetime.timezone.utc):
+        return "Ongoing"
+    return et
 
 @register.filter
 def make_project_tabs(projects):

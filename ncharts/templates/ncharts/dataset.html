@@ -26,7 +26,7 @@
 <p><b>Project: </b><a href="{% url 'ncharts:project' dataset.project.name %}">{{ dataset.project.name }}</a></p>
 <p><b>Location: </b>{{ dataset.location }}</p>
 <p><b>Start Date:</b> {{ dataset.start_time }}</p>
-<p><b>End Date:</b> {{ dataset.end_time }}</p>
+<p><b>End Date:</b> {{ dataset|get_end_time_string }}</p>
 <p><b>Status: </b>{{ dataset.status }}</p>
 <p><a href="{{ dataset.url }}"><b>More Information</b></a></p>
 
