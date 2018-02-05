@@ -540,6 +540,13 @@
                                     ", first_time=", local_ns.format_time(first_time),
                                     ", chart.series[",iv,"].data.length=", series.data.length);
                         }
+                        // Update time axis title on LHS of plot
+                        if (first_time !== null) {
+                            chart.xAxis[0].setTitle({
+                                text: local_ns.format_time(first_time,
+                                    "YYYY-MM-DD HH:mm ZZ") +
+                                    " (" + local_ns.plotTimezone + ")"});
+                        }
                     }
                     if (local_ns.colorAxisRecomputeCntr > 0) {
                         if (local_ns.debug_level) {
@@ -1175,8 +1182,10 @@
                             year: '%Y',
                         },
                         title: {
-                            margin: 0,
-                            text: "time (" + local_ns.plotTimezone + ")",
+                            align: "low",
+                            text: local_ns.format_time(first_time,
+                                    "YYYY-MM-DD HH:mm ZZ") +
+                                " (" + local_ns.plotTimezone + ")",
                         },
                         ordinal: false,
                     },
