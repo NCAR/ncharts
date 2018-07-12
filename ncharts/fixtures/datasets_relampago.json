@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2018-06-01T00:00:00+00:00", 
+        "end_time": "2019-04-30T00:00:00+00:00", 
+        "location": "Argentina ",
+        "name": "noqc_instrument", 
+        "long_name": "RELAMPAGO, preliminary data, winds in instrument coordinates", 
+        "project": "RELAMPAGO",
+	"url": "https://www.eol.ucar.edu/field_projects/relampago",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 50
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/RELAMPAGO/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 50
+}
+]

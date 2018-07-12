@@ -38,5 +38,10 @@
     "fields": {},
     "pk": "Europe/Lisbon", 
     "model": "ncharts.timezone"
+},
+{
+    "fields": {},
+    "pk": "America/Argentina/Cordoba", 
+    "model": "ncharts.timezone"
 }
 ]

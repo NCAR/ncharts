@@ -170,5 +170,27 @@
     },
     "model": "ncharts.project", 
     "pk": "ARTSE"
+},
+{
+    "fields": {
+        "location": "Eastern Nebraska near York and Lincoln, Nebraska",
+        "timezones": ["US/Central", "UTC"],
+	"long_name": "The Great Plains Irrigation Experiment",
+        "start_year": "2018",
+        "end_year": "2018"
+    },
+    "model": "ncharts.project", 
+    "pk": "GRAINEX"
+},
+{
+    "fields": {
+        "location": "Argentina",
+        "timezones": ["America/Argentina/Cordoba", "UTC"],
+	"long_name": "Remote sensing of Electrification, Lightning, And Mesoscale/microscale Processes with Adaptive Ground Observations",
+        "start_year": "2018",
+        "end_year": "2019"
+    },
+    "model": "ncharts.project", 
+    "pk": "RELAMPAGO"
 }
 ]

@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2018-05-30T00:00:00+00:00", 
+        "end_time": "2018-07-30T00:00:00+00:00", 
+        "location": "Eastern Nebraska near York and Lincoln", 
+        "name": "noqc_instrument", 
+        "long_name": "GRAINEX, preliminary data, winds in instrument coordinates", 
+        "project": "GRAINEX",
+	"url": "https://www.eol.ucar.edu/field_projects/grainex",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 46
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/GRAINEX/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 46
+}
+]
