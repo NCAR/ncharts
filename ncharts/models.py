@@ -111,7 +111,7 @@ def alphabetic_tabs(variables):
 
         # pylint thinks ctab could be used before assignment
         # pylint: disable=used-before-assignment
-        if len(comb_tabs) == 0 or \
+        if not comb_tabs or \
                 len(comb_tabs[ctab]["variables"]) > tab_limit or \
                 len(vals["variables"]) > tab_limit:
             ctab = tab
@@ -194,14 +194,14 @@ class Project(models.Model):
     @classmethod
     def make_tabs(cls, projects):
 
-        """A class method for creating dictionary of projects based on their start years
-            and end years. The dictionary keys will be the years and the values will be
-            the projects that happen within the corresponding years. The years and projects are sorted
-            numerically and alphabetically.
+        """A class method for creating dictionary of projects based on
+        their start years and end years. The dictionary keys will be the
+        years and the values will be the projects that happen within the
+        corresponding years. The years and projects are sorted numerically
+        and alphabetically.
 
-            Args: The Project class itself and the list of projects from netcdf.
-            Ret: The sorted dictionary of years and projects.
-
+        Args: The Project class itself and the list of projects from netcdf.
+        Ret: The sorted dictionary of years and projects.
         """
 
         res = {}
@@ -531,7 +531,7 @@ class FileDataset(Dataset):
         ncdset = self.get_netcdf_dataset()
         ncvars = ncdset.get_variables()
 
-        if len(self.variables.values()) == 0:
+        if not self.variables.values:
             return ncvars
 
         # If variables exist in this model, then only provide
