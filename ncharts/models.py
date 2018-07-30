@@ -34,21 +34,25 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 # Categories of ISFS variables. Used in creating tabs
 ISFS_VARIABLE_TYPES = {
     "Met": ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan", "Rainr", "Raina", "Tc"],
-    "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote", "Vdsm"],
     "Rad": ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome", "Wetness"],
     "Soil": ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", \
         "Tau63", "Lambdasoil", "asoil", "Cvsoil", "Gsfc"],
     "3D_Wind": ["u", "v", "w", "ldiag", "diagbits", "spd", "spd_max", "dir"],
-    "Scalar": ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr", "irgadiag", "p"]}
+    "Scalar": ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr", "irgadiag", \
+        "p"],
+    "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote", "Vdsm"],
+    "GPS,Time": ["GPSnsat", "GPSstat", "Stratum", "Timeoffset"]
+}
 
 # Tab names and tooltips for ISFS variables, in the order they will appear
 ISFS_TABS = OrderedDict([
     ("Met", {"tooltip":"Meteorological Variables", "variables":[]}),
-    ("Power", {"tooltip":"Battery and Solar Power", "variables":[]}),
     ("Rad", {"tooltip":"Radiation Variables", "variables":[]}),
     ("Soil", {"tooltip":"Soil Variables", "variables":[]}),
     ("3D_Wind", {"tooltip":"3D Wind Variables", "variables":[]}),
     ("Scalar", {"tooltip":"Fast Scalar Variables", "variables":[]}),
+    ("Power", {"tooltip":"Battery and Solar Power", "variables":[]}),
+    ("GPS,Time", {"tooltip":"GPS and timekeeping", "variables":[]}),
     ("Other", {"tooltip":"Other Variables", "variables":[]}),
     ("2ndMoment", {"tooltip":"variances, covariances", "variables":[]}),
     ("3rdMoment", {"tooltip":"", "variables":[]}),
