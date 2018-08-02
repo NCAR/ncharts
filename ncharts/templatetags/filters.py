@@ -28,7 +28,7 @@ def make_tabs(variables, dset):
 
 @register.filter
 def get_site_names(dset):
-    return dset.get_site_names()
+    return sorted(dset.get_sites().keys())
 
 @register.filter
 def get_station_names(dset):
@@ -47,9 +47,15 @@ def make_project_tabs(projects):
     return nc_models.Project.make_tabs(projects)
 
 @register.filter
-def get_lev1tab_tooltip(site):
+def get_lev1tab_tooltip(site, dset):
     if site == "stations":
         return "Variables common to numbered stations"
     else:
+        site_ln = ''
+        if site in dset.get_sites():
+            site_ln = dset.get_sites()[site]
+        else:
+            site_ln = ''
+        if site_ln:
+            return "Variables of site " + site + ", " + site_ln
         return "Variables of site " + site
-

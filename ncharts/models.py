@@ -41,7 +41,7 @@ ISFS_VARIABLE_TYPES = {
     "Scalar": ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr", "irgadiag", \
         "p"],
     "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote", "Vdsm"],
-    "GPS,Time": ["GPSnsat", "GPSstat", "Stratum", "Timeoffset"]
+    "GPS_Time": ["GPSnsat", "GPSstat", "Stratum", "Timeoffset"]
 }
 
 # Tab names and tooltips for ISFS variables, in the order they will appear
@@ -52,7 +52,7 @@ ISFS_TABS = OrderedDict([
     ("3D_Wind", {"tooltip":"3D Wind Variables", "variables":[]}),
     ("Scalar", {"tooltip":"Fast Scalar Variables", "variables":[]}),
     ("Power", {"tooltip":"Battery and Solar Power", "variables":[]}),
-    ("GPS,Time", {"tooltip":"GPS and timekeeping", "variables":[]}),
+    ("GPS_Time", {"tooltip":"GPS and timekeeping", "variables":[]}),
     ("Other", {"tooltip":"Other Variables", "variables":[]}),
     ("2ndMoment", {"tooltip":"variances, covariances", "variables":[]}),
     ("3rdMoment", {"tooltip":"", "variables":[]}),
@@ -423,7 +423,7 @@ class Dataset(models.Model):
         if self.get_station_names():
             sites.append("stations")
 
-        sites.extend(self.get_site_names())
+        sites.extend(sorted(self.get_sites().keys()))
 
         for site in sites:
             tabs = deepcopy(ISFS_TABS)
@@ -531,7 +531,7 @@ class FileDataset(Dataset):
         ncdset = self.get_netcdf_dataset()
         ncvars = ncdset.get_variables()
 
-        if not self.variables.values:
+        if not self.variables.values():
             return ncvars
 
         # If variables exist in this model, then only provide
@@ -560,8 +560,8 @@ class FileDataset(Dataset):
 
         return ncdset.get_station_names()
 
-    def get_site_names(self):
-        """Return list of site names.
+    def get_sites(self):
+        """Return dictionary of site long names by the site short names.
 
         Raises:
             exception.NoDataException
@@ -569,7 +569,7 @@ class FileDataset(Dataset):
 
         ncdset = self.get_netcdf_dataset()
 
-        return sorted(ncdset.get_site_names())
+        return ncdset.get_sites()
 
     def get_series_tuples(
             self,
@@ -662,8 +662,8 @@ class DBDataset(Dataset):
     def get_station_names(self):
         return list()
 
-    def get_site_names(self):
-        return list()
+    def get_sites(self):
+        return {}
 
     def get_start_time(self):
         """

@@ -131,14 +131,14 @@
                         {% for lev1tab, lev1tabcontent in tabdict.items %}
                             {% if forloop.first %}
                             <li class="active" data-toggle="tooltip"
-                                title="{{ lev1tab|get_lev1tab_tooltip }}">
+                                title="{{ lev1tab|get_lev1tab_tooltip:dataset }}">
                                 <a data-toggle="pill"
                                     href="#{{ lev1tab }}_lev1pane"
                                     id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a>
                             </li> 
                             {% else %}
                             <li data-toggle="tooltip"
-                                title="{{ lev1tab|get_lev1tab_tooltip }}">
+                                title="{{ lev1tab|get_lev1tab_tooltip:dataset }}">
                                 <a data-toggle="pill"
                                    href="#{{ lev1tab }}_lev1pane"
                                    id="{{ lev1tab }}_lev1tab">{{ lev1tab }}</a>

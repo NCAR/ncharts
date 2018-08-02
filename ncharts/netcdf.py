@@ -130,8 +130,10 @@ class NetCDFDataset(object):
         station_dim:  str name of NetCDF "station" dimension, currently always
             "station".
         station_names: If a NetCDF character variable called "station"
-            is found, a list of str values of the variable.
-        sites: list of site names extracted from names of variables
+            is found, and one or more variables have a station dimension,
+            a list of str values of the variable.
+        sites: dictionary of site long_name names by the site short names
+            for every site short name found in variable names
             without a station dimension
     """
     # pylint thinks this class is too big.
@@ -176,7 +178,7 @@ class NetCDFDataset(object):
             'nstations': None,
             'station_dim': None,
             'station_names': None,
-            'sites': set(),
+            'sites': {},
             'variables': {},
         }
         return dsinfo
@@ -238,7 +240,8 @@ class NetCDFDataset(object):
             nstations: size of the station dimension
             station_dim: name of the station dimension
             station_names: names of the stations
-            sites: names of ISFS sites extracted from the exported names
+            sites: dictionary of names of sites long names by the site short
+                names extracted from the exported names
                 of those variables not associated with a numbered station
             variables: dictionary of information for each variable.
 
@@ -267,6 +270,8 @@ class NetCDFDataset(object):
         # are also modifications to dsinfo.
         dsinfo_vars = dsinfo['variables']
 
+        sitedict = dsinfo['sites']
+
         files = self.get_files(
             start_time=self.start_time,
             end_time=self.end_time)
@@ -285,6 +290,8 @@ class NetCDFDataset(object):
         pindex = len(filepaths) - 1
 
         n_files_read = 0
+
+        has_station_variables = False
 
         while pindex >= 0:
             ncpath = filepaths[int(pindex)]
@@ -316,6 +323,10 @@ class NetCDFDataset(object):
             fileok = False
             skip_file = False
             exc = None
+
+            siteset = set()
+            site_sn = []
+            site_ln = []
 
             for itry in range(0, 3):
                 try:
@@ -402,6 +413,14 @@ class NetCDFDataset(object):
                 # pylint: disable=no-member
                 for (nc_vname, var) in ncfile.variables.items():
 
+                    if nc_vname == "site_long_name" and \
+                        var.datatype == np.dtype('S1'):
+                        site_ln = [str(netCDF4.chartostring(v)) for v in var]
+
+                    if nc_vname == "sites" and \
+                        var.datatype == np.dtype('S1'):
+                        site_sn = [str(netCDF4.chartostring(v)) for v in var]
+
                     # looking for time series variables
                     if not dsinfo['time_dim_name'] in var.dimensions:
                         continue
@@ -446,7 +465,10 @@ class NetCDFDataset(object):
                             site = get_isfs_site(exp_vname)
                             if site:
                                 varinfo['site'] = site
-                                dsinfo['sites'].add(site)
+                                siteset.add(site)
+                                # dsinfo['sites'].add(site)
+                        else:
+                            has_station_variables = True
 
                         dsinfo_vars[exp_vname] = varinfo
                         continue
@@ -511,17 +533,31 @@ class NetCDFDataset(object):
                                 varinfo[att] = getattr(var, att)
 
             finally:
+                for site in siteset:
+                    try:
+                        i = site_sn.index(site)
+                        if i < len(site_ln):
+                            sitedict[site] = site_ln[i]
+                    except ValueError:
+                        pass
+
+                    if site not in sitedict:
+                        sitedict[site] = ''
                 ncfile.close()
 
         if not n_files_read:
             msg = "No variables found"
             raise nc_exc.NoDataException(msg)
 
-        # create station names if a "station" variable is not found
-        # in NetCDF files. Names are S1, S2, etc for dimension index 0, 1
-        if dsinfo['nstations'] and not dsinfo['station_names']:
-            dsinfo['station_names'].extend(\
-                ['S{}'.format(i+1) for i in range(dsinfo['nstations'])])
+        # Remove the station names if no variables have a station dimension
+        if not has_station_variables:
+            dsinfo['station_names'] = []
+        else:
+            # create station names if a "station" variable is not found
+            # in NetCDF files. Names are S1, S2, etc for dimension index 0, 1
+            if dsinfo['nstations'] and not dsinfo['station_names']:
+                dsinfo['station_names'].extend(\
+                    ['S{}'.format(i+1) for i in range(dsinfo['nstations'])])
 
         # cache dsinfo
         self.save_dataset_info(dsinfo)
@@ -559,10 +595,7 @@ class NetCDFDataset(object):
         Args:
 
         Returns:
-            A list of names, for stations 0:N. station number 0 is the
-            null station, for variables without a station dimension.
-            If all time series variables have a station dimension, then
-            the name of station 0 will be None, otherwise ''.
+            A list of names, for stations 1:N.
         Raises:
             OSError
             nc_exc.NoDataException
@@ -578,7 +611,7 @@ class NetCDFDataset(object):
 
         return dsinfo['station_names'].copy()
 
-    def get_site_names(
+    def get_sites(
             self):
 
         """ return the site names of this dataset.
@@ -586,7 +619,7 @@ class NetCDFDataset(object):
         Args:
 
         Returns:
-            A list of names, possibly None.
+            A dictionary of site long_names, indexed by the site short names
         Raises:
             OSError
             nc_exc.NoDataException
@@ -598,7 +631,7 @@ class NetCDFDataset(object):
             dsinfo = self.get_dataset_info()
 
         if not dsinfo['sites']:
-            return []
+            return {}
 
         return dsinfo['sites'].copy()
 
