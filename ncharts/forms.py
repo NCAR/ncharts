@@ -241,7 +241,7 @@ class DataSelectionForm(forms.Form):
             [(n, n) for n in variables], key=lambda x: str.lower(x[0]))
 
     def set_station_choices(self, station_names):
-        """Set the available variables in this form.
+        """Set the available stations in this form.
 
         Args:
             station_names: list of station names
