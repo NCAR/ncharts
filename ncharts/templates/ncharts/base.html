@@ -66,58 +66,55 @@
 
     <body role="document">
     <div id="wrapper">
-        <nav class="navbar navbar-default" role="navigation">
-            <div class="container-fluid row">
-                <div class="col-md-12">
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-top">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand active" href="/"><b><i>NCharts</i></b><span class="sr-only">(active)</span></a>
-                    </div>
-
-                    <div class="collapse navbar-collapse col-md-1" id="navbar-top">
-                        <ul class="nav navbar-nav">                                     
-                            <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
-                            <li><a href="http://www.eol.ucar.edu">EOL</a></li>
-                            <li><a href="/ncharts/help">Help</a></li>     
-                        </ul>                                                                                         
-                    </div>
-
-                    {% if projects %}
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-top" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/"><b><i>NCharts</i></b></a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-top">
+                    <ul class="nav navbar-nav">
+                        {% if version %}
+                        <p class="navbar-text">{{ version }}</p>
+                        {% endif %}
+                        <li><a href="/ncharts/help">Help</a></li>     
+                        {% if projects %}
                         {% with years=projects|make_project_tabs %}
-                        <div class="dropdown" id="menu1">
-                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"><b>Projects</b><span class="caret"></span></button>
-                            <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Projects<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
                                 {% for year,projects in years.items %}
-                                <li class="dropdown-submenu" role="presentation">
-                                    <a role="menuitem"> {{ year }}</a>
-                                    <ul>
+                                <li>{{ year }}</li>
+                                <ul>
                                     {% for project in projects %}
                                         <li><a href="{% url 'ncharts:project' project.name %}">{{ project.name }}</a></li>
                                     {% endfor %}
-                                    </ul>
+                                </ul>
                                 </li>
                                 {% endfor %}
                             </ul>
-                        </div>
+                        </li>
                         {% endwith %}
-                    {% endif %}
+                        {% endif %}
 
-                    {% if platforms %}
-                    <div class="dropdown" id="menu2">
-                        <button class="btn btn-default dropdown-toggle formButtonfront" type="button" id="menu2" data-toggle="dropdown"><b>Platforms</b><span class="caret"></span></button>
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="menu2">
-                            {% for platform in platforms %}
-                            <li role="presentation"><a role="menuitem" href="{% url 'ncharts:platform' platform.name %}">{{ platform.name }}</a></li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
+                        {% if platforms %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Platforms<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                {% for platform in platforms %}
+                                <li><a href="{% url 'ncharts:platform' platform.name %}">{{ platform.name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                        <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
+                        <li><a href="http://www.eol.ucar.edu">EOL</a></li>
+                    </ul>
                 </div>
             </div>
         </nav>

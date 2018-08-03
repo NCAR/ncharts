@@ -32,6 +32,9 @@ from django.contrib import messages
 from ncharts import models as nc_models
 from ncharts import forms as nc_forms
 from ncharts import exceptions as nc_exc
+from ncharts.version import get_version
+
+_version = get_version()
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
@@ -62,7 +65,7 @@ def projects(request):
     projs = nc_models.Project.objects.all()
     plats = nc_models.Platform.objects.all()
 
-    context = {'projects': projs, 'platforms':plats}
+    context = {'projects': projs, 'platforms':plats, 'version': _version}
     return render(request, 'ncharts/projects.html', context)
 
 def platforms(request):
@@ -75,7 +78,7 @@ def platforms(request):
     projs = nc_models.Project.objects.all()
     plats = nc_models.Platform.objects.all()
 
-    context = {'projects':projs, 'platforms': plats}
+    context = {'projects':projs, 'platforms': plats, 'version': _version}
     return render(request, 'ncharts/platforms.html', context)
 
 def projects_platforms(request):
@@ -90,7 +93,7 @@ def projects_platforms(request):
     projs = nc_models.Project.objects.all()
     plats = nc_models.Platform.objects.all()
 
-    context = {'projects': projs, 'platforms': plats}
+    context = {'projects': projs, 'platforms': plats, 'version': _version}
     return render(request, 'ncharts/projectsPlatforms.html', context)
 
 def project(request, project_name):
@@ -103,7 +106,7 @@ def project(request, project_name):
         plats = nc_models.Platform.objects.all()
         platFilter = nc_models.Platform.objects.filter(
             projects__name__exact=project_name)
-        context = {'project': proj, 'platFilter': platFilter, 'datasets': dsets, 'projects': projs, 'platforms': plats}
+        context = {'project': proj, 'platFilter': platFilter, 'datasets': dsets, 'projects': projs, 'platforms': plats, 'version': _version}
         return render(request, 'ncharts/project.html', context)
     except nc_models.Project.DoesNotExist:
         raise Http404
@@ -116,7 +119,7 @@ def platform(request, platform_name):
         platProjs = plat.projects.all()
         projs = nc_models.Project.objects.all()
         plats = nc_models.Platform.objects.all()
-        context = {'platform': plat, 'platProjs': platProjs, 'projects': projs, 'platforms': plats}
+        context = {'platform': plat, 'platProjs': platProjs, 'projects': projs, 'platforms': plats, 'version': _version}
         return render(request, 'ncharts/platform.html', context)
     except (nc_models.Project.DoesNotExist, nc_models.Platform.DoesNotExist):
         raise Http404
@@ -135,7 +138,7 @@ def platform_project(request, platform_name, project_name):
             project__name__exact=project_name).filter(
                 platforms__name__exact=platform_name)
 
-        context = {'project': proj, 'platform': plat, 'datasets': dsets, 'projects': projs, 'platforms': plats}
+        context = {'project': proj, 'platform': plat, 'datasets': dsets, 'projects': projs, 'platforms': plats, 'version': _version}
         return render(request, 'ncharts/platformProject.html', context)
     except (nc_models.Project.DoesNotExist, nc_models.Platform.DoesNotExist):
         raise Http404
@@ -505,6 +508,7 @@ class DatasetView(View):
         return render(
             request, self.template_name,
             {
+                'version': _version,
                 'form': form,
                 'dataset': dset,
                 'datasets': dsets,
@@ -643,6 +647,7 @@ class DatasetView(View):
             return render(
                 request, self.template_name,
                 {
+                    'version': _version,
                     'form': form,
                     'dataset': dset,
                     'datasets': dsets,
@@ -705,6 +710,7 @@ class DatasetView(View):
                 return render(
                     request, self.template_name,
                     {
+                        'version': _version,
                         'form': form,
                         'dataset': dset,
                         'datasets': dsets,
@@ -755,6 +761,7 @@ class DatasetView(View):
             return render(
                 request, self.template_name,
                 {
+                    'version': _version,
                     'form': form,
                     'dataset': dset,
                     'datasets': dsets,
@@ -770,6 +777,7 @@ class DatasetView(View):
             return render(
                 request, self.template_name,
                 {
+                    'version': _version,
                     'form': form,
                     'dataset': dset,
                     'datasets': dsets,
@@ -950,6 +958,7 @@ class DatasetView(View):
 
         return render(
             request, self.template_name, {
+                'version': _version,
                 'form': form,
                 'dataset': dset,
                 'datasets': dsets,
