@@ -47,7 +47,8 @@ class StaticView(TemplateView):
     def get(self, request, page, *args, **kwargs):
         self.template_name = page
         _logger.debug("StaticView, page=%s", page)
-        response = super().get(request, *args, **kwargs)
+        response = super().get(request, *args,
+                **dict(kwargs, version=_version))
         try:
             return response.render()
         except TemplateDoesNotExist:
