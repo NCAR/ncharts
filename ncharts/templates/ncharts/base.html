@@ -142,9 +142,12 @@
                     </div>
                     <div class="collapse navbar-collapse" id="navbar-bottom">
                         <ul class="nav navbar-nav">
+                            {% if version %}
+                            <p class="navbar-text">{{ version }}</p>
+                            {% endif %}
+                            <li><a href="/ncharts/help">Help</a></li>
                             <li><a href="http://www.ucar.edu">UCAR/NCAR</a></li>
                             <li><a href="http://www.eol.ucar.edu">EOL</a></li>
-                            <li><a href="/ncharts/help">Help</a></li>
                         </ul>
                     </div>
                 </div>
