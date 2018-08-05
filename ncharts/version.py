@@ -19,20 +19,24 @@ def get_version():
 
     d = dirname(__file__)
 
+    v = PREFIX + '?'
+
     if isdir(join(d, '../.git')):
         # Get the version using "git describe".
         cmd = 'git describe --match %s[0-9]* --dirty' % PREFIX
         try:
             version = check_output(cmd.split()).decode().strip()
-        except CalledProcessError:
-            # raise RuntimeError('Unable to get version number from git tags')
-            version = 'unknown version'
 
-        if '-' in version:
+            exstr = ''
             if version.endswith('-dirty'):
-                version = '-'.join(version.split('-')[:2]) + '+'
-            else:
+                exstr = '+'
+                version = version[:-6]
+            if '-' in version:
                 version = '-'.join(version.split('-')[:2])
+            version += exstr
+
+        except CalledProcessError:
+            pass
 
     else:
         # Extract the version from the PKG-INFO file.
@@ -40,7 +44,7 @@ def get_version():
             with open(join(d, 'PKG-INFO')) as f:
                 version = version_re.search(f.read()).group(1)
         except:
-            version = 'unknown version'
+            pass
 
     return version
 
