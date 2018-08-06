@@ -19,7 +19,7 @@ def get_version():
 
     d = dirname(__file__)
 
-    v = PREFIX + '?'
+    version = PREFIX + '?'
 
     if isdir(join(d, '../.git')):
         # Get the version using "git describe".
