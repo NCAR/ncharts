@@ -1,9 +1,8 @@
 # Source: https://github.com/Changaco/version.py
 
-from os.path import dirname, isdir, join
+from os import path
 import re
 from subprocess import CalledProcessError, check_output
-
 
 PREFIX = 'v'
 
@@ -17,15 +16,15 @@ def get_version():
     if version:
         return version.group(1)
 
-    d = dirname(__file__)
+    d = path.abspath(path.join(path.dirname(__file__), '..'))
 
     version = PREFIX + '?'
 
-    if isdir(join(d, '../.git')):
+    if path.isdir(path.join(d, '.git')):
         # Get the version using "git describe".
-        cmd = 'git describe --match %s[0-9]* --dirty' % PREFIX
+        cmd = 'cd ' + path.abspath(d) + '; git describe --match %s[0-9]* --dirty' % PREFIX
         try:
-            version = check_output(cmd.split()).decode().strip()
+            version = check_output(cmd,shell=True).decode().strip()
 
             exstr = ''
             if version.endswith('-dirty'):
@@ -41,7 +40,7 @@ def get_version():
     else:
         # Extract the version from the PKG-INFO file.
         try:
-            with open(join(d, 'PKG-INFO')) as f:
+            with open(path.join(d, 'PKG-INFO')) as f:
                 version = version_re.search(f.read()).group(1)
         except:
             pass
