@@ -747,22 +747,19 @@ class NetCDFDataset(object):
                     # most likely has a dimension of 0
                     _logger.error(
                         "%s: %s: cannot index variable %s",
-                        os.path.split(ncpath)[1],
-                        exc, dsinfo['time_name'])
+                        ncpath, exc, dsinfo['time_name'])
                     return slice(0)
                 except TypeError:
                     if base_time:
                         _logger.warning(
                             "%s: %s: cannot parse units: %s. "
                             "Using base_time instead",
-                            os.path.split(ncpath)[1],
-                            dsinfo['time_name'], var.units)
+                            ncpath, dsinfo['time_name'], var.units)
                         tvals = [base_time + val for val in var[:]]
                     else:
                         _logger.error(
                             "%s: %s: cannot parse units: %s",
-                            os.path.split(ncpath)[1],
-                            dsinfo['time_name'], var.units)
+                            ncpath, dsinfo['time_name'], var.units)
                         tvals = [val for val in var[:]]
                 except (ValueError, OverflowError) as exc:
                     # saw this error happen once, perhaps
@@ -771,8 +768,7 @@ class NetCDFDataset(object):
                     #   tvals = [base_time + val for val in var[:]]
                     _logger.error(
                         "%s: %s: reading variable %s",
-                        os.path.split(ncpath)[1],
-                        exc, dsinfo['time_name'])
+                        ncpath, exc, dsinfo['time_name'])
                     return slice(0)
             else:
                 try:
@@ -781,8 +777,7 @@ class NetCDFDataset(object):
                     # most likely has a dimension of 0
                     _logger.error(
                         "%s: %s: cannot index variable %s",
-                        os.path.split(ncpath)[1],
-                        exc, dsinfo['time_name'])
+                        ncpath, exc, dsinfo['time_name'])
                     return slice(0)
 
             # pylint: disable=pointless-string-statement
@@ -814,8 +809,7 @@ class NetCDFDataset(object):
                 _logger.warning(
                     "%s: times in file are not ordered, start_time=%s,"
                     "end_time=%s, file times=%s - %s, istart=%d, iend=%d",
-                    os.path.split(ncpath)[1],
-                    start_time.isoformat(), end_time.isoformat(),
+                    ncpath, start_time.isoformat(), end_time.isoformat(),
                     datetime.fromtimestamp(tvals[0], tz=pytz.utc).isoformat(),
                     datetime.fromtimestamp(tvals[-1], tz=pytz.utc).isoformat(),
                     istart, iend)
@@ -824,8 +818,7 @@ class NetCDFDataset(object):
                 _logger.debug(
                     "%s: tvals[%d]=%s, tvals[%d]=%s, "
                     "start_time=%s, end_time=%s",
-                    os.path.split(ncpath)[1],
-                    istart,
+                    ncpath, istart,
                     datetime.fromtimestamp(
                         tvals[istart], tz=pytz.utc).isoformat(),
                     iend,
@@ -935,7 +928,7 @@ class NetCDFDataset(object):
                 _logger.debug(
                     "%s: %s: time_slice.start,"
                     "time_slice.stop=%d,%d, idx[1:]=%s",
-                    os.path.split(ncpath)[1], nc_vname,
+                    ncpath, nc_vname,
                     time_slice.start, time_slice.stop,
                     repr(idx[1:]))
 
