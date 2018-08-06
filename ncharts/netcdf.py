@@ -764,7 +764,7 @@ class NetCDFDataset(object):
                             os.path.split(ncpath)[1],
                             dsinfo['time_name'], var.units)
                         tvals = [val for val in var[:]]
-                except OverflowError as exc:
+                except (ValueError, OverflowError) as exc:
                     # saw this error happen once, perhaps
                     # on a file that was being updated.
                     # Give up rather than trying to salvage with:
