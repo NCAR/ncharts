@@ -16,7 +16,7 @@ def get_version():
     if version:
         return version.group(1)
 
-    d = path.abspath(path.join(path.dirname(__file__), '..'))
+    d = path.join(path.dirname(__file__), '..')
 
     version = PREFIX + '?'
 
