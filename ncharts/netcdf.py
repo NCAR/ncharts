@@ -746,20 +746,23 @@ class NetCDFDataset(object):
                 except IndexError as exc:
                     # most likely has a dimension of 0
                     _logger.error(
-                        "%s: %s: cannot index variable %s",
-                        ncpath, exc, dsinfo['time_name'])
+                        "%s: %s: %s %s",
+                        ncpath, dsinfo['time_name'], type(exc).__name__,
+                        exc)
                     return slice(0)
-                except TypeError:
+                except TypeError as exc:
                     if base_time:
                         _logger.warning(
-                            "%s: %s: cannot parse units: %s. "
+                            "%s: %s: %s %s, units=%s "
                             "Using base_time instead",
-                            ncpath, dsinfo['time_name'], var.units)
+                            ncpath, dsinfo['time_name'], type(exc).__name__,
+                            exc, var.units)
                         tvals = [base_time + val for val in var[:]]
                     else:
                         _logger.error(
-                            "%s: %s: cannot parse units: %s",
-                            ncpath, dsinfo['time_name'], var.units)
+                            "%s: %s: %s %s, units=%s",
+                            ncpath, dsinfo['time_name'], type(exc).__name__,
+                            exc, var.units)
                         tvals = [val for val in var[:]]
                 except (ValueError, OverflowError) as exc:
                     # saw this error happen once, perhaps
@@ -767,8 +770,8 @@ class NetCDFDataset(object):
                     # Give up rather than trying to salvage with:
                     #   tvals = [base_time + val for val in var[:]]
                     _logger.error(
-                        "%s: %s: reading variable %s",
-                        ncpath, exc, dsinfo['time_name'])
+                            "%s: %s: %s %s",
+                        ncpath, dsinfo['time_name'], type(exc).__name__, exc)
                     return slice(0)
             else:
                 try:
@@ -859,7 +862,8 @@ class NetCDFDataset(object):
                 (indexed from 0) of the station dimension for variables
                 which have that dimension.
             dim2: Values for second dimension of the variable, such as height.
-            stnnames: A list of the station names of the variable.
+                Returned.
+            stnnames: A list of the station names of the variable. Returned.
                 A list of length one containing an empty string indicates
                 the variable does not have a station dimension.
 
@@ -968,7 +972,7 @@ class NetCDFDataset(object):
         else:
             # variable is not in file, create NaN filled array
             # Determine shape of variable. Change the first, time dimension
-            # to match the selected period.  The remaininng dimension
+            # to match the selected period.  The remaining dimension
             # in dsinfo_vars[exp_vname]['shape'] is the largest of those
             # seen in the selected files.
             shape = list(vshape)
@@ -1179,10 +1183,13 @@ class NetCDFDataset(object):
                     if vdata is None:
                         continue
 
-                    if not exp_vname in odim2:
+                    # dim2 will be empty if variable is not found in file
+                    if dim2 and not exp_vname in odim2:
                         odim2[exp_vname] = dim2
 
-                    ostns[exp_vname] = stnnames
+                    # stnnames will be empty if variable is not found in file
+                    if stnnames and not exp_vname in ostns:
+                        ostns[exp_vname] = stnnames
 
                     if not exp_vname in ovmap:
                         size1 = 0
@@ -1193,7 +1200,7 @@ class NetCDFDataset(object):
                         if debug:
                             _logger.debug(
                                 "odata[%s].shape=%s, vdata.shape=%s",
-                                exp_vname, odata[exp_vname].shape, vdata.shape)
+                                exp_vname, odata[vindex].shape, vdata.shape)
 
                         vindex = ovmap[exp_vname]
                         size1 = sys.getsizeof(odata[vindex])
@@ -1223,9 +1230,9 @@ class NetCDFDataset(object):
                 for exp_vname in res_data[series_name]['vmap']:
                     var_index = res_data[series_name]['vmap'][exp_vname]
                     _logger.debug(
-                        "res_data[%s][%d].shape=%s, exp_vname=%s",
+                        "res_data[%s]['data'][%d].shape=%s, exp_vname=%s",
                         series_name, var_index,
-                        repr(res_data[series_name][var_index].shape),
+                        repr(res_data[series_name]['data'][var_index].shape),
                         exp_vname)
             _logger.debug(
                 "total_size=%d", total_size)
