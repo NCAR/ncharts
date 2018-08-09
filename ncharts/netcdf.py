@@ -132,6 +132,7 @@ class NetCDFDataset(object):
         station_names: If a NetCDF character variable called "station"
             is found, and one or more variables have a station dimension,
             a list of str values of the variable.
+        has_station_variables: if any variable has a station dimension
         sites: dictionary of site long_name names by the site short names
             for every site short name found in variable names
             without a station dimension
@@ -178,6 +179,7 @@ class NetCDFDataset(object):
             'nstations': None,
             'station_dim': None,
             'station_names': None,
+            'has_station_variables': False,
             'sites': {},
             'variables': {},
         }
@@ -290,8 +292,6 @@ class NetCDFDataset(object):
         pindex = len(filepaths) - 1
 
         n_files_read = 0
-
-        has_station_variables = False
 
         while pindex >= 0:
             ncpath = filepaths[int(pindex)]
@@ -468,7 +468,7 @@ class NetCDFDataset(object):
                                 siteset.add(site)
                                 # dsinfo['sites'].add(site)
                         else:
-                            has_station_variables = True
+                            dsinfo['has_station_variables'] = True
 
                         dsinfo_vars[exp_vname] = varinfo
                         continue
@@ -550,7 +550,7 @@ class NetCDFDataset(object):
             raise nc_exc.NoDataException(msg)
 
         # Remove the station names if no variables have a station dimension
-        if not has_station_variables:
+        if not dsinfo['has_station_variables']:
             dsinfo['station_names'] = []
         else:
             # create station names if a "station" variable is not found
@@ -602,12 +602,9 @@ class NetCDFDataset(object):
         """
 
         dsinfo = self.get_dataset_info()
-        if not dsinfo['station_names']:
+        if not dsinfo['variables']:
             self.scan_files()
             dsinfo = self.get_dataset_info()
-
-        if not dsinfo['station_names']:
-            return []
 
         return dsinfo['station_names'].copy()
 
@@ -626,15 +623,11 @@ class NetCDFDataset(object):
         """
 
         dsinfo = self.get_dataset_info()
-        if not dsinfo['sites']:
+        if not dsinfo['variables']:
             self.scan_files()
             dsinfo = self.get_dataset_info()
 
-        if not dsinfo['sites']:
-            return {}
-
         return dsinfo['sites'].copy()
-
 
     def resolve_variable_shapes(self, variables, selectdim):
         """Determine the shape of variables in this dataset.
