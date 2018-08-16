@@ -194,9 +194,12 @@ LOGGING = {
     },
     'loggers': {
         # django logger mails error events to admins when DEBUG=False
+        # and propagate=True here. We'll set propagate=False
+        # and configure it ourselves.
         'django': {
-            'handlers':['file'],
+            'handlers':['file', 'mail_admins'],
             'level':'DEBUG',   # changed in production.py
+            'propagate': False,
         },
         'datavis': {
             'handlers':['file', 'mail_admins'],
