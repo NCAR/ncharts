@@ -9,7 +9,7 @@ DEBUG = False
 DEFAULT_LOG_DIR = LOG_DIR
 
 LOG_DIR = '/var/log/django'
-LOG_LEVEL = 'WARNING'
+PROD_LOG_LEVEL = 'WARNING'
 
 VAR_RUN_DIR = '/var/run/django'
 VAR_LIB_DIR = '/var/lib/django'
@@ -64,20 +64,18 @@ CACHE_MIDDLEWARE_SECONDS = 300
 CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 if LOG_DIR != DEFAULT_LOG_DIR:
-
-  #
-  # iterate over LOGGING['handlers'] and update filenames w/ new LOG_DIR
-  # and set level to LOG_LEVEL, except for mail_admins handler
-  #
-
+    #
+    # iterate over LOGGING['handlers'] and update filenames w/ new LOG_DIR
+    # and set level to PROD_LOG_LEVEL, except for mail_admins handler
+    #
     for key, value in LOGGING['handlers'].items():
         if 'filename' in value:
             value['filename'] = value['filename'].replace(DEFAULT_LOG_DIR, LOG_DIR)
 
-        if key != 'mail_admins' and 'level' in value:
-            value['level'] = LOG_LEVEL
+        if key != 'mail_admins' and key != 'requests' and 'level' in value:
+            value['level'] = PROD_LOG_LEVEL
 
     for key, value in LOGGING['loggers'].items():
 
-        if 'level' in value:
-            value['level'] = LOG_LEVEL
+        if key != 'ncharts.views.requests' and 'level' in value:
+            value['level'] = PROD_LOG_LEVEL

@@ -38,6 +38,9 @@ _version = get_version()
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
+# logger for ncharts.views.requests
+_request_logger = logging.getLogger(__name__ + '.requests')   # pylint: disable=invalid-name
+
 # Abbreviated name of a sounding, e.g. "Jun23_0413Z"
 SOUNDING_NAME_FMT = "%b%d_%H%MZ"
 
@@ -45,10 +48,10 @@ class StaticView(TemplateView):
     """View class for rendering a simple template page.
     """
     def get(self, request, page, *args, **kwargs):
-        self.template_name = page
+        # self.template_name = page
         _logger.debug("StaticView, page=%s", page)
-        response = super().get(request, *args,
-                **dict(kwargs, version=_version))
+        response = super().get(
+            request, page, *args, **dict(kwargs, version=_version))
         try:
             return response.render()
         except TemplateDoesNotExist:
@@ -175,8 +178,7 @@ class NChartsJSONEncoder(json.JSONEncoder):
             """
             if math.isnan(val):
                 return None
-            else:
-                return float(format(val, '.5g'))
+            return float(format(val, '.5g'))
 
         # _logger.debug("type(obj)=%s", type(obj))
         if isinstance(obj, np.ndarray):
@@ -185,17 +187,15 @@ class NChartsJSONEncoder(json.JSONEncoder):
                 # _logger.debug("Encoder, default, len(obj.shape)=%d",
                 #   len(obj.shape))
                 return [v for v in obj[:]]
-            else:
-                # _logger.debug("Encoder, default, len(obj.shape)=%d",
-                #   len(obj.shape))
-                return [roundcheck(v) for v in obj]
+            # _logger.debug("Encoder, default, len(obj.shape)=%d",
+            #   len(obj.shape))
+            return [roundcheck(v) for v in obj]
         elif isinstance(obj, str):
             # ISFS variable names may have a single quote in names: "w't'".
             # replace it with "\u0027", which json.dumps will convert
             # back into a single quote
             return json.JSONEncoder.default(self, obj.replace("'", r"\u0027"))
-        else:
-            return json.JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, obj)
 
 def client_id_name(project_name, dataset_name):
     """Create a name for saving the client state in their session.
@@ -330,9 +330,9 @@ class DatasetView(View):
             except nc_models.DBDataset.DoesNotExist:
                 raise Http404
 
-        if len(dset.timezones.all()) > 0:
+        if dset.timezones.all():
             timezone = dset.timezones.all()[0]
-        elif len(dset.project.timezones.all()) > 0:
+        elif dset.project.timezones.all():
             timezone = dset.project.timezones.all()[0]
         else:
             _logger.error(
@@ -527,8 +527,9 @@ class DatasetView(View):
         sent back to the user.
         """
 
-        _logger.debug("DatasetView.post(project=%s, dataset=%s)" %
-                      (project_name, dataset_name))
+        _logger.debug(
+            "DatasetView.post(project=%s, dataset=%s)",
+            project_name, dataset_name)
         try:
             client_state = get_client_from_session(
                 request.session, project_name, dataset_name)
@@ -733,7 +734,7 @@ class DatasetView(View):
 
         # If variables exists in the dataset, get their
         # attributes there, otherwise from the actual dataset.
-        if len(dset.variables.all()) > 0:
+        if dset.variables.all():
             variables = {
                 k:{'units': dset.variables.get(name=k).units,
                    'long_name': dset.variables.get(name=k).long_name}
@@ -741,7 +742,7 @@ class DatasetView(View):
         else:
             variables = {k:dsetvars[k] for k in sel_vars}
 
-        stndims = {"station": [int(stn) for stn in  sel_stns]}
+        stndims = {"station": [int(stn) for stn in sel_stns]}
 
         try:
             if isinstance(dset, nc_models.FileDataset):
@@ -821,7 +822,7 @@ class DatasetView(View):
             # A simple compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0[series_name] = 0
-            if len(ser_data['time']) > 0:
+            if ser_data['time']:
                 time0[series_name] = ser_data['time'][0]
 
             # subtract off time0
@@ -941,7 +942,7 @@ class DatasetView(View):
                         if vsizes[''][vname] > 0 and var['plot_type'] == ptype and var['units'] == units])
                     # uvars is a sorted list of variables with units and this plot type.
                     # Might be empty if the variable is of a different plot type
-                    if len(uvars) > 0:
+                    if uvars:
                         plot_groups['g{}'.format(grpid)] = {
                             'series': "",
                             'variables': mark_safe(
@@ -956,6 +957,24 @@ class DatasetView(View):
                             'plot_type': mark_safe(ptype),
                         }
                         grpid += 1
+
+        # log the request
+
+        if len(variables) > 2:
+            logvars = sorted(variables)[:2] + ['...']
+        else:
+            logvars = variables
+        _request_logger.info(
+            "%s, %s, %s, #recs=%d, real_time=%s, vars=%s, #vars=%d, stns=%s, snding=%s, plot=%s, fromaddr=%s",
+            dset.project.name, dset.name, start_time,
+            len(ser_data['time']),
+            client_state.track_real_time,
+            ' '.join(logvars),
+            len(variables),
+            ' '.join(["%s" % s for s in sel_stns]),
+            ' '.join(["%s" % s for s in soundings]),
+            ' '.join(plot_types),
+            request.META['REMOTE_ADDR'])
 
         return render(
             request, self.template_name, {
@@ -1039,7 +1058,7 @@ class DataView(View):
         # selected variables
         sel_vars = json.loads(client_state.variables)
 
-        if not len(sel_vars):
+        if not sel_vars:
             _logger.warning(
                 "%s, %s: variables not found for id=%d",
                 project_name, dataset_name, client_state.id)
@@ -1156,7 +1175,7 @@ class DataView(View):
             # A simple compression, subtract first time from all times,
             # reducing the number of characters sent.
             time0 = 0
-            if len(ser_data['time']) > 0:
+            if ser_data['time']:
                 time0 = ser_data['time'][0]
 
             # dim2 are floats, so we encode them to strings with
