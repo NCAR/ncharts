@@ -23,7 +23,7 @@ To plot a set of variables over a period of time:
 When the plot is ready the screen will scroll down to display the plot.
 <ul>
     <li>The <b>Track Real Time</b> option is only enabled for projects that are on-going. If the option is selected, your browser will poll the server for real-time updates.</li>
-    <li>If <b>Track Real Time</b> is not selected, use <b>Back</b> or <b>Forward</b> to page back or forward in time.</li>
+    <li>Use <b>Back</b> or <b>Forward</b> to page back or forward in time by <b>Length</b>. This will turn off <b>Track Real Time</b></li>
     <li>When a <b>Time Zone</b> is selected, the <b>Start Time</b> will be adjusted to indicate the same moment in time. The time labels on the plot will be in the selected time zone.</li>
     <li>After changing a selection of variables, time or time zone, hit <b>Plot</b> to update the plot, as it is not automatically updated when a selection is made.</li>
     <li>To plot more than one dataset, open separate browser windows or tabs.</li>
@@ -46,7 +46,7 @@ When the plot is ready the screen will scroll down to display the plot.
 <h4>ISFS Sites and Stations</h4>
 For ISFS projects, to identify the locations of measurements, a site suffix is typically appended to the variable name, such as "T.2m.abc" to indicate that the measurement was from site "abc". In order to provide a manageable way to select variables, NCharts will group the variables from each site under a separate tab.
 <p>
-For ISFS projects where a measurement is repeated at more than one site, variables are stored in NetCDF form with a "station" dimension, and will not have a site suffix. For example: "T.2m". These variables will be provided under a "stations" tab, and checkboxes are provided for selecting one or more stations. The variable names will be shown on the plot with their station name.
+For ISFS projects where a measurement is repeated at more than one site, with the same variable name, variables are stored in NetCDF form with a "station" dimension, and will not have a site suffix. For example: "T.2m". These variables will be provided under a "stations" tab, and checkboxes are provided for selecting one or more stations. The variable names will be shown on the plot with their station name.
 
 <h4>Height vs Time Data</h4>
 If a time series variable has a additional dimension, such as height or bin number, a color-coded heatmap time series will be plotted, with an associated color key.
