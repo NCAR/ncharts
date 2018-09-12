@@ -48,7 +48,7 @@ class StaticView(TemplateView):
     """View class for rendering a simple template page.
     """
     def get(self, request, page, *args, **kwargs):
-        # self.template_name = page
+        self.template_name = page
         _logger.debug("StaticView, page=%s", page)
         response = super().get(
             request, page, *args, **dict(kwargs, version=_version))
