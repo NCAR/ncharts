@@ -192,5 +192,16 @@
     },
     "model": "ncharts.project", 
     "pk": "RELAMPAGO"
+},
+{
+    "fields": {
+        "location": "Urbana, Illinois",
+        "timezones": ["US/Central", "UTC"],
+	"long_name": "Stable Atmospheric Variability and Transport",
+        "start_year": "2018",
+        "end_year": "2018"
+    },
+    "model": "ncharts.project", 
+    "pk": "SAVANT"
 }
 ]
