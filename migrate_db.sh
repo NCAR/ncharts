@@ -19,23 +19,17 @@ fi
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
 db_exists=false
-[ -f $VAR_LIB_DIR/db.sqlite3 ] && db_exists=true
-
-migs_exist=false
-[ -d ncharts/migrations ] && migs_exist=true
+# [ -f $VAR_LIB_DIR/db.sqlite3 ] && db_exists=true
+sudo su - postgres -c "psql -lqt | cut -d \| -f 1 | grep -qw ncharts" && db_exists=true
 
 if $db_exists; then
 
     # Have to specify the ncharts app name in order to make its migrations
     python3 manage.py makemigrations ncharts
-
     python3 manage.py migrate ncharts
 
 else
-    rm -rf ncharts/migrations
-    # creates initial database
-    python3 manage.py migrate
-    python3 manage.py createsuperuser
+    ./create_pgdb.sh $*
 
     python3 manage.py makemigrations
     python3 manage.py makemigrations ncharts
