@@ -15,9 +15,9 @@ fi
 
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
-PGUSER=$USER
 
 sudo su - postgres -c "createdb -O $PGUSER ncharts"
+sudo su - postgres -c "psql -c 'CREATE USER $USER; GRANT ALL PRIVILEGES ON DATABASE ncharts to $PGUSER;'"
 
 if $prod; then
     PGUSER=apache
