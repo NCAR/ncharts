@@ -15,7 +15,8 @@ fi
 
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
-for f in projects.json platforms.json variables.json timezones.json; do
+
+for f in timezones.json projects.json platforms.json variables.json; do
     echo $f
     python3 manage.py loaddata $f
 done
