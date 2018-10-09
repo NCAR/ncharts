@@ -19,11 +19,11 @@ Adding a dataset
 
 1. determine a new, unique primary key, aka 'pk'.  To see the existing primary keys for datasets, do:
 
-        fgrep pk datasets
+        fgrep pk datasets_*
 
    To see a sorted listing of the current primary keys:
 
-        fgrep -h '"pk"' dataset* | cut -d: -f 2 | sort -u -n
+        fgrep -h '"pk"' datasets_* | cut -d: -f 2 | sort -u -n
 
    Choose a primary key that is not listed.
 
