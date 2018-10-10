@@ -10,17 +10,13 @@ from django.contrib.sessions.models import Session
 class Command(BaseCommand):
     def handle(self, **options):
 
-        clnts = ClientState.objects.all()
-        print("#clnts=%d" % len(clnts))
-
         sessions = Session.objects.all()
         print("#sessions=%d" % len(sessions))
 
-        vtimes = VariableTimes.objects.all()
-        print("#vtimes=%d" % len(vtimes))
+        clnts = ClientState.objects.all()
+        print("#clients=%d" % len(clnts))
 
-        active = set()
-        dtimes_active = set()
+        clnts_active = set()
         ndeleted = 0
 
         for sess in sessions:
@@ -34,11 +30,12 @@ class Command(BaseCommand):
                         project.name, dset.name)
 
                     if cid_name == sess_key and sess_dict[cid_name] == clnt.pk:
-                        active.add(clnt.pk)
+                        clnts_active.add(clnt.pk)
                         break
 
+        dtimes_active = set()
         for clnt in clnts:
-            if clnt.pk in active:
+            if clnt.pk in clnts_active:
                 print("client found in session: pk=%d, dataset=%s" % \
                     (clnt.pk, clnt.dataset))
                 # dtimes = clnt.data_times.all()
@@ -52,15 +49,18 @@ class Command(BaseCommand):
                 clnt.delete()
                 ndeleted += 1
 
-        print("#clients=%d, #deleted=%d" % (len(clnts), ndeleted))
+        print("#clients deleted=%d" % (ndeleted))
+
+        vtimes = VariableTimes.objects.all()
+        print("#vtimes=%d" % len(vtimes))
 
         ndeleted = 0
         for vt in vtimes:
             # print("type vt=%s" % type(vt))
             if vt not in dtimes_active:
-                print("Variable time not found in a client: pk=%d, deleting" % \
+                print("VariableTime not found in a client: pk=%d, deleting" % \
                         vt.pk)
                 vt.delete()
                 ndeleted += 1
-        print("#vtimes=%d, #deleted=%d" % (len(vtimes), ndeleted))
+        print("#vtimes deleted=%d" % (ndeleted))
 
