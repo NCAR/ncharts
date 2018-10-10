@@ -74,7 +74,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
 </IfModule>
 ```
 
-5. Configuration
+5. Setup postgres server
+  This is the same as step 5 of in setting up a development server. See `README-devel.md`.
+
+6. Configuration
 
   Production settings are set and managed in `datavis/settings/production.py`. `DEBUG` should be set to `False`, as the Django docs warn in several places that using `DEBUG = True` on a production server exposed to the WWW is a security hole.
 
@@ -93,7 +96,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo chgrp apache /var/lib/django
   sudo chmod g+sw /var/lib/django
   ```
-6. Create the key
+
+  Configure the DATABASES in `datavis/settings/default.py` as discussed in `README-devel.md`.
+
+7. Create the key
   A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. To generate a new `SECRET_KEY`:
 
   ```sh
@@ -112,32 +118,34 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl daemon-reload
   sudo systemctl restart httpd
 ```
-7. Initialize the database
+8. Initialize the database
 
   This runs the django migrations commands, which should also handle the situation of one of the models changes, or is added or deleted:
 
   ```sh
-  ./migrate_db.sh
+  cd $DJROOT/ncharts
+  ./create_pgdb.sh
+  ./load_db.sh
 ```
 
-  If the db.sqlite3 database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, but to be paranoid, I'd suggest not using your UCAS or EOL server password.
+  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, but to be paranoid, I'd suggest not using your UCAS or EOL server password.
 
   Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history for ncharts:
 
   ```sh
-  rm /var/lib/django/db.sqlite3
+  ./delete_pgdb.sh
   rm -rf ncharts/migrations
 ```
 
-  Then run the migration script again.
+  Then run the create script again.
 
-8. Load the models from the `.json` files in `ncharts/fixtures`:
+9. Load the models from the `.json` files in `ncharts/fixtures`:
 
   ```sh
   ./load_db.sh
 ```
 
-9. Fetch the static files
+10. Fetch the static files
 
   To fetch the static files of the supporting software used by ncharts, such as jquery, bootstrap and highcharts do:
 
@@ -165,7 +173,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
-10. Memcached:
+11. Memcached:
 
   The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings/production.py`:
 
@@ -186,7 +194,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl start memcached_django.service
 ```
 
-11. Configure and start httpd server
+12. Configure and start httpd server
 
   Install the httpd configuration files:
 
@@ -215,11 +223,11 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl start httpd.service
 ```
 
-12. Test!
+13. Test!
 
    <http://localhost/ncharts>
 
-13. Clearing expired sessions and unattached ClientState objects
+14. Clearing expired sessions and unattached ClientState objects
 
   This is done from a crontab on the server:
 
@@ -228,5 +236,5 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   MAILTO=maclean@ucar.edu
   #
   # On Sundays, clear expired sessions and then the unattached clients
-  0 0 * * 0 cd /var/django/ncharts; source ../virtualenv/django/bin/activate; ./manage.py clearsessions; ./manage.py clear_clients
+  0 0 * * 0 cd /var/django/ncharts; ./datavis-clear.sh
 ```

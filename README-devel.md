@@ -16,7 +16,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   On RHEL7:
   ```sh
   sudo yum install python34 python34-libs python34-setuptools python34-devel
-        memcached netcdf-devel hdf5-devel postgresql-devel
+        memcached netcdf-devel hdf5-devel postgresql-devel postgresql-server postgresql-contrib
   sudo easy_install-3.4 pip
 ```
 
@@ -25,7 +25,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   ```sh
   sudo yum install python3 python3-pip python3-memcached \
         memcached python3-mod_wsgi python3-devel netcdf-devel hdf5-devel \
-        postgresql-devel
+        postgresql-devel postgresql-server postgresql-contrib
 ```
 
   ```sh
@@ -98,10 +98,38 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python3 -m pip install python3-memcached
 ```
 
-5. Configuration
+5. Setup postgres server
+
+   The installation should have created `/var/lib/pgsql/data/pg_hba.conf`, with a first configuation line of
+  ```sh
+local   all             all                                 peer
+```
+  This will allow initial local connections from the postgres account.
+
+   By default, the postgres server listens only on the localhost network interface. This is the recommended setting, unless you have a real need for connections from other systems, and understand the security risks.  The listen address is set in `/var/lib/pgsql/data/postgresql.conf`:
+   ```sh
+#listen_addresses = 'localhost'
+```
+
+  To view or edit these files on `/var/lib/psql` you need to be the postgres user:
+  ```sh
+  sudo su - postgres
+  cd /var/lib/pgsql/data
+  vi pg_hba.conf
+```
+
+  Initialize postgres, and start the server:
+
+  ```sh
+   sudo postgresql-setup --initdb --init postgresql
+   sudo systemctl enable postgresql
+   sudo systemctl start postgresql
+```
+
+6. Configuration
    ```sh
    cd $DJROOT/ncharts
-   ```
+```
    
   In `datavis/settings/default.py` DEBUG is set to True`. Note that this results in the following settings:
 
@@ -116,6 +144,28 @@ The following is for RedHat systems, such as CentOS or Fedora.
   The memcached socket is on `VAR_RUN_DIR`.
   The database is on `VAR_LIB_DIR`.
 
+  For a postgres database, `datavis/settings/default.py` should contain:
+  ```sh
+  DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ncharts',
+        'CONN_MAX_AGE': 10,
+    }
+  }
+```
+
+  If, instead, a sqlite database is to be used, the settings are:
+  ```sh
+  DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
+        'OPTIONS': {'timeout': 20,},
+    }
+  }
+```
+
   Create the log directory:
 
   ```sh
@@ -126,26 +176,28 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python3 manage.py version 
 ```
 
-6. Initialize the database.
+7. Initialize the database.
 
-  This runs migrate command, which should also handle the situation of one of the models changes, or is added or deleted:
+  This runs the django migrate command, which should also handle the situation of a change in the models:
 
   ```sh
-  ./migrate_db.sh -d
+   cd $DJROOT/ncharts
+  ./create_pgdb.sh -d
+  ./load_db.sh -d
 ```
 
-  The -d option indicates this is a development server.  If the db.sqlite3 database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. The security of the password is not critical for a development server if it is not exposed to the internet. I'd suggest not using your UCAS or EOL server password.
+  The -d option indicates this is a development server.  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. The security of the password is not critical for a development server if it is not exposed to the internet. I'd suggest not using your UCAS or EOL server password.
 
   Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history:
 
   ```sh
-  rm db.sqlite3
+  ./delete_pgdb.sh -d
   rm -rf ncharts/migrations
 ```
 
-  Then run the migration script again.
+  Then run the create script again.
 
-7. Load the models from the .json files in ncharts/fixtures:
+8. Load the models from the .json files in ncharts/fixtures:
 
   ```sh
   ./load_db.sh -d
@@ -153,7 +205,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   The `-d` option indicates this is a development server.
 
-8. Fetch the static files
+9. Fetch the static files
 
   To fetch the static files of the supporting software such as jquery, bootstrap and highcharts do:
 
