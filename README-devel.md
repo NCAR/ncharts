@@ -183,7 +183,6 @@ local   all             all                                 peer
   ```sh
    cd $DJROOT/ncharts
   ./create_pgdb.sh -d
-  ./load_db.sh -d
 ```
 
   The -d option indicates this is a development server.  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. The security of the password is not critical for a development server if it is not exposed to the internet. I'd suggest not using your UCAS or EOL server password.
