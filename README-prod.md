@@ -97,7 +97,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo chmod g+sw /var/lib/django
   ```
 
-  Configure the DATABASES in `datavis/settings/default.py` as discussed in `README-devel.md`.
+  Configure the DATABASES in `datavis/settings/production.py` as discussed in `README-devel.md`.
 
 7. Create the key
   A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. To generate a new `SECRET_KEY`:
