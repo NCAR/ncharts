@@ -13,6 +13,7 @@ file LICENSE in this package.
 from django.conf.urls import url
 
 from django.views.decorators.cache import never_cache
+from django.views.generic import TemplateView
 
 from ncharts import views
 
@@ -29,6 +30,8 @@ from ncharts import views
 
 urlpatterns = [
     url(r'^$', views.projects_platforms, name='projectsPlatforms'),
+
+    url(r'^robots\.txt$', TemplateView.as_view(template_name='ncharts/robots.txt', content_type='text/plain')),
 
     url(r'^help/?$', views.StaticView.as_view(), {'page': 'ncharts/help.html'}),
 
