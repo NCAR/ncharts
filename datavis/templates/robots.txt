@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /ncharts/projects/*/*
+Disallow: /ncharts/data/

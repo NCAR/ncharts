@@ -2,6 +2,7 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import RedirectView
+from django.views.generic import TemplateView
 
 admin.autodiscover()
 
@@ -10,8 +11,9 @@ urlpatterns = [
     # redirect empty URL to /ncharts
     url(r'^$', RedirectView.as_view(url='/ncharts',permanent=True)),
 
-    # redirect robots.txt URL to /ncharts
-    url(r'^robots\.txt$', RedirectView.as_view(url='/ncharts/robots.txt',permanent=True)),
+    # datavis/templates/robots.txt
+    url(r'^robots\.txt$', TemplateView.as_view(template_name='robots.txt',
+        content_type='text/plain')),
 
     # If URL starts with ncharts, remove "ncharts/", pass what's
     # left on to ncharts.urls
