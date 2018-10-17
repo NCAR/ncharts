@@ -210,7 +210,7 @@ class Project(models.Model):
         for project in projects:
             if project.end_year is None:
                 project.end_year = now.year
-            for year in range(project.start_year, project.end_year + 1):
+            for year in range(project.start_year, min(project.end_year, now.year) + 1):
                 res[year] = res.get(year, []) + [project]
 
         for year, projects in res.items():
