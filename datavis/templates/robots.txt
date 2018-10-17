@@ -1,3 +1,4 @@
 User-agent: *
 Disallow: /ncharts/projects/*/*
 Disallow: /ncharts/data/
+Crawl-delay: 10
