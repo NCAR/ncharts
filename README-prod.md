@@ -97,7 +97,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo chmod g+sw /var/lib/django
   ```
 
-  Configure the DATABASES in `datavis/settings/production.py` as discussed in `README-devel.md`.
+  Configure the DATABASES in `datavis/settings/default.py` as discussed in `README-devel.md`.
 
 7. Create the key
   A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. To generate a new `SECRET_KEY`:
@@ -184,7 +184,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   See above for creating and setting permissions on `VAR_RUN_DIR`.  To setup memcached, do:
 
   ```sh
-  # Configure system to creates /var/run/django on each boot
+  # Configure system to create /var/run/django on each boot
   sudo cp usr/lib/tmpfiles.d/django.conf /usr/lib/tmpfiles.d
   systemd-tmpfiles --create /usr/lib/tmpfiles.d/django.conf
 
@@ -200,8 +200,10 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   ```sh
   sudo mv /etc/httpd /etc/httpd.orig
-  sudo cp -r etc/httpd /etc
+  sudo cp -r etc/datavis/httpd /etc
 ```
+
+  The httpd configuration file that sets up the wsgi python module for django is `etc/datavis/httpd/conf/vhosts/datavis.conf`, which is installed to `/etc/httpd/conf/vhosts`. The `WSGIScriptAlias` statement in this file tells httpd to run `/var/django/ncharts/datavis/wsgi.py` for all URLs. In this way a production server runs `wsgi.py` instead of `manage.py`, with `DJANGO_SETTINGS_MODULE` set to `datavis.settings.production`.  For information on wsgi, see the django documentation for the current version, for example: `https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/`.
 
   Tweak the umask of the systemd service, so that apache group members can read/write the log files:
 
@@ -216,7 +218,9 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl daemon-reload
 ```
 
-  See above for creating and setting permissions on `LOG_DIR`:
+  See above for creating and setting permissions on `LOG_DIR`.
+
+  Enable and start httpd:
 
   ```sh
   sudo systemctl enable httpd.service

@@ -142,7 +142,7 @@ local   all             all                                 peer
   `BASE_DIR` is set in `datavis/settings/default.py` as the parent directory of datavis, which, in this configuration is `$DJROOT/ncharts`
 
   The memcached socket is on `VAR_RUN_DIR`.
-  The database is on `VAR_LIB_DIR`.
+  If a sqlite database is used, it is on `VAR_LIB_DIR`.
 
   For a postgres database, `datavis/settings/default.py` should contain:
   ```sh
@@ -245,16 +245,12 @@ local   all             all                                 peer
 
   <http://127.0.0.1:8000/ncharts>
 
-12. To run your development environment in production mode, set two environment variable: `DJANGO_SETTINGS_MODULE` and `EOL_DATAVIS_SECRET_KEY`. `DJANGO_SETTINGS_MODULE` should be set to `datavis.settings.production`, while `EOL_DATAVIS_SECRET_KEY` can be set to anything. You can set these on the same line as `runserver.sh` invocation:
-
-  ```sh
-EOL_DATAVIS_SECRET_KEY=1 DJANGO_SETTINGS_MODULE=datavis.settings.production ./runserver.sh
-```
-
-  or `export` them prior to invocation:
-
-  ```sh
-export EOL_DATAVIS_SECRET_KEY=1
+12. To test the production settings with a development server, set environment variables before running runserver.sh:
+```sh
 export DJANGO_SETTINGS_MODULE=datavis.settings.production
+export EOL_DATAVIS_SECRET_KEY=test
+export VAR_DIR=/tmp/ncharts
+mkdir -p $VAR_DIR/log/ncharts $VAR_DIR/lib/ncharts $VAR_DIR/run/ncharts
+cp db.sqlite3 $VAR_DIR/lib/ncharts 
 ./runserver.sh
 ```

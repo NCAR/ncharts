@@ -6,7 +6,7 @@
 
 2. Check django database configuration
 
-  To dump the existing sqlite database, the database in `datavis/settings/default.py` and `datavis/settings/production.py` should be sqlite:
+  To dump the existing sqlite database, the database in `datavis/settings/default.py` should be sqlite:
 
   ```sh
   DATABASES = {
@@ -27,7 +27,7 @@
 
 4. Switch django database configuration
 
-  In `datavis/settings/default.py`, and `datavis/settings/production.py`, set DATABASES to postgresql:
+  In `datavis/settings/default.py` set DATABASES to postgresql:
 
   ```sh
   DATABASES = {

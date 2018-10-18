@@ -6,21 +6,20 @@ from .default import *
 
 DEBUG = False
 
+os.environ.setdefault("VAR_DIR", "/var")
+VAR_DIR = os.environ.get('VAR_DIR')
+
 DEFAULT_LOG_DIR = LOG_DIR
 
-LOG_DIR = '/var/log/django'
+LOG_DIR = os.path.join(VAR_DIR, 'log/django')
 PROD_LOG_LEVEL = 'WARNING'
 
-VAR_RUN_DIR = '/var/run/django'
-VAR_LIB_DIR = '/var/lib/django'
+VAR_RUN_DIR = os.path.join(VAR_DIR, 'run/django')
+VAR_LIB_DIR = os.path.join(VAR_DIR, 'lib/django')
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
-        'OPTIONS': {'timeout': 60,},
-    }
-}
+# Update path to database if sqlite is used
+if 'sqlite' in DATABASES['default']['ENGINE']:
+    DATABASES['default']['NAME'] = os.path.join(VAR_LIB_DIR, 'db.sqlite3')
 
 SECRET_KEY = os.environ.get('EOL_DATAVIS_SECRET_KEY')
 
