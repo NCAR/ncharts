@@ -8,7 +8,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 1. Install required packages
 
-  This is the same as step one of in setting up a development server. See `README-devel.md`.
+  This is the same as step one in setting up a development server. See `README-devel.md`.
 
 2. Decide where to put the django code and configuration.
 
@@ -75,7 +75,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 ```
 
 5. Setup postgres server
-  This is the same as step 5 of in setting up a development server. See `README-devel.md`.
+  This is the same as step 5 in setting up a development server. See `README-devel.md`.
 
 6. Configuration
 
@@ -112,7 +112,7 @@ The key can be passed to Apache from `systemd` by adding a `.conf` service file 
 [Service]
 Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 ```
-  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted"
+  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted:
 
   ```sh
   sudo systemctl daemon-reload
@@ -120,7 +120,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 ```
 8. Initialize the database
 
-  This runs the django migrations commands, which should also handle the situation of one of the models changes, or is added or deleted:
+  This also runs the django migration command, which should also handle the situation when one of the models changes, or is added or deleted:
 
   ```sh
   cd $DJROOT/ncharts
@@ -128,7 +128,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   ./load_db.sh
 ```
 
-  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, but to be paranoid, I'd suggest not using your UCAS or EOL server password.
+  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, which should not match other passwords.
 
   Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history for ncharts:
 
@@ -153,7 +153,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   ./get_static_files.sh
 ```
 
-  The filies will be written to `$DJROOT/ncharts/static/ncharts`.
+  The files will be written to `$DJROOT/ncharts/static/ncharts`.
 
   Then on a production server, execute the static.sh shell script:
 
@@ -237,7 +237,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   ```sh
   crontab -l
-  MAILTO=maclean@ucar.edu
+  MAILTO=user@some.domain       # change to a real email address
   #
   # On Sundays, clear expired sessions and then the unattached clients
   0 0 * * 0 cd /var/django/ncharts; ./datavis-clear.sh
