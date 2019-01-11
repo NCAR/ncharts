@@ -1,4 +1,4 @@
-# -*- mode: C++; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
+# -*- mode: python; indent-tabs-mode: nil; c-basic-offset: 4; tab-width: 4; -*-
 # vim: set tabstop=8 shiftwidth=4 softtabstop=4 expandtab:
 
 """Forms used by ncharts django web app.
