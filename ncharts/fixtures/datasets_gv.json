@@ -20,7 +20,7 @@
     "fields": {
         "dbname": "real-time-GV",
         "user": "ads",
-        "host": "eol-rt-data.fl-ext.ucar.edu",
+        "host": "eol-rt-data.eol.ucar.edu",
         "table": "raf_lrt"
     }, 
     "model": "ncharts.dbdataset",
