@@ -203,5 +203,27 @@
     },
     "model": "ncharts.project", 
     "pk": "SAVANT"
+},
+{
+    "fields": {
+        "location": "Urbana, Illinois",
+        "timezones": ["US/Central", "UTC"],
+	"long_name": "Stable Atmospheric Variability and Transport",
+        "start_year": "2018",
+        "end_year": "2018"
+    },
+    "model": "ncharts.project", 
+    "pk": "SAVANT"
+},
+{
+    "fields": {
+        "location": "Chequamegon National Forest",
+        "timezones": ["US/Central", "UTC"],
+	"long_name": "Chequamegon Heterogeneous Ecosystem Energy-balance Study Enabled by a High-density Extensive Array of Detectors",
+        "start_year": "2019",
+        "end_year": "2019"
+    },
+    "model": "ncharts.project", 
+    "pk": "CHEESEHEAD"
 }
 ]

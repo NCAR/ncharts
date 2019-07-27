@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2019-06-20T00:00:00+00:00", 
+        "end_time": "2019-11-01T00:00:00+00:00", 
+        "location": "Park Falls, Wisconsin", 
+        "name": "noqc_instrument", 
+        "long_name": "CHEESEHEAD, preliminary data, winds in instrument coordinates", 
+        "project": "CHEESEHEAD",
+	"url": "https://www.eol.ucar.edu/field_projects/cheesehead",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 49
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/CHEESEHEAD/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 49
+}
+]
