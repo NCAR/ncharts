@@ -46,7 +46,7 @@
 {
     "fields": {
         "directory": "/net/isf/isfs/projects/GRAINEX/ISFS/netcdf/qc_geo_tiltcor",
-        "filenames": "isfs_%Y%m%d.nc"
+        "filenames": "isfs_tc_%Y%m%d.nc"
     },
     "model": "ncharts.filedataset",
     "pk": 26
