@@ -24,5 +24,31 @@
     }, 
     "model": "ncharts.filedataset", 
     "pk": 46
+},
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2018-05-09T00:00:00+00:00",
+        "end_time": "2018-08-05T00:00:00+00:00",
+        "location": "Eastern Nebraska near York and Lincoln",
+        "name": "qc_geo_tiltcor",
+        "long_name": "GRAINEX, preliminary data, winds in geographic coordinates",
+        "project": "GRAINEX",
+	"url": "https://www.eol.ucar.edu/field_projects/grainex",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 26
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/GRAINEX/ISFS/netcdf/qc_geo_tiltcor",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 26
 }
 ]
