@@ -318,8 +318,11 @@ class Dataset(models.Model):
         help_text=ugettext_lazy('Current status of the project dataset'))
 
     # This adds a dataset_set attribute to Project
+    # on_delete=models.CASCADE (default behavior): when a project is
+    # deleted, all its associated DataSets are deleted too.
     project = models.ForeignKey(
         Project,
+        on_delete=models.CASCADE,
         help_text=ugettext_lazy('A dataset is associated with one project'))
 
     # This adds a dataset_set attribute to Platform
@@ -709,7 +712,12 @@ class ClientState(models.Model):
     # it cannot be abstract.
     # related_name='+' tells django not to create a backwards relation
     # from Dataset to ClientState, which we don't need.
-    dataset = models.ForeignKey(Dataset, related_name='+')
+    # on_delete=CASCADE (default): when the Dataset is deleted all related
+    # ClientStates are deleted too, but there shouldn't be any
+    # related ClientStates, due to related_name='+'.
+    dataset = models.ForeignKey(Dataset,
+        on_delete=models.DO_NOTHING,
+        related_name='+')
 
     timezone = TimeZoneField(blank=False)
 

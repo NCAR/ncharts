@@ -20,6 +20,6 @@ urlpatterns = [
     url(r'^robots\.txt$', TemplateView.as_view(template_name='robots.txt',
         content_type='text/plain')),
 
-    url(r'^admin/', include(admin.site.urls), name="admin:index")
+    url(r'^admin/', admin.site.urls, name="admin:index")
 
 ]

@@ -28,6 +28,8 @@ from ncharts import views
 # In django 1.8 urlpatterns should just be a list of url() instances.
 # patterns() is deprecated.
 
+app_name = 'ncharts'
+
 urlpatterns = [
     url(r'^$', views.projects_platforms, name='projectsPlatforms'),
 

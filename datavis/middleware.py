@@ -1,14 +1,23 @@
 
 from django.conf import settings
-from django.core.urlresolvers import reverse, NoReverseMatch
+
+try:
+    from django.core.urlresolvers import reverse, NoReverseMatch
+except ImportError:
+    from django.urls import reverse, NoReverseMatch
+
 # from django.http import Http404
 import django.core.exceptions
-
 
 import logging
 logger = logging.getLogger(__name__)
 
-class InternalUseOnlyMiddleware(object):
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    MiddlewareMixin = object
+
+class InternalUseOnlyMiddleware(MiddlewareMixin):
     """
     Middleware to prevent access to the admin if the user IP
     isn't in the INTERNAL_IPS setting.

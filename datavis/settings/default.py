@@ -68,7 +68,7 @@ INSTALLED_APPS = (
     'ncharts',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     # https://docs.djangoproject.com/en/1.7/topics/cache/#order-of-middleware-classes
     # UpdateCacheMiddleware must appear before SessionMiddleware,
     # and LocaleMiddleware FetchFromCacheMiddleware must occur after them.
