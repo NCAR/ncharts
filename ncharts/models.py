@@ -18,7 +18,7 @@ import datetime
 
 import pytz
 
-from django.db import models
+from django.db import models, transaction
 
 from django.core import exceptions as dj_exc
 from django.utils.translation import ugettext_lazy
@@ -213,8 +213,8 @@ class Project(models.Model):
             for year in range(project.start_year, min(project.end_year, now.year) + 1):
                 res[year] = res.get(year, []) + [project]
 
-        for year, projects in res.items():
-            projects.sort(key=lambda x: x.name)
+        for year, pjcts in res.items():
+            pjcts.sort(key=lambda x: x.name)
 
         odres = OrderedDict(sorted(res.items(), key=lambda x: x[0]))
 
@@ -491,8 +491,7 @@ class Dataset(models.Model):
 
         if is_isfs:
             return self.isfs_tabs(variables)
-        else:
-            return alphabetic_tabs(variables)
+        return alphabetic_tabs(variables)
 
 class FileDataset(Dataset):
     """A Dataset consisting of a set of similarly named files.
@@ -715,7 +714,8 @@ class ClientState(models.Model):
     # on_delete=CASCADE (default): when the Dataset is deleted all related
     # ClientStates are deleted too, but there shouldn't be any
     # related ClientStates, due to related_name='+'.
-    dataset = models.ForeignKey(Dataset,
+    dataset = models.ForeignKey(
+        Dataset,
         on_delete=models.DO_NOTHING,
         related_name='+')
 
@@ -759,24 +759,53 @@ class ClientState(models.Model):
         if self.time_length <= 0:
             raise dj_exc.ValidationError("time_length is not positive")
 
+    @transaction.atomic
     def save_data_times(self, vname, time_last_ok, time_last):
-        """Save the times associated with the last chunk of data sent to this client.
+        """Save the times associated with the last chunk of data sent to
+        this client.
+
+        Under stress testing of ncharts with a security scanner
+        saw the MultipleObjectsReturned exception in the get().
+        Seems like it is due to simultaneous access, so we'll
+        try adding transaction.atomic() on the check/update of
+        data_times.  Note that apache may run multiple processes
+        of ncharts, so thread locking is not sufficient, must use
+        database locking.
+
+        For info:
+        https://docs.djangoproject.com/en/2.2/topics/db/transactions/
         """
         try:
-            vart = self.data_times.get(name=vname)
-            vart.last_ok = time_last_ok
-            vart.last = time_last
-            vart.save()
+            with transaction.atomic():
+                vart = self.data_times.get(name=vname)
+                vart.last_ok = time_last_ok
+                vart.last = time_last
+                vart.save()
         except VariableTimes.DoesNotExist:
-            vart = VariableTimes.objects.create(
-                name=vname, last_ok=time_last_ok, last=time_last)
-            self.data_times.add(vart)
+            with transaction.atomic():
+                vart = VariableTimes.objects.create(
+                    name=vname, last_ok=time_last_ok, last=time_last)
+                self.data_times.add(vart)
+        except VariableTimes.MultipleObjectsReturned as e:
+            # try to fix it, and then report
+            with transaction.atomic():
+                varts = self.data_times.filter(name=vname)
+                for vart in varts:
+                    self.data_times.remove(vart)
+                vart = VariableTimes.objects.create(
+                    name=vname, last_ok=time_last_ok, last=time_last)
+                self.data_times.add(vart)
+            raise e
 
     def get_data_times(self, vname):
         """Fetch the times associated with the last chunk of data sent to this client.
+        This is just a reader of data_times, don't think it needs to
+        use atomic transactions.
         """
         try:
             vart = self.data_times.get(name=vname)
             return [vart.last_ok, vart.last]
         except VariableTimes.DoesNotExist:
             return [None, None]
+        # don't catch VariableTimes.MultipleObjectsReturned,
+        # so that it's reported.
