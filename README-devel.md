@@ -83,6 +83,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
    source $HOME/virtualenvs/django/bin/activate
 
    python3 -m pip install --upgrade django
+
+   # to install a specific version of django
+   python3 -m pip install --upgrade django==1.11.17
    python3 -m pip install --upgrade numpy
    python3 -m pip install --upgrade pytz
    python3 -m pip install --upgrade netCDF4
