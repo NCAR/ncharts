@@ -235,4 +235,4 @@ LOGGING = {
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
-INTERNAL_IPS = ['128.117']
+INTERNAL_IPS = ['128.117', '127.0.0.1']
