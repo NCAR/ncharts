@@ -775,27 +775,23 @@ class ClientState(models.Model):
         For info:
         https://docs.djangoproject.com/en/2.2/topics/db/transactions/
         """
-        try:
-            with transaction.atomic():
-                vart = self.data_times.get(name=vname)
-                vart.last_ok = time_last_ok
-                vart.last = time_last
-                vart.save()
-        except VariableTimes.DoesNotExist:
-            with transaction.atomic():
-                vart = VariableTimes.objects.create(
-                    name=vname, last_ok=time_last_ok, last=time_last)
-                self.data_times.add(vart)
-        except VariableTimes.MultipleObjectsReturned as e:
-            # try to fix it, and then report
-            with transaction.atomic():
-                varts = self.data_times.filter(name=vname)
+        with transaction.atomic():
+            first = True
+            varts = self.data_times.filter(name=vname)
+            if varts:
                 for vart in varts:
-                    self.data_times.remove(vart)
+                    if first:
+                        vart.last_ok = time_last_ok
+                        vart.last = time_last
+                        vart.save()
+                        first = False
+                    else:
+                        self.data_times.remove(vart)
+                        _logger.error("multiple data_times in ClientState for variable %s", vname)
+            else:
                 vart = VariableTimes.objects.create(
                     name=vname, last_ok=time_last_ok, last=time_last)
                 self.data_times.add(vart)
-            raise e
 
     def get_data_times(self, vname):
         """Fetch the times associated with the last chunk of data sent to this client.
