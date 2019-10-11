@@ -26,8 +26,14 @@ from django.views.generic.edit import View
 from django.views.generic import TemplateView
 from django.utils.safestring import mark_safe
 from django.template import TemplateDoesNotExist
-from django.core.urlresolvers import reverse
+
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
+
 from django.contrib import messages
+from django.core import exceptions as dj_exc
 
 from ncharts import models as nc_models
 from ncharts import forms as nc_forms
@@ -568,25 +574,33 @@ class DatasetView(View):
 
         if 'submit' in request.POST and request.POST['submit'][0:4] == 'page':
 
-            timezone = nc_models.TimeZone.objects.get(
-                tz=request.POST['timezone']).tz
-
-            start_time = timezone.localize(
-                datetime.datetime.strptime(
-                    request.POST['start_time'], "%Y-%m-%d %H:%M"))
-
-            delt = nc_forms.get_time_length(
-                request.POST['time_length_0'],
-                request.POST['time_length_units'])
-
-            if request.POST['submit'] == 'page-backward':
-                start_time = start_time - delt
-            elif request.POST['submit'] == 'page-forward':
-                start_time = start_time + delt
-
             post = request.POST.copy()
-            post['start_time'] = start_time.replace(tzinfo=None)
+            try:
+                # will throw ValidationError if timezone doesn't exist
+                timezone = nc_models.TimeZone.objects.get(
+                    tz=request.POST['timezone']).tz
+
+                start_time = timezone.localize(
+                    datetime.datetime.strptime(
+                        request.POST['start_time'], "%Y-%m-%d %H:%M"))
+
+                delt = nc_forms.get_time_length(
+                    request.POST['time_length_0'],
+                    request.POST['time_length_units'])
+
+                if request.POST['submit'] == 'page-backward':
+                    start_time = start_time - delt
+                elif request.POST['submit'] == 'page-forward':
+                    start_time = start_time + delt
+
+                post['start_time'] = start_time.replace(tzinfo=None)
+
+            except (KeyError, ValueError, dj_exc.ValidationError):
+                # Will result in invalid form below
+                post['start_time'] = None
+
             post['track_real_time'] = False
+
             form = nc_forms.DataSelectionForm(post, dataset=dset, request=request)
         else:
             form = nc_forms.DataSelectionForm(request.POST, dataset=dset, request=request)

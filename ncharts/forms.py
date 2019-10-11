@@ -282,7 +282,10 @@ class DataSelectionForm(forms.Form):
 
         cleaned_data = super().clean()
 
-        timezone = cleaned_data['timezone']
+        timezone = cleaned_data.get('timezone')
+        if not timezone:
+            raise forms.ValidationError('timezone not found')
+
         tnow = datetime.datetime.now(timezone)
         post_real_time = tnow > self.dataset.end_time
 
@@ -314,9 +317,9 @@ class DataSelectionForm(forms.Form):
         except nc_exc.NoDataException:
             self.add_error('start_time', forms.ValidationError("dataset start time not available"))
 
-        tunits = cleaned_data['time_length_units']
+        tunits = cleaned_data.get('time_length_units')
 
-        if not tunits in TIME_UNITS_CHOICES:
+        if not tunits or not tunits in TIME_UNITS_CHOICES:
             raise forms.ValidationError('invalid time units: {}'.format(tunits))
 
         if 'time_length' not in cleaned_data:
@@ -324,7 +327,7 @@ class DataSelectionForm(forms.Form):
 
         tdelta = self.get_cleaned_time_length()
 
-        if tdelta.total_seconds() <= 0:
+        if not tdelta or tdelta.total_seconds() <= 0:
             msg = "time length must be positive"
             self.add_error('time_length', forms.ValidationError(msg))
 
@@ -431,7 +434,10 @@ def get_time_length(tval, tunits):
     """
 
     if isinstance(tval, str):
-        tval = float(tval)
+        try:
+            tval = float(tval)
+        except ValueError:
+            return None
 
     if tunits == 'day':
         return datetime.timedelta(days=tval)
