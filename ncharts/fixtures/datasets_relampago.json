@@ -24,5 +24,57 @@
     }, 
     "model": "ncharts.filedataset", 
     "pk": 50
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2018-06-01T00:00:00+00:00", 
+        "end_time": "2019-04-30T00:00:00+00:00", 
+        "location": "Argentina ",
+        "name": "qc_geo_tiltcor", 
+        "long_name": "RELAMPAGO, preliminary QC data, winds in geo coordinates", 
+        "project": "RELAMPAGO",
+	"url": "https://www.eol.ucar.edu/field_projects/relampago",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 51
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/RELAMPAGO/ISFS/netcdf/qc_geo_tiltcor",
+        "filenames": "isfs_tc_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 51
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2018-06-01T00:00:00+00:00",
+        "end_time": "2019-04-30T00:00:00+00:00",
+        "location": "Argentina ",
+        "name": "noqc_geo_tiltcor",
+        "long_name": "RELAMPAGO, preliminary data, winds in geo coordinates",
+        "project": "RELAMPAGO",
+	"url": "https://www.eol.ucar.edu/field_projects/relampago",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 52
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/RELAMPAGO/ISFS/netcdf/noqc_geo_tiltcor",
+        "filenames": "isfs_tc_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 52
 }
 ]
