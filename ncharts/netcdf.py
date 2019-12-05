@@ -546,7 +546,7 @@ class NetCDFDataset(object):
                 ncfile.close()
 
         if not n_files_read:
-            msg = "No files found"
+            msg = self.path + ": No files found"
             raise nc_exc.NoDataException(msg)
 
         # Remove the station names if no variables have a station dimension
