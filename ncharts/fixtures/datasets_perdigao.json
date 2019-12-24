@@ -19,7 +19,7 @@
 },
 {
     "fields": {
-        "directory": "/scr/isfs/projects/Perdigao/netcdf/noqc_instrument",
+        "directory": "/net/isf/isfs/projects/Perdigao/ISFS/netcdf/noqc_instrument",
         "filenames": "isfs_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
@@ -31,11 +31,11 @@
         "platforms": [
             "ISFS"
         ], 
-        "start_time": "2017-03-22T00:00:00+00:00", 
-        "end_time": "2017-06-18T00:00:00+00:00", 
+        "start_time": "2016-12-01T00:00:00+00:00",
+        "end_time": "2017-07-02T00:00:00+00:00",
         "location": "Perdigão, Portugal",
-        "name": "5min_geographic", 
-        "long_name": "Perdigao, preliminary 5 minute statistics, 3D winds in approximate geographic coordinates", 
+        "name": "qc_geo_tiltcor",
+        "long_name": "Perdigao, QC data, winds in geographic, tilt corrected coordinates", 
         "project": "Perdigao",
 	"url": "https://www.eol.ucar.edu/field_projects/perdigao",
 	"status": "Preliminary"
@@ -45,8 +45,8 @@
 },
 {
     "fields": {
-        "directory": "/scr/isfs/projects/Perdigao/netcdf/noqc_geo_notiltcor",
-        "filenames": "isfs_notiltcor_%Y%m%d.nc"
+        "directory": "/net/isf/isfs/projects/Perdigao/ISFS/netcdf/qc_geo_tiltcor/v1.1_20190215",
+        "filenames": "isfs_qc_tiltcor_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 15
