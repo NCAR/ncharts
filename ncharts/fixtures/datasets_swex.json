@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2020-03-02T00:00:00+00:00", 
+        "end_time": "2020-06-01T00:00:00+00:00", 
+        "location": "Santa Barbara County, California", 
+        "name": "noqc_instrument", 
+        "long_name": "SWEX, preliminary data, winds in instrument coordinates", 
+        "project": "SWEX",
+	"url": "https://www.eol.ucar.edu/field_projects/swex",
+	"status": "Preliminary"
+    }, 
+    "model": "ncharts.dataset", 
+    "pk": 55
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/SWEX/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    }, 
+    "model": "ncharts.filedataset", 
+    "pk": 55
+}
+]
