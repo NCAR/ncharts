@@ -87,9 +87,13 @@ After making a change to a json file, go to the top ncharts directory, and run
 ## Updating production
 
 The django production installation relies on a sqlite3 database in
-`/var/lib/django`.  The database file is owned by `root` but kept
-group-writable for the `apache` group.  That way anyone in the `apache`
-group can modify the django database, instead of requiring `sudo`.
+`/var/lib/django`.  The database file is owned by `apache` and kept
+group-writable for the `apache` group.  Anyone in the `apache` group could
+modify the django database, instead of requiring `sudo`.  However, that
+approach is deprecated in favor of allowing specific users to run the
+`load_db.sh` script as root with `sudo`.  Therefore, by default, the
+`load_db.sh` script assumes it is running as root and verifies file
+permissions before and after updating the django database.
 
 The environment variable `EOL_DATAVIS_SECRET_KEY` needs to be set to run the
 above on a production server.  When `load_db.sh` is run on the production
@@ -105,14 +109,15 @@ the current steps:
     ssh <server>
     cd /var/django/ncharts
     git pull
-    ./load_db.sh
+    sudo ./load_db.sh
 
 The `load_db.sh` script by default loads the fixtures into the database.
-That operation only requires `apache` group membership and not `sudo`.  If
-the permissions ever need to be restored, the `load_db.sh` script can used
-for that like so:
+Obviously the user must be added to the sudo configuration and allowed to run `load_db.sh`.
 
-    ./load_db.sh fixperms
+If file permissions ever need to be restored separately, without needing a
+database update, then the `load_db.sh` script can used for that like so:
+
+    sudo ./load_db.sh fixperms
 
 ## Deleting a project, platform, or datasets
 
