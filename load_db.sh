@@ -20,11 +20,11 @@ fi
 # Make sure key is set.
 checkkey() {
     if [ -z "$EOL_DATAVIS_SECRET_KEY" ]; then
-	. key.sh
+        . key.sh
     fi
     if [ -z "$EOL_DATAVIS_SECRET_KEY" ]; then
-	echo "Could not set secret key."
-	exit 1
+        echo "Could not set secret key."
+        exit 1
     fi
 }
 
@@ -35,10 +35,10 @@ checkkey() {
 # both before and after database modifications.
 fixperms() {
     if [ `id -u` -ne 0 ]; then
-	echo "Run this command as root with sudo."
-	exit 1
+        echo "Run this command as root with sudo."
+        exit 1
     fi
-    echo "Fixing permissions."
+    echo "fixing permissions..."
     set -x
     sudo chmod -R g+w /var/lib/django
     sudo chmod -R g+w /var/log/django
@@ -53,14 +53,14 @@ fixperms() {
 loaddata() {
     echo "loading fixtures from json files..."
     for f in timezones.json projects.json platforms.json variables.json; do
-	echo $f
-	python3 manage.py loaddata $f || exit 1
+        echo $f
+        python3 manage.py loaddata $f || exit 1
     done
 
     for f in ncharts/fixtures/datasets_*.json; do
-	ff=${f##*/}
-	echo $ff
-	python3 manage.py loaddata $ff || exit 1
+        ff=${f##*/}
+        echo $ff
+        python3 manage.py loaddata $ff || exit 1
     done
 }
 
@@ -90,8 +90,8 @@ printkeys() {
     # Print an ordered list of primary keys from the files on the
     # command-line, usually datasets_*
     if [ $# -eq 0 ]; then
-	echo "printkeys requires json files to extract 'pk' fields from."
-	exit 1
+        echo "printkeys requires json files to extract 'pk' fields from."
+        exit 1
     fi
     fgrep -h '"pk"' "$@" | cut -d: -f 2 | sort -u -n
 }
@@ -122,58 +122,58 @@ EOF
 case "$1" in
 
     full)
-	# The original complete load_db.sh functionality.  When run as
-	# root, permissions are fixed before running the updates, and then
-	# they are fixed again in case the updates changed them.
-	if $prod ; then
-	    fixperms
-	    checkkey
-	fi
-	loaddata
-	cleandata
-	fixperms
-	;;
+        # The original complete load_db.sh functionality.  When run as
+        # root, permissions are fixed before running the updates, and then
+        # they are fixed again in case the updates changed them.
+        if $prod ; then
+            fixperms
+            checkkey
+        fi
+        loaddata
+        cleandata
+        fixperms
+        ;;
 
     update)
-	# Just update the fixtures, do not fix perms.
-	if $prod ; then
-	    checkkey
-	fi
-	loaddata
-	cleandata
-	;;
+        # Just update the fixtures, do not fix perms.
+        if $prod ; then
+            checkkey
+        fi
+        loaddata
+        cleandata
+        ;;
 
     fixperms)
-	fixperms
-	;;
+        fixperms
+        ;;
 
     loaddata)
-	if $prod ; then
-	    checkkey
-	fi
-	loaddata
-	;;
+        if $prod ; then
+            checkkey
+        fi
+        loaddata
+        ;;
 
     cleandata)
-	if $prod ; then
-	    checkkey
-	fi
-	cleandata
-	;;
+        if $prod ; then
+            checkkey
+        fi
+        cleandata
+        ;;
 
     printkeys)
-	shift
-	printkeys "$@"
-	;;
+        shift
+        printkeys "$@"
+        ;;
 
     -h)
-	usage
-	;;
+        usage
+        ;;
 
     *)
-	echo "Unrecognied argument: $1"
-	usage
-	exit 1
-	;;
+        echo "Unrecognied argument: $1"
+        usage
+        exit 1
+        ;;
 
 esac
