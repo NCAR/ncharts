@@ -34,16 +34,24 @@ checkkey() {
 # production, and if the permissions do get messed up, it may need to run
 # both before and after database modifications.
 fixperms() {
+    if [ `id -u` -ne 0 ]; then
+	echo "Run this command as root with sudo."
+	exit 1
+    fi
+    echo "Fixing permissions."
+    set -x
     sudo chmod -R g+w /var/lib/django
     sudo chmod -R g+w /var/log/django
     # Use -f to ignore errors if the files do not exist yet.
     sudo chown -f apache.apache /var/lib/django/db.sqlite3
     sudo chmod -f 0755 /var/lib/django
     sudo chmod -f 0600 /var/lib/django/db.sqlite3
+    set +x
 }
 
 
 loaddata() {
+    echo "loading fixtures from json files..."
     for f in timezones.json projects.json platforms.json variables.json; do
 	echo $f
 	python3 manage.py loaddata $f || exit 1
@@ -108,19 +116,22 @@ EOF
 }
 
 
-[ -z "$1" ] && set update
+[ -z "$1" ] && set full
 
 
 case "$1" in
 
     full)
-	# The original complete load_db.sh functionality
+	# The original complete load_db.sh functionality.  When run as
+	# root, permissions are fixed before running the updates, and then
+	# they are fixed again in case the updates changed them.
 	if $prod ; then
 	    fixperms
 	    checkkey
 	fi
 	loaddata
 	cleandata
+	fixperms
 	;;
 
     update)
