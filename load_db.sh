@@ -40,12 +40,16 @@ fixperms() {
     fi
     echo "fixing permissions..."
     set -x
-    sudo chmod -R g+w /var/lib/django
     sudo chmod -R g+w /var/log/django
     # Use -f to ignore errors if the files do not exist yet.
+    # /var/lib/django needs to be group writable by apache, probably to
+    # create lock files or temporary files for opening the database, or the
+    # database cleanup scripts (when run from user accounts with apache
+    # group membership) do not work.
+    sudo chown -f apache.apache /var/lib/django
     sudo chown -f apache.apache /var/lib/django/db.sqlite3
-    sudo chmod -f 0755 /var/lib/django
-    sudo chmod -f 0600 /var/lib/django/db.sqlite3
+    sudo chmod -f 0775 /var/lib/django
+    sudo chmod -f 0660 /var/lib/django/db.sqlite3
     set +x
 }
 
