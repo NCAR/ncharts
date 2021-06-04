@@ -52,7 +52,7 @@
 {
     "fields": {
         "projects": [
-            "MASCRAD", "PECAN"
+            "PECAN"
         ],
         "long_name": "GPS Advanced Upper-Air Sounding System"
     }, 

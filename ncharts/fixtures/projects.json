@@ -43,17 +43,6 @@
 },
 {
     "fields": {
-        "location": "Greeley, CO",
-        "timezones": ["US/Mountain", "UTC"],
-	"long_name": "Multi Angle Snowflake Camera-Radar experiment",
-        "start_year": "2014",
-        "end_year": "2015"
-    }, 
-    "model": "ncharts.project", 
-    "pk": "MASCRAD"
-},
-{
-    "fields": {
         "location": "Firestone, CO",
         "timezones": ["US/Mountain", "UTC"],
 	"long_name": "Front Range Observational Network Testbed",
