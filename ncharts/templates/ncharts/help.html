@@ -13,7 +13,7 @@ NCharts uses the Highcharts.com javascript plotting library which has some nice 
 <h4>Introduction</h4>
 To plot a set of variables over a period of time:
 <ol>
-    <li>Choose a <b>Start Time</b> or the <b>Track Real Time</b> option. <b>Track Real Time</b> sets the end of the plot to the current time, and the start time to current-<b>Length</b></li>
+    <li>Choose a <b>Start Time</b> or the <b>Track Real Time</b> option. <b>Track Real Time</b> sets the start time to the current time minus <b>Length</b></li>
     <li>Select a <b>Time Zone</b></li>
     <li>Select a time <b>Length</b> with units</li>
     <li>Select one or more <b>Variables</b>, which may be organized under tab panels by variable type, site name, or alphabetically</li>
@@ -42,6 +42,13 @@ When the plot is ready the screen will scroll down to display the plot.
         <li>On phones, the navigator trace is not displayed. You can use a two-finger spread and pinch gesture to zoom in and out.</li>
     </ul>
 </ul>
+
+<h4>Plotting Aircraft Flight Data</h4>
+The low-rate data from the NCAR GV and C130 are read from a real-time database on the ground, which is updated during a flight.  If you're not sure of the
+start time of the current flight, enter a start time that is previous to
+the start of the current flight -- the provided default start time should
+usually suffice -- and a long time <b>Length</b>, for example 30 days.
+That should cover the time span of the current flight, and only the flight will be plotted. Select <b>Track Real Time</b> for an ongoing flight..
 
 <h4>ISFS Sites and Stations</h4>
 For ISFS projects, to identify the locations of measurements, a site suffix is typically appended to the variable name, such as "T.2m.abc" to indicate that the measurement was from site "abc". In order to provide a manageable way to select variables, NCharts will group the variables from each site under a separate tab.
