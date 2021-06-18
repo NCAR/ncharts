@@ -40,16 +40,27 @@ fixperms() {
     fi
     echo "fixing permissions..."
     set -x
-    sudo chmod -R g+w /var/log/django
-    # Use -f to ignore errors if the files do not exist yet.
-    # /var/lib/django needs to be group writable by apache, probably to
-    # create lock files or temporary files for opening the database, or the
-    # database cleanup scripts (when run from user accounts with apache
-    # group membership) do not work.
-    sudo chown -f apache.apache /var/lib/django
-    sudo chown -f apache.apache /var/lib/django/db.sqlite3
-    sudo chmod -f 0775 /var/lib/django
-    sudo chmod -f 0660 /var/lib/django/db.sqlite3
+
+    # make sure git checkout can only be modified by datavis group
+    gitd=/var/django/ncharts
+    find $gitd -type d -exec chmod g+s {} \;
+    find $gitd -type d -exec setfacl -d -m u::rwX,g::rwX,o::rX {} \;
+    chmod -R g+w $gitd
+    chown -R datavis.datavis $gitd
+
+    # allow datavis group to write and see logs
+    logd=/var/log/django
+    chown -R datavis.datavis $logd
+    chmod -R g+w $logd
+
+    # Set group ID on execution (s) / setgid
+    libd=/var/lib/django
+    find $libd -type d -exec chmod g+s {} \;
+    # Set to inherit group write permissions via setfacl
+    find $libd -type d -exec setfacl -d -m u::rwX,g::rwX,o::rX {} \;
+    chmod -R g+w $libd
+    chown -R datavis.datavis $libd
+
     set +x
 }
 
@@ -120,22 +131,23 @@ EOF
 }
 
 
-[ -z "$1" ] && set full
+# The permissions should not need to be fixed, everything is forced to the
+# datavis group, so sudo should no longer be needed, and the default
+# operation can just be update.
+
+[ -z "$1" ] && set update
 
 
 case "$1" in
 
     full)
-        # The original complete load_db.sh functionality.  When run as
-        # root, permissions are fixed before running the updates, and then
-        # they are fixed again in case the updates changed them.
         if $prod ; then
-            fixperms
+            # fixperms
             checkkey
         fi
         loaddata
         cleandata
-        fixperms
+        # fixperms
         ;;
 
     update)
