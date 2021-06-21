@@ -219,11 +219,11 @@
     "fields": {
         "location": "Marshall Field Site, Boulder, CO",
         "timezones": ["US/Mountain", "UTC"],
-	"long_name": "LOTOS test node",
+	"long_name": "LOTOS test node 2021",
         "start_year": "2021",
         "end_year": "2021"
     },
     "model": "ncharts.project",
-    "pk": "LOTOS"
+    "pk": "LOTOS2021"
 }
 ]

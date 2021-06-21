@@ -9,8 +9,8 @@
         "end_time": "2021-12-31T00:00:00+00:00",
         "location": "Marshall Field Site, Boulder, CO",
         "name": "noqc_instrument",
-        "long_name": "LOTOS, preliminary data, winds in instrument coordinates",
-        "project": "LOTOS",
+        "long_name": "LOTOS2021, preliminary data, winds in instrument coordinates",
+        "project": "LOTOS2021",
 	"url": "https://www.eol.ucar.edu/observing_facilities/lotos",
 	"status": "Preliminary"
     },
@@ -19,7 +19,7 @@
 },
 {
     "fields": {
-        "directory": "/net/isf/isfs/projects/LOTOS/ISFS/netcdf/noqc_instrument",
+        "directory": "/net/isf/isfs/projects/LOTOS2021/ISFS/netcdf/noqc_instrument",
         "filenames": "isfs_%Y%m%d.nc"
     },
     "model": "ncharts.filedataset",
@@ -35,8 +35,8 @@
         "end_time": "2021-12-31T00:00:00+00:00",
         "location": "Marshall Field Site, Boulder, CO",
         "name": "noqc_geo",
-        "long_name": "LOTOS, preliminary data, winds in geographic coordinates",
-        "project": "LOTOS",
+        "long_name": "LOTOS2021, preliminary data, winds in geographic coordinates",
+        "project": "LOTOS2021",
 	"url": "https://www.eol.ucar.edu/observing_facilities/lotos",
 	"status": "Preliminary"
     },
@@ -45,7 +45,7 @@
 },
 {
     "fields": {
-        "directory": "/net/isf/isfs/projects/LOTOS/ISFS/netcdf/noqc_geo",
+        "directory": "/net/isf/isfs/projects/LOTOS2021/ISFS/netcdf/noqc_geo",
         "filenames": "isfs_%Y%m%d.nc"
     },
     "model": "ncharts.filedataset",
