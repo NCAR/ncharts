@@ -45,10 +45,11 @@ When the plot is ready the screen will scroll down to display the plot.
 
 <h4>Plotting Aircraft Flight Data</h4>
 The low-rate data from the NCAR GV and C130 are read from a real-time database on the ground, which is updated during a flight.  If you're not sure of the
-start time of the current flight, enter a start time that is previous to
-the start of the current flight -- the provided default start time should
-usually suffice -- and a long time <b>Length</b>, for example 30 days.
-That should cover the time span of the current flight, and only the flight will be plotted. Select <b>Track Real Time</b> for an ongoing flight..
+start time of the most recent or the current flight, you can use a wide
+time selection by specifying a large time <b>Length</b>, for example
+30 days, and a guess for the start time that is sufficiently early.
+Only the data found for the flight will be plotted. Select
+<b>Track Real Time</b> for an ongoing flight..
 
 <h4>ISFS Sites and Stations</h4>
 For ISFS projects, to identify the locations of measurements, a site suffix is typically appended to the variable name, such as "T.2m.abc" to indicate that the measurement was from site "abc". In order to provide a manageable way to select variables, NCharts will group the variables from each site under a separate tab.
