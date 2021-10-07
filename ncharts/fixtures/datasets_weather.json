@@ -32,8 +32,8 @@
 },
 {
     "fields": {
-        "directory": "/net/weather/flab/data", 
-        "filenames": "flab.%Y%m%d.cdf"
+        "directory": "/net/ftp/pub/archive/weather/foothills",
+        "filenames": "flab.%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 1
@@ -71,8 +71,8 @@
 },
 {
     "fields": {
-        "directory": "/net/weather/nwsc/data", 
-        "filenames": "nwsc.%Y%m%d.cdf"
+        "directory": "/net/ftp/pub/archive/weather/nwsc",
+        "filenames": "nwsc.%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 2
@@ -110,8 +110,8 @@
 },
 {
     "fields": {
-        "directory": "/net/weather/mlab/data", 
-        "filenames": "mlab.%Y%m%d.cdf"
+        "directory": "/net/ftp/pub/archive/weather/mesa",
+        "filenames": "mlab.%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 3
@@ -149,8 +149,8 @@
 },
 {
     "fields": {
-        "directory": "/net/weather/nsf/data", 
-        "filenames": "nsf.%Y%m%d.cdf"
+        "directory": "/net/ftp/pub/archive/weather/nsf",
+        "filenames": "nsf.%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 4
@@ -188,8 +188,8 @@
 },
 {
     "fields": {
-        "directory": "/net/weather/raf/data", 
-        "filenames": "raf.%Y%m%d.cdf"
+        "directory": "/net/ftp/pub/archive/weather/raf",
+        "filenames": "raf.%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 5
@@ -227,8 +227,8 @@
 },
 {
     "fields": {
-        "directory": "/net/weather/fireside/data", 
-        "filenames": "fireside.%Y%m%d.cdf"
+        "directory": "/net/ftp/pub/archive/weather/fireside",
+        "filenames": "fireside.%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
     "pk": 6
