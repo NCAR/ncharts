@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2021-11-01T00:00:00+00:00",
+        "end_time": "2022-02-01T00:00:00+00:00",
+        "location": "Heber Valley, UT",
+        "name": "noqc_instrument",
+        "long_name": "CFACT, preliminary data, winds in instrument coordinates",
+        "project": "CFACT",
+	"url": "https://www.eol.ucar.edu/field_projects/cfact",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 60
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/CFACT/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 60
+}
+]
