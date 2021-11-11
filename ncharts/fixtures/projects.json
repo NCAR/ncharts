@@ -225,5 +225,16 @@
     },
     "model": "ncharts.project",
     "pk": "LOTOS2021"
+},
+{
+    "fields": {
+        "location": "Heber Valley, UT",
+        "timezones": ["US/Mountain", "UTC"],
+	"long_name": "Cold Fog Amongst Complex Terrain",
+        "start_year": "2021",
+        "end_year": "2022"
+    },
+    "model": "ncharts.project",
+    "pk": "CFACT"
 }
 ]
