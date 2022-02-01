@@ -2,7 +2,21 @@
 {
     "fields": {
         "projects": [
-            "METCRAXII", "CentNet Devel", "CABL", "CHATS", "CALLAB", "SCP", "VERTEX", "Perdigao", "ARTSE", "GRAINEX", "RELAMPAGO", "SAVANT", "CHEESEHEAD", "LOTOS2021"
+            "METCRAXII",
+            "CentNet Devel",
+            "CABL",
+            "CHATS",
+            "CALLAB",
+            "SCP",
+            "VERTEX",
+            "Perdigao",
+            "ARTSE",
+            "GRAINEX",
+            "RELAMPAGO",
+            "SAVANT",
+            "CHEESEHEAD",
+            "LOTOS2021",
+            "CFACT"
         ],
         "long_name": "Integrated Surface Flux System"
     }, 
