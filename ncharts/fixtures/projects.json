@@ -209,8 +209,8 @@
         "location": "Santa Barbara County, California",
         "timezones": ["US/Pacific", "UTC"],
 	"long_name": "Sundowner Winds Experiment",
-        "start_year": "2020",
-        "end_year": "2020"
+        "start_year": "2022",
+        "end_year": "2022"
     },
     "model": "ncharts.project",
     "pk": "SWEX"
