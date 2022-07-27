@@ -236,5 +236,16 @@
     },
     "model": "ncharts.project",
     "pk": "CFACT"
+},
+{
+    "fields": {
+        "location": "Crested Butte, CO",
+        "timezones": ["US/Mountain", "UTC"],
+	"long_name": "Sublimation Of Snow",
+        "start_year": "2022",
+        "end_year": "2023"
+    },
+    "model": "ncharts.project",
+    "pk": "SOS"
 }
 ]
