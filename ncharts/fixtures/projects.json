@@ -43,17 +43,6 @@
 },
 {
     "fields": {
-        "location": "Firestone, CO",
-        "timezones": ["US/Mountain", "UTC"],
-	"long_name": "Front Range Observational Network Testbed",
-        "start_year": "2014",
-        "end_year": "2015"
-    },
-    "model": "ncharts.project", 
-    "pk": "FRONT"
-},
-{
-    "fields": {
         "location": "Boulder Atmospheric Observatory, Erie, CO",
         "timezones": ["US/Mountain", "UTC"],
 	"long_name": "An educational deployment of ISFS and MGAUS",
@@ -62,17 +51,6 @@
     },
     "model": "ncharts.project", 
     "pk": "CABL"
-},
-{
-    "fields": {
-        "location": "Kansas, Nebraska",
-        "timezones": ["US/Central", "UTC"],
-	"long_name": "Plains Elevated Convection at Night",
-        "start_year": "2015",
-        "end_year": "2015"
-    },
-    "model": "ncharts.project", 
-    "pk": "PECAN"
 },
 {
     "fields": {

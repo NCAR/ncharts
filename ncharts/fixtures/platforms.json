@@ -37,7 +37,7 @@
 {
     "fields": {
         "projects": [
-            "DEEPWAVE", "PECAN"
+            "DEEPWAVE"
         ],
         "long_name": "Integrated Sounding System"
     }, 
@@ -63,25 +63,5 @@
     }, 
     "model": "ncharts.platform", 
     "pk": "C130"
-},
-{
-    "fields": {
-        "projects": [
-            "PECAN"
-        ],
-        "long_name": "GPS Advanced Upper-Air Sounding System"
-    }, 
-    "model": "ncharts.platform", 
-    "pk": "GAUS"
-},
-{
-    "fields": {
-        "projects": [
-            "FRONT","PECAN"
-        ],
-        "long_name": "S-band/Ka-band Dual Polarization, Dual Wavelength Doppler Radar"
-    }, 
-    "model": "ncharts.platform", 
-    "pk": "S-PolKa"
 }
 ]
