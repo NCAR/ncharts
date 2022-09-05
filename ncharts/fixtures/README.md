@@ -36,6 +36,10 @@ Or the same command is available as the `printkeys` operation in the `load_db.sh
 
     load_db.sh printkeys ncharts/fixtures/datasets*
 
+This command might be a better option to see all keys used past and present:
+
+    git log -p . | fgrep -h '"pk"' | cut -d: -f 2 | sort -u -n
+
 Choose a primary key that is not listed.
 
 ### Create the datasets JSON file

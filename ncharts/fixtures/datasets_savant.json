@@ -50,5 +50,31 @@
     }, 
     "model": "ncharts.filedataset", 
     "pk": 48
+},
+{
+    "fields": {
+        "variables": [], 
+        "platforms": [
+            "ISFS"
+        ], 
+        "start_time": "2018-08-15T00:00:00+00:00",
+        "end_time": "2018-12-01T00:00:00+00:00",
+        "location": "Urbana, Illinois",
+        "name": "qc_geo_theo_tiltcor",
+        "long_name": "SAVANT 5-minute, geographic coordinate and tilt corrected winds",
+        "project": "SAVANT",
+	"url": "https://www.eol.ucar.edu/field_projects/savant",
+	"status": "Published"
+    }, 
+    "model": "ncharts.dataset",
+    "pk": 59
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/SAVANT/ISFS/netcdf/qc_geo_theo_tiltcor",
+        "filenames": "isfs_theotc_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 59
 }
 ]
