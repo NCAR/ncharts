@@ -17,7 +17,8 @@
             "CHEESEHEAD",
             "LOTOS2021",
             "CFACT",
-            "SWEX"
+            "SWEX",
+	    "SOS"
         ],
         "long_name": "Integrated Surface Flux System"
     }, 
