@@ -24,5 +24,31 @@
     },
     "model": "ncharts.filedataset",
     "pk": 70
+},
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2022-07-01T00:00:00+00:00",
+        "end_time": "2023-06-30T00:00:00+00:00",
+        "location": "Crested Butte, Colorado",
+        "name": "noqc_geo",
+        "long_name": "SOS, preliminary data, winds in geographic coordinates",
+        "project": "SOS",
+	"url": "https://www.eol.ucar.edu/field_projects/sos",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 71
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/SOS/ISFS/netcdf/noqc_geo",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 71
 }
 ]
