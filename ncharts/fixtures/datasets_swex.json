@@ -50,5 +50,31 @@
     },
     "model": "ncharts.filedataset",
     "pk": 56
+},
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2022-03-01T00:00:00+00:00",
+        "end_time": "2022-06-01T00:00:00+00:00",
+        "location": "Santa Barbara County, California",
+        "name": "qc_geo",
+        "long_name": "SWEX, quality checked data, winds in geographic coordinates",
+        "project": "SWEX",
+        "url": "https://www.eol.ucar.edu/field_projects/swex",
+        "status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 65
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/SWEX/ISFS/netcdf/qc_geo",
+        "filenames": "isfs_swex_qc_5min_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 65
 }
 ]
