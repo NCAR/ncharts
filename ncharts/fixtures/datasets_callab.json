@@ -1,7 +1,7 @@
 [
 {
     "fields": {
-        "project": "CALLAB",
+        "project": "CALLAB2015",
         "platforms": [
             "ISFS"
         ], 
@@ -18,7 +18,7 @@
 },
 {
     "fields": {
-        "directory": "/net/isf/isff/projects/CALLAB/ISFF/netcdf/2015-callab-1", 
+        "directory": "/net/isf/isff/projects/CALLAB2015/ISFF/netcdf/2015-callab-1", 
         "filenames": "callab_%Y%m%d.nc"
     }, 
     "model": "ncharts.filedataset", 
