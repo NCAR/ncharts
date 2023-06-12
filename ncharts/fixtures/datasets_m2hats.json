@@ -1,0 +1,55 @@
+[
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2023-03-01T00:00:00+00:00",
+        "end_time": "2023-09-30T00:00:00+00:00",
+        "location": "Tonopah, Nevada",
+        "name": "noqc_instrument",
+        "long_name": "M2HATS, preliminary data, winds in instrument coordinates",
+        "project": "M2HATS",
+	"url": "https://www.eol.ucar.edu/field_projects/m2hats",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 80
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/M2HATS/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 80
+},
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2023-03-01T00:00:00+00:00",
+        "end_time": "2023-09-30T00:00:00+00:00",
+        "location": "Tonopah, Nevada",
+        "name": "noqc_geo",
+        "long_name": "M2HATS, preliminary data, winds in geographic coordinates",
+        "project": "M2HATS",
+	"url": "https://www.eol.ucar.edu/field_projects/m2hats",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 81
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/M2HATS/ISFS/netcdf/noqc_geo",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 81
+}
+
+]

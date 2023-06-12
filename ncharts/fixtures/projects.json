@@ -225,5 +225,17 @@
     },
     "model": "ncharts.project",
     "pk": "SOS"
+},
+{
+    "fields": {
+        "location": "Tonopah, NV",
+        "timezones": ["US/Pacific", "UTC"],
+	"long_name": "Multi-point Monin-Obukhov similarity Horizontal Array Turbulence Study",
+        "start_year": "2023",
+        "end_year": "2023"
+    },
+    "model": "ncharts.project",
+    "pk": "M2HATS"
 }
+
 ]

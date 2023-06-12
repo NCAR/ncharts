@@ -18,7 +18,8 @@
             "LOTOS2021",
             "CFACT",
             "SWEX",
-	    "SOS"
+	    "SOS",
+	    "M2HATS"
         ],
         "long_name": "Integrated Surface Flux System"
     }, 
