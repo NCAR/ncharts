@@ -50,6 +50,33 @@
     },
     "model": "ncharts.filedataset",
     "pk": 81
+},
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2023-03-01T00:00:00+00:00",
+        "end_time": "2023-09-30T00:00:00+00:00",
+        "location": "Tonopah, Nevada",
+        "name": "qc_geo_tiltcor",
+        "long_name": "M2HATS, QC data, winds in geographic coordinates",
+        "project": "M2HATS",
+	"url": "https://www.eol.ucar.edu/field_projects/m2hats",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 82
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/M2HATS/ISFS/netcdf/qc_geo_tiltcor",
+        "filenames": "isfs_m2hats_qc_5min_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 82
 }
+
 
 ]
