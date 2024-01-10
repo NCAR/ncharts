@@ -1,0 +1,54 @@
+[
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2023-12-01T00:00:00+00:00",
+        "end_time": "2024-12-31T00:00:00+00:00",
+        "location": "Marshall Field Site, Boulder, CO",
+        "name": "noqc_instrument",
+        "long_name": "MARSHALL2023, preliminary data, winds in instrument coordinates",
+        "project": "MARSHALL2023",
+	"url": "https://www.eol.ucar.edu/observing_facilities/isfs",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 90
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/MARSHALL2023/ISFS/netcdf/noqc_instrument",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 90
+},
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2023-12-01T00:00:00+00:00",
+        "end_time": "2024-12-31T00:00:00+00:00",
+        "location": "Marshall Field Site, Boulder, CO",
+        "name": "noqc_geo",
+        "long_name": "MARSHALL2023, preliminary data, winds in geographic coordinates",
+        "project": "MARSHALL2023",
+	"url": "https://www.eol.ucar.edu/observing_facilities/isfs",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 91
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/MARSHALL2023/ISFS/netcdf/noqc_geo",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 91
+}
+]
