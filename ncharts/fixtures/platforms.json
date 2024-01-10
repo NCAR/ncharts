@@ -19,7 +19,8 @@
             "CFACT",
             "SWEX",
 	    "SOS",
-	    "M2HATS"
+	    "M2HATS",
+	    "MARSHALL2023"
         ],
         "long_name": "Integrated Surface Flux System"
     }, 

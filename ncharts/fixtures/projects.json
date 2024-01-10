@@ -236,6 +236,18 @@
     },
     "model": "ncharts.project",
     "pk": "M2HATS"
+},
+{
+    "fields": {
+        "location": "Marshall Field Site, Boulder, CO",
+        "timezones": ["US/Mountain", "UTC"],
+	"long_name": "Marshall testing 2023-2024",
+        "start_year": "2023",
+        "end_year": "2024"
+    },
+    "model": "ncharts.project",
+    "pk": "MARSHALL2023"
 }
+
 
 ]
