@@ -72,7 +72,7 @@
 {
     "fields": {
         "directory": "/net/isf/isfs/projects/M2HATS/ISFS/netcdf/qc_geo_tiltcor",
-        "filenames": "isfs_m2hats_qc_5min_%Y%m%d.nc"
+        "filenames": "isfs_m2hats_qc_geo_tiltcor_5min_%Y%m%d.nc"
     },
     "model": "ncharts.filedataset",
     "pk": 82
