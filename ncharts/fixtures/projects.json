@@ -247,6 +247,17 @@
     },
     "model": "ncharts.project",
     "pk": "MARSHALL2023"
+},
+{
+    "fields": {
+        "location": "Foothills Lab, Boulder, CO",
+        "timezones": ["US/Mountain", "UTC"],
+	"long_name": "Foothills testing 2024",
+        "start_year": "2024",
+        "end_year": "2024"
+    },
+    "model": "ncharts.project",
+    "pk": "fltest2024"
 }
 
 

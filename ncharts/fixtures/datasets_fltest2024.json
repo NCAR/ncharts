@@ -1,0 +1,28 @@
+[
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISS"
+        ],
+        "start_time": "2024-03-01T00:00:00+00:00",
+        "end_time": "2024-12-31T00:00:00+00:00",
+        "location": "Foothills Lab, Boulder, CO",
+        "name": "noqc_instrument",
+        "long_name": "Foothills testing, preliminary data, winds in instrument coordinates",
+        "project": "fltest2024",
+	"url": "https://www.eol.ucar.edu/observing_facilities/iss",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 95
+},
+{
+    "fields": {
+        "directory": "/h/eol/iss/project/fltest2024/data/iss3/isfs_nc",
+        "filenames": "isfs_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 95
+}
+]
