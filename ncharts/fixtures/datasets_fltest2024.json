@@ -19,7 +19,7 @@
 },
 {
     "fields": {
-        "directory": "/h/eol/iss/project/fltest2024/data/iss3/isfs_nc",
+        "directory": "/h/eol/iss/project/fltest2024/data/iss1/isfs_nc",
         "filenames": "isfs_%Y%m%d.nc"
     },
     "model": "ncharts.filedataset",
