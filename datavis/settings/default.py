@@ -63,7 +63,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 'django.contrib.formtools',
-    'datetimewidget',
+    # 'datetimewidget',
     'timezone_field',
     'ncharts',
 )
