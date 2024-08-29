@@ -17,7 +17,7 @@ trap "{ rm -rf $tmpdir; }" EXIT
 
 cd $tmpdir
 bower --allow-root install jquery || exit 1
-bower --allow-root install bootstrap || exit 1
+bower --allow-root install bootstrap#3.4.1 || exit 1
 bower --allow-root install moment || exit 1
 bower --allow-root install moment-timezone || exit 1
 
