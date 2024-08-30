@@ -33,12 +33,14 @@ class ModelTestCase(test.TestCase):
         mtntz = nc_models.TimeZone.objects.create(tz='US/Mountain')
 
         nc_models.Project.objects.create(
-            name="Weather"
+            name="Weather",
+            start_year=2013
         )
 
         proj = nc_models.Project.objects.create(
             name="SCP",
-            location='Pawnee Grasslands')
+            location='Pawnee Grasslands',
+            start_year=2012)
 
         proj.timezones.add(utctz)
         proj.timezones.add(mtntz)
