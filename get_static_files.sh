@@ -12,20 +12,13 @@ dest=$dest/ncharts/static/ncharts
 
 echo "Downloading and copying static files to $dest"
 
-tmpdir=$(mktemp -d /tmp/ncharts_static_XXXXXX)
-trap "{ rm -rf $tmpdir; }" EXIT
+# 'yarn install' downloads all dependencies from package.json to node_modules/
+yarn install
 
-cd $tmpdir
-bower --allow-root install jquery || exit 1
-bower --allow-root install bootstrap#3.4.1 || exit 1
-bower --allow-root install moment || exit 1
-bower --allow-root install moment-timezone || exit 1
-
-rsync -rv bower_components/jquery/dist/ $dest/js || exit 1
-rsync -rv bower_components/bootstrap/dist/ $dest || exit 1
-
-rsync -rv bower_components/moment/min/moment.min.js $dest/js || exit 1
-rsync -rv bower_components/moment-timezone/builds/moment-timezone-with-data.min.js $dest/js || exit 1
+rsync -rv node_modules/jquery/dist/ $dest/js || exit 1
+rsync -rv node_modules/bootstrap/dist/ $dest || exit 1
+rsync -rv node_modules/moment/min/moment.min.js $dest/js || exit 1
+rsync -rv node_modules/moment-timezone/builds/moment-timezone-with-data.min.js $dest/js || exit 1
 
 # This gets git://github.com/robdodson/highcharts.com.git, which I'm not sure I want
 # bower install highstock
