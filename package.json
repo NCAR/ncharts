@@ -1,0 +1,11 @@
+{
+  "name": "ncharts",
+  "repository": "git@github.com:NCAR/ncharts.git",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "3.4.1",
+    "jquery": "^3.7.1",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45"
+  }
+}
