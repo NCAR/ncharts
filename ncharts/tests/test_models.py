@@ -206,9 +206,10 @@ class ModelTestCase(test.TestCase):
         self.assertEqual(ixtime, ixtime_expected)
 
         # print("tsd['data']['w_1m'][ixtime]=",tsd['data']['w_1m'][ixtime])
-        ntp.assert_almost_equal(tsd['']['data']['w_1m'][ixtime], -0.02494044)
-        ntp.assert_almost_equal(tsd['']['data']['counts_2m_C'][ixtime], 6000)
+        vmap = tsd['']['vmap']
+        ntp.assert_almost_equal(tsd['']['data'][vmap['w.1m']][ixtime], -0.02494044)
+        ntp.assert_almost_equal(tsd['']['data'][vmap['counts_2m_C']][ixtime], 6000)
 
-        ntp.assert_allclose(tsd['']['data']['w_1m'][ixtime], -0.02494044)
-        ntp.assert_allclose(tsd['']['data']['counts_2m_C'][ixtime], 6000)
+        ntp.assert_allclose(tsd['']['data'][vmap['w.1m']][ixtime], -0.02494044)
+        ntp.assert_allclose(tsd['']['data'][vmap['counts_2m_C']][ixtime], 6000)
 
