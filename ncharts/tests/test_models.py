@@ -153,7 +153,7 @@ class ModelTestCase(test.TestCase):
         start_time = datetime(2012, 10, 1, 0, 0, 1, tzinfo=utc)
         end_time = start_time + delta
 
-        rvars = ['w_1m', 'w_2m_C', 'counts_2m_C']
+        rvars = ['w.1m', 'w.2m.C', 'counts_2m_C']
 
         ncset = dset.get_netcdf_dataset()
 
