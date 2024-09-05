@@ -199,7 +199,7 @@ class ModelTestCase(test.TestCase):
         # check some data values for a given time
         xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=utc).timestamp()
 
-        self.assertTrue(xtime in tsd['time'][''])
+        self.assertTrue(xtime in tsd['']['time'])
         ixtime = tsd['']['time'].index(xtime)
 
         ixtime_expected = int((xtime-start_time.timestamp()) / (5*60))
