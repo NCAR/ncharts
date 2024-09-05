@@ -193,7 +193,7 @@ class ModelTestCase(test.TestCase):
         for var in tsd['']['data']:
             self.assertEqual(len(tsd['']['time']), var.shape[0])
             self.assertTrue(
-                var.shape[1:] == (1,) or
+                var.shape[1:] == (2,) or
                 var.shape[1:] == ())
 
         # check some data values for a given time
