@@ -1014,7 +1014,7 @@ class NetCDFDataset(object):
                 named series.  If series_fmt is None, the series name
                 should be a list of one empty string, [''],
                 and all data are concatenated together in time order.
-            series_fmt: a datetime.strftime format to create a
+            series_name_fmt: a datetime.strftime format to create a
                 series name for the data found in each file, based
                 on the time associated with the file.
                 If series_name_fmt is None, all data is put in a dictionary
