@@ -116,10 +116,15 @@ WSGI_APPLICATION = 'datavis.wsgi.application'
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
+    #     'OPTIONS': {'timeout': 60,},
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
-        'OPTIONS': {'timeout': 60,},
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ncharts',
+        'CONN_MAX_AGE': 10,
     }
 }
 
