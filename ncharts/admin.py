@@ -24,12 +24,13 @@ class PlatformAdmin(admin.ModelAdmin):
 admin.site.register(nc_models.Platform, PlatformAdmin)
 
 class FileDatasetAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['name', 'project']
 
 admin.site.register(nc_models.FileDataset, FileDatasetAdmin)
 
 class DBDatasetAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['name', 'project']
+
 
 admin.site.register(nc_models.DBDataset, DBDatasetAdmin)
 
