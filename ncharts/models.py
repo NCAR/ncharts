@@ -21,7 +21,7 @@ import pytz
 from django.db import models, transaction
 
 from django.core import exceptions as dj_exc
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 from django.core.validators import validate_comma_separated_integer_list
 
@@ -179,13 +179,13 @@ class Project(models.Model):
     long_name = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('More detailed description of the project'))
+        help_text=gettext_lazy('More detailed description of the project'))
 
     timezones = models.ManyToManyField(
         TimeZone,
         blank=True,
         related_name='+',
-        help_text=ugettext_lazy('Supported timezones for plotting data of this project'))
+        help_text=gettext_lazy('Supported timezones for plotting data of this project'))
 
     start_year = models.IntegerField()
 
@@ -235,7 +235,7 @@ class Platform(models.Model):
     long_name = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('More detailed description of the platform'))
+        help_text=gettext_lazy('More detailed description of the platform'))
 
     # This adds a platform_set attribute to Project.
     projects = models.ManyToManyField(Project)
@@ -300,22 +300,22 @@ class Dataset(models.Model):
 
     name = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('The name of a dataset should be unique within a project'))
+        help_text=gettext_lazy('The name of a dataset should be unique within a project'))
 
     long_name = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('More detailed description of a dataset'))
+        help_text=gettext_lazy('More detailed description of a dataset'))
 
     url = models.URLField(
         blank=True,
         max_length=200,
-        help_text=ugettext_lazy('The URL that specifies the complete project dataset'))
+        help_text=gettext_lazy('The URL that specifies the complete project dataset'))
 
     status = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('Current status of the project dataset'))
+        help_text=gettext_lazy('Current status of the project dataset'))
 
     # This adds a dataset_set attribute to Project
     # on_delete=models.CASCADE (default behavior): when a project is
@@ -323,16 +323,16 @@ class Dataset(models.Model):
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
-        help_text=ugettext_lazy('A dataset is associated with one project'))
+        help_text=gettext_lazy('A dataset is associated with one project'))
 
     # This adds a dataset_set attribute to Platform
     platforms = models.ManyToManyField(
         Platform,
-        help_text=ugettext_lazy('A dataset is associated with one or more platforms'))
+        help_text=gettext_lazy('A dataset is associated with one or more platforms'))
 
     timezones = models.ManyToManyField(
         TimeZone,
-        help_text=ugettext_lazy('Overrides the timezones of the project'))
+        help_text=gettext_lazy('Overrides the timezones of the project'))
 
     start_time = models.DateTimeField()
 
@@ -340,12 +340,12 @@ class Dataset(models.Model):
 
     location = models.CharField(
         max_length=256, blank=True,
-        help_text=ugettext_lazy("Location for dataset if different than for project"))
+        help_text=gettext_lazy("Location for dataset if different than for project"))
 
     dset_type = models.CharField(
         blank=True,
         max_length=16,
-        help_text=ugettext_lazy('Type of dataset: time-series, sounding'))
+        help_text=gettext_lazy('Type of dataset: time-series, sounding'))
 
     # '+' tells django not to create a backwards relation from
     # Variable to Dataset
@@ -500,12 +500,12 @@ class FileDataset(Dataset):
 
     directory = models.CharField(
         max_length=256,
-        help_text=ugettext_lazy('Path to the directory containing the files for this dataset'))
+        help_text=gettext_lazy('Path to the directory containing the files for this dataset'))
 
     # format of file names, often containing timedate descriptors: %Y etc
     filenames = models.CharField(
         max_length=256,
-        help_text=ugettext_lazy('Format of file names, often containing ' \
+        help_text=gettext_lazy('Format of file names, often containing ' \
             'timedate descriptors such as %Y'))
 
     def get_fileset(self):
@@ -616,27 +616,27 @@ class DBDataset(Dataset):
 
     dbname = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database name'))
+        help_text=gettext_lazy('Database name'))
 
     host = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database host'))
+        help_text=gettext_lazy('Database host'))
 
     user = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database user'))
+        help_text=gettext_lazy('Database user'))
 
     password = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database password'))
+        help_text=gettext_lazy('Database password'))
 
     port = models.IntegerField(
         default=5432,
-        help_text=ugettext_lazy('Database port number, defaults to 5432'))
+        help_text=gettext_lazy('Database port number, defaults to 5432'))
 
     table = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database table name'))
+        help_text=gettext_lazy('Database table name'))
 
 
     def get_connection(self):
