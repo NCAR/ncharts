@@ -242,3 +242,5 @@ LOGGING = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 INTERNAL_IPS = ['128.117', '127.0.0.1']
+
+DEFAULT_AUTO_FIELD= 'django.db.models.AutoField'
