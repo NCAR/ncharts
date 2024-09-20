@@ -18,16 +18,6 @@ import pytz
 from django import forms
 from django.contrib import messages
 
-# Support for the datetimewidget has declined.
-# https://github.com/asaglimbeni/django-datetime-widget
-# A simple pull request in Sep 2018 to support django 2.1
-# has not been incorporated, and the package that is easily
-# installed with pip does not have that fix.  It wouldn't be difficult
-# to build the package ourselves, but maybe it is time to switch
-# to some other widget.  For some alternatives, see:
-# https://simpleisbetterthancomplex.com/tutorial/2019/01/03/how-to-use-date-picker-with-django.html
-# from datetimewidget import widgets as dt_widgets
-
 from ncharts import exceptions as nc_exc
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
@@ -164,14 +154,7 @@ class DataSelectionForm(forms.Form):
     # pickerPosition: bottom-right, bottom-left
     #       popup calendar box is to lower left or right of textbox & icon
     start_time = forms.DateTimeField(
-        # widget=dt_widgets.DateTimeWidget(
-        #     bootstrap_version=3,
-        #     options={
-        #         'format': 'yyyy-mm-dd hh:ii',
-        #         'clearBtn': 0,
-        #         'todayBtn': 0,
-        #         'pickerPosition': 'bottom-right'
-        #     })
+        widget=forms.TextInput(attrs={'type': 'datetime-local'})
         )
 
     # this should only be enabled if the end time of the project
