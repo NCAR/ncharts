@@ -23,7 +23,7 @@ from ncharts import exceptions as nc_exc
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 TIME_UNITS_CHOICES = ['day', 'hour', 'minute', 'second']
-TIME_LEN_CHOICES = [1, 2, 4, 5, 7, 8, 12, 24, 30]
+TIME_LEN_CHOICES = [1, 2, 4, 5, 7, 8, 12, 24, 30, 100, 365]
 
 class FloatWithChoiceWidget(forms.MultiWidget):
     """MultiWidget for use with FloatWithChoiceField.
