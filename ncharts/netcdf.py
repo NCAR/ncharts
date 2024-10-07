@@ -730,7 +730,7 @@ class NetCDFDataset(object):
             if hasattr(var, "units") and 'since' in var.units:
                 try:
                     # times from netCDF4.num2date are timezone naive.
-                    # Use replace(tzinfo=pytz.UTC) to assign a timezone.
+                    # Use replace(tzinfo=timezone.utc) to assign a timezone.
                     tvals = [
                         d.replace(tzinfo=timezone.utc).timestamp() for d in
                         netCDF4.num2date(var[:], var.units, 'standard')]

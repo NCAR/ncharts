@@ -51,7 +51,6 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python3 -m pip install --upgrade django
   python3 -m pip install --upgrade mod_wsgi
   python3 -m pip install --upgrade numpy
-  python3 -m pip install --upgrade pytz
   python3 -m pip install --upgrade netCDF4
   python3 -m pip install --upgrade pylint_django
   python3 -m pip install --upgrade psycopg2

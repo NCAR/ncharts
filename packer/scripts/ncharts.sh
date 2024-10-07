@@ -25,7 +25,6 @@ npm install -g bower
 # python3 -m pip install --upgrade django
 python3 -m pip install "django<1.9"
 python3 -m pip install --upgrade numpy
-python3 -m pip install --upgrade pytz
 python3 -m pip install --upgrade netCDF4
 python3 -m pip install --upgrade pylint_django
 python3 -m pip install --upgrade psycopg2
