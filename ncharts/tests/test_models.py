@@ -17,8 +17,7 @@ from ncharts import models as nc_models
 from ncharts import forms as nc_forms
 from ncharts import netcdf as nc_netcdf
 
-from datetime import datetime, timedelta
-from pytz import timezone, utc
+from datetime import datetime, timedelta, timezone
 
 from django.conf import settings
 
@@ -55,8 +54,8 @@ class ModelTestCase(test.TestCase):
                 settings.BASE_DIR,
                 'ncharts/tests/data/netcdf_scp_geo_tilt_cor'),
             filenames='isfs_qc_gtc_%Y%m%d.nc',
-            start_time=datetime(2012, 9, 20, 0, 0, 0, tzinfo=utc),
-            end_time=datetime(2012, 10, 11, 0, 0, 0, tzinfo=utc),
+            start_time=datetime(2012, 9, 20, 0, 0, 0, tzinfo=timezone.utc),
+            end_time=datetime(2012, 10, 11, 0, 0, 0, tzinfo=timezone.utc),
             project=nc_models.Project.objects.get(name="SCP"))
 
 
@@ -74,8 +73,6 @@ class ModelTestCase(test.TestCase):
         isfs = nc_models.Platform.objects.filter(name="ISFS")[0]
         iss = nc_models.Platform.objects.filter(name="ISS")[0]
         spol = nc_models.Platform.objects.filter(name="S-Pol")[0]
-
-        mtn = timezone("US/Mountain")
 
         self.assertEqual(len(isfs.projects.all()), 0)
         self.assertEqual(len(iss.projects.all()), 0)
@@ -119,7 +116,7 @@ class ModelTestCase(test.TestCase):
         client_state = nc_models.ClientState.objects.create(
             dataset = dset,
             timezone = "US/Mountain",
-            start_time = datetime(2013, 9, 27, 0, 0, 0, tzinfo=utc),
+            start_time = datetime(2013, 9, 27, 0, 0, 0, tzinfo=timezone.utc),
             time_length = 86400,
             track_real_time = True
             )
@@ -150,7 +147,7 @@ class ModelTestCase(test.TestCase):
         dset = nc_models.FileDataset.objects.get(name='scp_geo_tilt_cor')
 
         delta = timedelta(days=ndays)
-        start_time = datetime(2012, 10, 1, 0, 0, 1, tzinfo=utc)
+        start_time = datetime(2012, 10, 1, 0, 0, 1, tzinfo=timezone.utc)
         end_time = start_time + delta
 
         rvars = ['w.1m', 'w.2m.C', 'counts_2m_C']
@@ -197,7 +194,7 @@ class ModelTestCase(test.TestCase):
                 var.shape[1:] == ())
 
         # check some data values for a given time
-        xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=utc).timestamp()
+        xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=timezone.utc).timestamp()
 
         self.assertTrue(xtime in tsd['']['time'])
         ixtime = tsd['']['time'].index(xtime)

@@ -14,9 +14,7 @@ import os
 import logging
 from collections import OrderedDict
 from copy import deepcopy
-import datetime
-
-import pytz
+from datetime import datetime, timezone, timedelta
 
 from django.db import models, transaction
 
@@ -204,7 +202,7 @@ class Project(models.Model):
         """
 
         res = {}
-        now = datetime.datetime.now()
+        now = datetime.now()
 
         for project in projects:
             if project.end_year is None:
@@ -377,7 +375,7 @@ class Dataset(models.Model):
         #    self.start_time.isoformat())
         if self.start_time.tzinfo is None or \
                 self.start_time.tzinfo.utcoffset(self.start_time) is None:
-            self.start_time = pytz.utc.localize(self.start_time)
+            self.start_time = self.start_time.replace(tzinfo=timezone.utc)
             _logger.debug(
                 "Dataset localized start_time: %s",
                 self.start_time.isoformat())
@@ -396,7 +394,7 @@ class Dataset(models.Model):
         #       self.end_time.isoformat())
         if self.end_time.tzinfo is None or \
                 self.end_time.tzinfo.utcoffset(self.end_time) is None:
-            self.end_time = pytz.utc.localize(self.end_time)
+            self.end_time = self.end_time.replace(tzinfo=timezone.utc)
             _logger.debug(
                 "Dataset localized end_time: %s",
                 self.end_time.isoformat())
@@ -575,8 +573,8 @@ class FileDataset(Dataset):
     def get_series_tuples(
             self,
             series_name_fmt="",
-            start_time=pytz.utc.localize(datetime.datetime.min),
-            end_time=pytz.utc.localize(datetime.datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Get the names of the series between the start and end times.
         """
         if self.dset_type != "sounding":
@@ -593,8 +591,8 @@ class FileDataset(Dataset):
     def get_series_names(
             self,
             series_name_fmt="",
-            start_time=pytz.utc.localize(datetime.datetime.min),
-            end_time=pytz.utc.localize(datetime.datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Get the names of the series between the start and end times.
         """
         if self.dset_type != "sounding":
@@ -724,7 +722,7 @@ class ClientState(models.Model):
 
     time_length = models.FloatField(
         blank=False, validators=[validate_positive],
-        default=datetime.timedelta(days=1).total_seconds())
+        default=timedelta(days=1).total_seconds())
 
     track_real_time = models.BooleanField(default=False)
 

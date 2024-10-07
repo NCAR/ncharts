@@ -12,11 +12,10 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import sys
 import threading
-import pytz
 import numpy as np
 
 import psycopg2
@@ -190,8 +189,8 @@ class RAFDatabase(object):
 
     def read_times(
             self,
-            start_time=pytz.utc.localize(datetime.min),
-            end_time=pytz.utc.localize(datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Read datetimes from the table within a range.
 
         Raises:
@@ -213,7 +212,7 @@ class RAFDatabase(object):
                         "SELECT {} FROM {} WHERE {} >= %s AND {} < %s;"
                         .format(vname, self.table, vname, vname),
                         (start_time, end_time))
-                    return [pytz.utc.localize(x[0]).timestamp() for x in cur]
+                    return [x[0].replace(tzinfo=timezone.utc).timestamp() for x in cur]
         except psycopg2.Error as exc:
             RAFDatabase.close_connection(conn)
             raise nc_exc.NoDataException(
@@ -240,7 +239,7 @@ class RAFDatabase(object):
                     if not start_time:
                         _logger.warning("%s: read %s: no data", conn, vname)
                         raise nc_exc.NoDataException("read {}".format(vname))
-                    return pytz.utc.localize(start_time[0])
+                    return start_time[0].replace(tzinfo=timezone.utc)
         except psycopg2.Error as exc:
             _logger.warning("%s: read %s: %s", conn, vname, exc)
             RAFDatabase.close_connection(conn)
@@ -250,8 +249,8 @@ class RAFDatabase(object):
     def read_time_series(
             self,
             variables=(),
-            start_time=pytz.utc.localize(datetime.min),
-            end_time=pytz.utc.localize(datetime.max),
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc),
             size_limit=1000 * 1000 * 1000):
         """Read times and variables from the table within a time period.
 
@@ -387,8 +386,8 @@ def test_func():
     # times = db.read_times()
     # _logger.debug("all times=%s",times)
 
-    t1 = pytz.utc.localize(datetime(2015, 6, 29, 15, 10, 0))
-    t2 = pytz.utc.localize(datetime(2015, 6, 29, 15, 11, 0))
+    t1 = datetime(2015, 6, 29, 15, 10, 0, tzinfo=timezone.utc)
+    t2 = datetime(2015, 6, 29, 15, 11, 0, tzinfo=timezone.utc)
 
     times = db.read_times(start_time=t1, end_time=t2)
     _logger.debug("times=%s", times)

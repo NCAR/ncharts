@@ -3,14 +3,14 @@ from django.core.management.base import NoArgsCommand
 from ncharts.models import ClientState
 from ncharts import views as nc_views
 
-import datetime, pytz
+import datetime
 
 from django.contrib.sessions.models import Session
 
 class Command(NoArgsCommand):
     def handle_noargs(self, **options):
 
-        tnow = datetime.datetime.now(tz=pytz.utc)
+        tnow = datetime.datetime.now(datetime.timezone.utc)
         sessions = Session.objects.all()
         print("#sessions=%d" % len(sessions))
 

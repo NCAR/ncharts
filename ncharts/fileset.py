@@ -12,8 +12,7 @@ file LICENSE in this package.
 
 import os, glob, stat, re, sys, threading, logging
 # from stat import *
-import datetime
-import pytz
+from datetime import datetime, timedelta, timezone
 import sre_constants
 import time
 
@@ -84,7 +83,7 @@ class File(object):
         self.path = path
         self.pathdesc = pathdesc
         try:
-            self.time = pytz.utc.localize(datetime.datetime.strptime(path, pathdesc))
+            self.time = datetime.strptime(path, pathdesc).replace(tzinfo=timezone.utc)
             return
         except (ValueError, sre_constants.error) as exc:
             _logger.error("fileset.File __init__: %s", exc)
@@ -148,7 +147,7 @@ class File(object):
             pathdesc = pathdesc.replace('%d', '')
         try:
             # print('try again, path=', path, ', pathdesc=', pathdesc)
-            self.time = pytz.utc.localize(datetime.datetime.strptime(path, pathdesc))
+            self.time = datetime.strptime(path, pathdesc).replace(tzinfo=timezone.utc)
         except (ValueError, sre_constants.error) as exc:
             _logger.error("fileset.File __init__ %s:", exc)
             raise
@@ -220,7 +219,7 @@ class Dir(object):
     #    the NFS client uses a 60-second maximum.
     #
     # We'll set this LATENCY to 65 seconds and see what happens...
-    LATENCY = datetime.timedelta(seconds=65)
+    LATENCY = timedelta(seconds=65)
 
     def __init__(self, path, pathdesc, pathrem):
         """Create a Dir.
@@ -236,7 +235,7 @@ class Dir(object):
         self.path = path
         self.pathdesc = pathdesc
         self.pathrem = pathrem
-        self.modtime = pytz.utc.localize(datetime.datetime.min)
+        self.modtime = datetime.min.replace(tzinfo=timezone.utc)
         self.cached_subdirs = []
         self.cached_files = []
         self.do_double_check = False
@@ -260,8 +259,8 @@ class Dir(object):
 
     def scan(
             self,
-            start_time=pytz.utc.localize(datetime.datetime.min),
-            end_time=pytz.utc.localize(datetime.datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Scan this Dir for files which match by name and time.
 
         The current directory is scanned for files which match pathrem.
@@ -296,8 +295,8 @@ class Dir(object):
             _logger.error(exc)
             raise
 
-        dirmodtime = datetime.datetime.fromtimestamp(
-            pstat.st_mtime, tz=pytz.utc)
+        dirmodtime = datetime.fromtimestamp(
+            pstat.st_mtime, tz=timezone.utc)
 
         # get previous snapshot of this directory
         self.lock.acquire()
@@ -314,7 +313,7 @@ class Dir(object):
         # Without this double check there were a significant
         # number of times that a new file was not seen in a
         # directory.
-        now = datetime.datetime.now(tz=pytz.utc)
+        now = datetime.now(tz=timezone.utc)
 
         # It looks like rsync can cause directory modification
         # times to go backwards.  At one moment the mod time
@@ -455,8 +454,8 @@ class Fileset(object):
 
     def scan(
             self,
-            start_time=pytz.utc.localize(datetime.datetime.min),
-            end_time=pytz.utc.localize(datetime.datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Scan this Fileset for files matching a time period.
 
         Args:
