@@ -13,7 +13,7 @@ file LICENSE in this package.
 import datetime
 import sys
 import logging
-import pytz
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django import forms
 from django.contrib import messages
@@ -129,10 +129,10 @@ def timezone_coerce(tzstr):
     """Function to coerce a string to a timezone.
     """
     try:
-        return pytz.timezone(tzstr)
-    except pytz.UnknownTimeZoneError as exc:
+        return ZoneInfo(tzstr)
+    except ZoneInfoNotFoundError as exc:
         _logger.error("timezone_coerce: %s", exc)
-    return pytz.utc
+    return ZoneInfo('UTC')
 
 class DataSelectionForm(forms.Form):
     """Form for selection of dataset parameters, such as time and variables.
@@ -397,7 +397,7 @@ class DataSelectionForm(forms.Form):
 
         # the time fields are in the browser's timezone. Use those exact fields,
         # but interpret them in the dataset timezone
-        return timezone.localize(start_time.replace(tzinfo=None))
+        return start_time.replace(tzinfo=timezone)
 
 
     def too_much_data(self, exc):
