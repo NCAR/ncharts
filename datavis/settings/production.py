@@ -51,7 +51,7 @@ ADMINS = (
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR, 'django_memcached.sock'),
         # 'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 300, # 300 seconds is the default

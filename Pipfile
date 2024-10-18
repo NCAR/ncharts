@@ -9,7 +9,7 @@ numpy = "*"
 netcdf4 = "*"
 psycopg2 = "*"
 django-timezone-field = "*"
-python3-memcached = "*"
+pymemcache = "*"
 
 [dev-packages]
 
