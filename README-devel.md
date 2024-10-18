@@ -35,7 +35,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   # tools for managing static files
   sudo yum install npm
-  sudo npm install -g bower
+  sudo yum install yarn
 ```
 
 2. Decide where to put the django code and configuration.
