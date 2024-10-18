@@ -58,7 +58,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   python3 -m pip install django-datetime-widget
   python3 -m pip install django-timezone-field
 
-  python3 -m pip install python3-memcached
+  python3 -m pip install pymemcache
 ```
 
   On RHEL:

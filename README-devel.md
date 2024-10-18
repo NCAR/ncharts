@@ -92,11 +92,11 @@ The following is for RedHat systems, such as CentOS or Fedora.
    python3 -m pip install --upgrade psycopg2
 ```
 
-   Python3 version of django-datetime-widge and timezone support:
+   Python3 version of timezone support:
 
   ```sh
   python3 -m pip install django-timezone-field
-  python3 -m pip install python3-memcached
+  python3 -m pip install pymemcache
 ```
 
 5. Setup postgres server
