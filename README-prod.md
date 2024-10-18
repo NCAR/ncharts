@@ -124,7 +124,6 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   ```sh
   cd $DJROOT/ncharts
   ./create_pgdb.sh
-  ./load_db.sh
 ```
 
   If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, which should not match other passwords.
