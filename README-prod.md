@@ -87,9 +87,9 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo chgrp apache /var/log/django
   sudo chmod g+sw /var/log/django
 
-  sudo mkdir /var/run/django
-  sudo chgrp apache /var/run/django
-  sudo chmod g+sw /var/run/django
+  sudo mkdir /run/django
+  sudo chgrp apache /run/django
+  sudo chmod g+sw /run/django
 
   sudo mkdir /var/lib/django
   sudo chgrp apache /var/lib/django
@@ -182,7 +182,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   See above for creating and setting permissions on `VAR_RUN_DIR`.  To setup memcached, do:
 
   ```sh
-  # Configure system to create /var/run/django on each boot
+  # Configure system to create /run/django on each boot
   sudo cp usr/lib/tmpfiles.d/django.conf /usr/lib/tmpfiles.d
   systemd-tmpfiles --create /usr/lib/tmpfiles.d/django.conf
 
