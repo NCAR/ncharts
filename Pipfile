@@ -10,9 +10,10 @@ netcdf4 = "*"
 psycopg2 = "*"
 django-timezone-field = "*"
 pymemcache = "*"
+mod-wsgi = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.12"
-python_full_version = "3.12.7"
+python_full_version = "3.12.1"
