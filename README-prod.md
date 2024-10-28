@@ -45,22 +45,28 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 4. Add other Python packages to virtual environment:
 
+Same packages as development environment:
+
   ```sh
   source $DJVIRT/bin/activate
 
   python3 -m pip install --upgrade django
-  python3 -m pip install --upgrade mod_wsgi
   python3 -m pip install --upgrade numpy
   python3 -m pip install --upgrade netCDF4
   python3 -m pip install --upgrade pylint_django
   python3 -m pip install --upgrade psycopg2
 
-  python3 -m pip install django-datetime-widget
   python3 -m pip install django-timezone-field
 
   python3 -m pip install pymemcache
 ```
 
+Additional packages for production environment:
+```sh
+  source $DJVIRT/bin/activate
+
+  python3 -m pip install --upgrade mod_wsgi
+```
   On RHEL:
   ```sh
   sudo mod_wsgi-express install-module
