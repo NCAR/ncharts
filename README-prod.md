@@ -186,8 +186,8 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo cp usr/lib/tmpfiles.d/django.conf /usr/lib/tmpfiles.d
   systemd-tmpfiles --create /usr/lib/tmpfiles.d/django.conf
 
-  sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
-  sudo systemctl daemon.reload
+  sudo cp etc/[datavis-dev or datavis]/systemd/system/memcached_django.service /etc/systemd/system
+  sudo systemctl daemon-reload
   sudo systemctl enable memcached_django.service
   sudo systemctl start memcached_django.service
 ```
