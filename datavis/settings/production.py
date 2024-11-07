@@ -14,7 +14,8 @@ DEFAULT_LOG_DIR = LOG_DIR
 LOG_DIR = os.path.join(VAR_DIR, 'log/django')
 PROD_LOG_LEVEL = 'WARNING'
 
-VAR_RUN_DIR = os.path.join(VAR_DIR, 'run/django')
+#VAR_RUN_DIR = os.path.join(VAR_DIR, 'run/django')
+VAR_RUN_DIR = "/run/django"
 VAR_LIB_DIR = os.path.join(VAR_DIR, 'lib/django')
 
 # Update path to database if sqlite is used
@@ -45,7 +46,7 @@ ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 
 
 # People who should receive emails of ERRORs
 ADMINS = (
-    ('Gordon Maclean', 'gordondmaclean@gmail.com'),
+    ('Isabel Suhr', 'isabels@ucar.edu'),
     ('Gary Granger', 'granger@ucar.edu'),
 )
 
