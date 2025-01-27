@@ -184,7 +184,7 @@ LOGGING = {
         'requests': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'nchart_reqests.log'),
+            'filename': os.path.join(LOG_DIR, 'nchart_requests.log'),
             'when': 'W6', 'interval': 1, 'backupCount': 0, 'utc': False,
             'formatter': 'request'
         },
