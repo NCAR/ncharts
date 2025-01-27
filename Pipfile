@@ -11,6 +11,7 @@ psycopg2 = "*"
 django-timezone-field = "*"
 pymemcache = "*"
 mod-wsgi = "*"
+gunicorn = "*"
 
 [dev-packages]
 
