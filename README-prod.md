@@ -6,11 +6,11 @@ Data plotting Web application, developed at NCAR EOL.
 
 The following is for RedHat systems, such as CentOS or Fedora.
 
-1. Install required packages
+### Install required packages
 
   This is the same as step one in setting up a development server. See `README-devel.md`.
 
-2. Decide where to put the django code and configuration.
+### Decide where to put the django code and configuration.
 
   We'll call that `$DJROOT`.  Files for production server at EOL have been put on `/var/django`:
 
@@ -29,45 +29,11 @@ The following is for RedHat systems, such as CentOS or Fedora.
   cd ncharts
 ```
 
-3. Create virtual environment
+### Create virtual environment
 
-  A virtual environment allows you to run specific versions of python packages without effecting other users on the system.  These commands will create a django virtual environment in `$DJROOT`:
+See `README-devel.md` for instructions on setting up a pipenv virtual environment with the appropriate packages installed.
 
-  ```sh
-  cd $DJROOT
-  mkdir virtualenv
-  cd virtualenv
-  virtualenv -p /usr/bin/python3 django
-
-  DJVIRT=$DJROOT/virtualenv/django
-  source $DJVIRT/bin/activate
-```
-
-4. Add other Python packages to virtual environment:
-
-Same packages as development environment:
-
-  ```sh
-  source $DJVIRT/bin/activate
-
-  python3 -m pip install --upgrade django
-  python3 -m pip install --upgrade numpy
-  python3 -m pip install --upgrade netCDF4
-  python3 -m pip install --upgrade pylint_django
-  python3 -m pip install --upgrade psycopg2
-
-  python3 -m pip install django-timezone-field
-
-  python3 -m pip install pymemcache
-```
-
-Additional packages for production environment:
-```sh
-  source $DJVIRT/bin/activate
-
-  python3 -m pip install --upgrade mod_wsgi
-```
-  On RHEL:
+On RHEL:
   ```sh
   sudo mod_wsgi-express install-module
   sudo sh -c "cat > /etc/httpd/conf.modules.d/10-wsgi-python3.conf"
@@ -79,10 +45,10 @@ Additional packages for production environment:
 </IfModule>
 ```
 
-5. Setup postgres server
-  This is the same as step 5 in setting up a development server. See `README-devel.md`.
+### Setup postgres server
+  This is the same as in setting up a development server. See `README-devel.md`.
 
-6. Configuration
+### Configuration
 
   Production settings are set and managed in `datavis/settings/production.py`. `DEBUG` should be set to `False`, as the Django docs warn in several places that using `DEBUG = True` on a production server exposed to the WWW is a security hole.
 
@@ -104,7 +70,7 @@ Additional packages for production environment:
 
   Configure the DATABASES in `datavis/settings/default.py` as discussed in `README-devel.md`.
 
-7. Create the key
+### Create the key
   A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. To generate a new `SECRET_KEY`:
 
   ```sh
@@ -123,7 +89,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl daemon-reload
   sudo systemctl restart httpd
 ```
-8. Initialize the database
+### Initialize the database
 
   This also runs the django migration command, which should also handle the situation when one of the models changes, or is added or deleted:
 
@@ -143,13 +109,13 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   Then run the create script again.
 
-9. Load the models from the `.json` files in `ncharts/fixtures`:
+### Load the models from the `.json` files in `ncharts/fixtures`:
 
   ```sh
   ./load_db.sh
 ```
 
-10. Fetch the static files
+### Fetch the static files
 
   To fetch the static files of the supporting software used by ncharts, such as jquery, bootstrap and highcharts do:
 
@@ -177,7 +143,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
-11. Memcached:
+### Memcached:
 
   The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings/production.py`:
 
@@ -198,7 +164,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl start memcached_django.service
 ```
 
-12. Configure and start httpd server
+### Configure and start httpd server
 
   Install the httpd configuration files:
 
@@ -231,11 +197,11 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl start httpd.service
 ```
 
-13. Test!
+### Test!
 
    <http://localhost/ncharts>
 
-14. Clearing expired sessions and unattached ClientState objects
+### Clearing expired sessions and unattached ClientState objects
 
   This is done from a crontab on the server:
 
