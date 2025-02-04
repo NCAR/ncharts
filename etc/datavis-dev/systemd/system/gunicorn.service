@@ -1,0 +1,27 @@
+[Unit]
+Description=gunicorn daemon to run ncharts
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+# gunicorn can let systemd know when it is ready
+Type=notify
+NotifyAccess=main
+# the specific user that our service will run as
+User=datavis
+Group=datavis
+# this user can be transiently created by systemd
+# DynamicUser=true
+RuntimeDirectory=gunicorn
+WorkingDirectory=/var/django/ncharts
+Environment="PATH=/var/django/ncharts/.venv/bin"
+ExecStart=/var/django/ncharts/.venv/bin/gunicorn datavis.wsgi
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+# if your app does not need administrative capabilities, let systemd know
+# ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

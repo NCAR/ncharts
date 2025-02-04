@@ -1,0 +1,15 @@
+[Unit]
+Description=gunicorn socket
+
+[Socket]
+ListenStream=/run/gunicorn.sock
+# Our service won't need permissions for the socket, since it
+# inherits the file descriptor by socket activation.
+# Only the apache user will need access to the socket:
+SocketUser=apache
+SocketGroup=apache
+# Once the user/group is correct, restrict the permissions:
+SocketMode=0660
+
+[Install]
+WantedBy=sockets.target
