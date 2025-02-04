@@ -164,6 +164,17 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl start memcached_django.service
 ```
 
+### Configure and start gunicorn server
+We are using [gunicorn](https://gunicorn.org/) to serve ncharts, so the Apache server will just forward requests to gunicorn. Gunicorn has been installed into the virtual environment when it was created. Add the service and socket files to systemd and start them:
+```sh
+sudo cp etc/[datavis-dev or datavis]/systemd/system/gunicorn.* /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable gunicorn.socket
+sudo systemctl enable gunicorn.service
+sudo systemctl start gunicorn.service
+```
+You will have to add the secret ke .conf file  to `/etc/systemd/system/gunicorn.service.d` the same way as is done in httpd.conf.d above.
+
 ### Configure and start httpd server
 
   Install the httpd configuration files:
