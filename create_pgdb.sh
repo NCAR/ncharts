@@ -20,7 +20,7 @@ sudo su - postgres -c "createdb ncharts"
 sudo su - postgres -c "psql -c 'CREATE USER $USER; GRANT ALL PRIVILEGES ON DATABASE ncharts to $USER;'"
 
 if $prod; then
-    PGUSER=apache
+    PGUSER=datavis
     sudo su - postgres -c "psql -c 'CREATE USER $PGUSER; GRANT ALL PRIVILEGES ON DATABASE ncharts to $PGUSER;'"
 fi
 
