@@ -5,7 +5,7 @@
 
 cd /var/django/ncharts
 source key.sh
-source ../virtualenv/django/bin/activate
+source .venv/bin/activate
 # echo $EOL_DATAVIS_SECRET_KEY
 ./manage.py clearsessions
 ./manage.py clear_clients
