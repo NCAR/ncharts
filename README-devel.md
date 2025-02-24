@@ -63,6 +63,8 @@ Or activate the virtual environment to run a specific command with `pipenv run`.
 
 ### Setup postgres server
 
+> Note: as of 2/2025, ncharts is using the sqlite3 backend for the django database. Setting up postgres will only be necessary if using the RAF database backend as a data source.
+
 The installation should have created `/var/lib/pgsql/data/pg_hba.conf`, with a first configuation line of
   ```sh
 local   all             all                                 peer
@@ -107,24 +109,24 @@ local   all             all                                 peer
   The memcached socket is on `VAR_RUN_DIR`.
   If a sqlite database is used, it is on `VAR_LIB_DIR`.
 
-  For a postgres database, `datavis/settings/default.py` should contain:
-  ```sh
-  DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ncharts',
-        'CONN_MAX_AGE': 10,
-    }
-  }
-```
-
-  If, instead, a sqlite database is to be used, the settings are:
+  To use the sqlite3 database backend for ncharts (which is currently used in production), `datavis/settings/default.py` should contain:
   ```sh
   DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
         'OPTIONS': {'timeout': 60,},
+    }
+  }
+```
+
+  To use a postgres database instead, `datavis/settings/default.py` should contain:
+  ```sh
+  DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ncharts',
+        'CONN_MAX_AGE': 10,
     }
   }
 ```
@@ -139,25 +141,28 @@ local   all             all                                 peer
   python3 manage.py version 
 ```
 
-### Initialize the database.
+### Initialize the database
 
   This runs the django migrate command, which should also handle the situation of a change in the models:
 
   ```sh
    cd $DJROOT/ncharts
-  ./create_pgdb.sh -d
+  ./create_sqlitedb.sh -d
 ```
 
   The -d option indicates this is a development server.  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. The security of the password is not critical for a development server if it is not exposed to the internet. I'd suggest not using your UCAS or EOL server password.
 
+  The -d option creates the database file `db.sqlite3` in the ncharts base directory.
+
   Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history:
 
   ```sh
-  ./delete_pgdb.sh -d
+  rm db.sqlite3
   rm -rf ncharts/migrations
 ```
-
   Then run the create script again.
+
+  > If using a postgres databse, you will need to run `create_pgdb.sh` instead of `create_sqlitedb.sh` to create a database, and run `delete_pgdb.sh` instead of deleting the sqlite file.
 
 ### Load the models from the .json files in ncharts/fixtures:
 

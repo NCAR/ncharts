@@ -46,7 +46,7 @@ On RHEL:
 ```
 
 ### Setup postgres server
-  This is the same as in setting up a development server. See `README-devel.md`.
+  This is the same as in setting up a development server. See `README-devel.md`, if postgres is needed for the RAF database backend.
 
 ### Configuration
 
@@ -95,19 +95,21 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   ```sh
   cd $DJROOT/ncharts
-  ./create_pgdb.sh
+  ./create_sqlitedb.sh
 ```
 
-  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, which should not match other passwords.
+  You will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, which should not match other passwords.
 
   Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history for ncharts:
 
   ```sh
-  ./delete_pgdb.sh
+  rm db.sqlite3
   rm -rf ncharts/migrations
 ```
 
   Then run the create script again.
+
+   > If using a postgres databse, you will need to run `create_pgdb.sh` instead of `create_sqlitedb.sh` to create a database, and run `delete_pgdb.sh` instead of deleting the sqlite file.
 
 ### Load the models from the `.json` files in `ncharts/fixtures`:
 
@@ -173,7 +175,7 @@ sudo systemctl enable gunicorn.socket
 sudo systemctl enable gunicorn.service
 sudo systemctl start gunicorn.service
 ```
-You will have to add the secret ke .conf file  to `/etc/systemd/system/gunicorn.service.d` the same way as is done in httpd.conf.d above.
+You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn.service.d` the same way as is done in httpd.conf.d above.
 
 ### Configure and start httpd server
 
