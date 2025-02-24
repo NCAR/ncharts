@@ -5,16 +5,17 @@ name = "pypi"
 
 [packages]
 django = ">=5.1.1"
-numpy = "*"
 netcdf4 = "*"
-psycopg2 = "*"
 django-timezone-field = "*"
 pymemcache = "*"
 mod-wsgi = "*"
 gunicorn = "*"
+numpy = "*"
+psycopg2-binary = "*"
+psycopg2 = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.12"
-python_full_version = "3.12.1"
+python_full_version = ">=3.12.1"
