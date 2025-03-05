@@ -56,7 +56,7 @@ On RHEL:
 
   ```sh
   sudo mkdir /var/log/django
-  sudo chgrp apache /var/log/django
+  sudo chgrp datavis /var/log/django
   sudo chmod g+sw /var/log/django
 
   sudo mkdir /run/django
@@ -64,7 +64,7 @@ On RHEL:
   sudo chmod g+sw /run/django
 
   sudo mkdir /var/lib/django
-  sudo chgrp apache /var/lib/django
+  sudo chgrp datavis /var/lib/django
   sudo chmod g+sw /var/lib/django
   ```
 
@@ -145,7 +145,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
-### Memcached:
+### Memcached
 
   The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings/production.py`:
 
@@ -167,11 +167,11 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 ```
 
 ### Configure and start gunicorn server
-We are using [gunicorn](https://gunicorn.org/) to serve ncharts, so the Apache server will just forward requests to gunicorn. Gunicorn has been installed into the virtual environment when it was created. Add the service and socket files to systemd and start them:
+We are using [gunicorn](https://gunicorn.org/) to serve ncharts, so the Apache server will just forward requests to gunicorn. Gunicorn has been installed into the virtual environment when it was created. Add the service file to systemd and start the service:
+
 ```sh
-sudo cp etc/[datavis-dev or datavis]/systemd/system/gunicorn.* /etc/systemd/system
+sudo cp etc/[datavis-dev or datavis]/systemd/system/gunicorn.service /etc/systemd/system
 sudo systemctl daemon-reload
-sudo systemctl enable gunicorn.socket
 sudo systemctl enable gunicorn.service
 sudo systemctl start gunicorn.service
 ```
