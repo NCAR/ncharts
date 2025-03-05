@@ -44,6 +44,8 @@ if SECRET_KEY is None:
 #
 ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210', '127.0.0.1']
 
+CSRF_TRUSTED_ORIGINS = ['http://datavis-dev.eol.ucar.edu', 'http://datavis.eol.ucar.edu']
+
 # People who should receive emails of ERRORs
 ADMINS = (
     ('Isabel Suhr', 'isabels@ucar.edu'),
