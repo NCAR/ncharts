@@ -71,17 +71,17 @@ You will then need to set group read/execute permissions on the virtual environm
   key=$(python3 -c 'import random; import string; print("".join([random.SystemRandom().choice(string.digits + string.ascii_letters + string.punctuation) for i in range(100)]))')
   export EOL_DATAVIS_SECRET_KEY=$key
 ```
-The key can be passed to Apache from `systemd` by adding a `.conf` service file to `/etc/systemd/system/httpd.service.d/`, *e.g.* `datavis-secret-key.conf`:
+The key can be passed to gunicorn from `systemd` by adding a `.conf` service file to `/etc/systemd/system/gunicorn.service.d/`, *e.g.* `datavis-secret-key.conf`:
 
   ```
 [Service]
 Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 ```
-  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted:
+  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **gunicorn** will need to be restarted:
 
   ```sh
   sudo systemctl daemon-reload
-  sudo systemctl restart httpd
+  sudo systemctl restart gunicorn
 ```
 ### Initialize the database
 
@@ -169,7 +169,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable gunicorn.service
 sudo systemctl start gunicorn.service
 ```
-You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn.service.d` the same way as is done in httpd.conf.d above.
+You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn.service.d` as described above.
 
 ### Configure and start httpd server
 
@@ -180,7 +180,7 @@ You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn
   sudo cp -r etc/datavis/httpd /etc
 ```
 
-  The httpd configuration file that sets up the wsgi python module for django is `etc/datavis/httpd/conf/vhosts/datavis.conf`, which is installed to `/etc/httpd/conf/vhosts`. The `WSGIScriptAlias` statement in this file tells httpd to run `/var/django/ncharts/datavis/wsgi.py` for all URLs. In this way a production server runs `wsgi.py` instead of `manage.py`, with `DJANGO_SETTINGS_MODULE` set to `datavis.settings.production`.  For information on wsgi, see the django documentation for the current version, for example: `https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/`.
+  The httpd configuration file that sets up the vhost for datavis is `etc/datavis/httpd/conf/vhosts/datavis.conf`, which is installed to `/etc/httpd/conf/vhosts`. The same configuration file exists for datavis-dev.
 
   Tweak the umask of the systemd service, so that apache group members can read/write the log files:
 
