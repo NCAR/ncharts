@@ -730,10 +730,13 @@ class NetCDFDataset(object):
             if hasattr(var, "units") and 'since' in var.units:
                 try:
                     # times from netCDF4.num2date are timezone naive.
-                    # Use replace(tzinfo=timezone.utc) to assign a timezone.
+                    # Use replace(tzinfo=timezone.utc) to assign a timezone,
+                    # which requires using python datetimes rather than cftime
                     tvals = [
                         d.replace(tzinfo=timezone.utc).timestamp() for d in
-                        netCDF4.num2date(var[:], var.units, 'standard')]
+                        netCDF4.num2date(var[:], var.units, 'standard',
+                                         only_use_python_datetimes=True,
+                                         only_use_cftime_datetimes=False)]
 
                 except IndexError as exc:
                     # most likely has a dimension of 0
