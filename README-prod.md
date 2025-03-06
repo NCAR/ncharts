@@ -33,16 +33,10 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
 See `README-devel.md` for instructions on setting up a pipenv virtual environment with the appropriate packages installed.
 
-On RHEL:
-  ```sh
-  sudo mod_wsgi-express install-module
-  sudo sh -c "cat > /etc/httpd/conf.modules.d/10-wsgi-python3.conf"
-# NOTE: mod_wsgi_python3 can not coexist in the same apache process as
-# mod_wsgi (python2).  Only load if mod_wsgi is not already loaded.
+You will then need to set group read/execute permissions on the virtual environment so that the datavis user can use it in production:
 
-<IfModule !wsgi_module>
-    LoadModule wsgi_module modules/mod_wsgi-py34.cpython-34m.so
-</IfModule>
+```sh
+ chmod -R g+rx .venv/
 ```
 
 ### Setup postgres server

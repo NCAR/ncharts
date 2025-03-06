@@ -35,9 +35,11 @@ We'll call that `$DJROOT`.  On a development server you can put it anywhere you 
 
 ### Create virtual environment
 
-A virtual environment allows you to run specific versions of python packages without affecting other users on the system. These commands will create a django virtual environment in the ncharts directory:
+A virtual environment allows you to run specific versions of python packages without affecting other users on the system. These commands will create a django virtual environment in the ncharts directory.
 
-*Figure out best way to install pipenv--locally as your user? Will that work in production?
+We use [pipenv](https://pipenv.pypa.io/en/latest/index.html) to manage the virtual environment, both the python version and the packages to be installed. So far, pipenv's recommended installation method has worked:
+
+`pip install --user --upgrade pipenv`
 
 Once `pipenv` is installed, it can look at the project's Pipfile and automatically install the specified versions of all the project's python dependencies.
 
@@ -47,13 +49,17 @@ Setting the `PIPENV_VENV_IN_PROJECT` environment variable will have pipenv creat
 PIPENV_VENV_IN_PROJECT=1 pipenv install
 ```
 
+You may get errors about pipenv being unable to find the version of python required by the pipfile. If the python version you want to use isn't symlinked to `python` you can use the `--python` option in pipenv to specify the path to the version:
+
+```sh
+PIPENV_VENV_IN_PROJECT=1 pipenv --python /bin/python3.12 install
+```
    Activate that virtual environment:
 
   ```sh
 pipenv shell
 ```
-Or activate the virtual environment to run a specific command with `pipenv run`.
-  The activation needs to be done once for each shell. To make it easier, you can create an alias in your `$HOME/.bashrc`:
+Or activate the virtual environment to run a specific command with `pipenv run`. The activation needs to be done once for each shell. To make it easier, you can create an alias in your `$HOME/.bashrc`:
 
   ```sh
   alias djvirt='source $DJROOT/ncharts/.venv/bin/activate'
