@@ -176,8 +176,8 @@ You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn
   Install the httpd configuration files:
 
   ```sh
-  sudo mv /etc/httpd /etc/httpd.orig
-  sudo cp -r etc/datavis/httpd /etc
+  sudo cp /etc/httpd /etc/httpd.orig
+  sudo cp -r etc/[datavis or datavis-dev]/httpd /etc
 ```
 
   The httpd configuration file that sets up the vhost for datavis is `etc/datavis/httpd/conf/vhosts/datavis.conf`, which is installed to `/etc/httpd/conf/vhosts`. The same configuration file exists for datavis-dev.
