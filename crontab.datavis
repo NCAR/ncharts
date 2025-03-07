@@ -1,0 +1,4 @@
+MAILTO=isabels@ucar.edu
+
+# Clear old ncharts sessions and users on Sundays
+0 0 * * 0 cd /var/django/ncharts; ./datavis-clear.sh

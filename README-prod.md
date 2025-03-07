@@ -216,14 +216,11 @@ Replace the base index.html of the server with a page that uses an HTML redirect
 
    <http://localhost/>
 
-### Clearing expired sessions and unattached ClientState objects
+### Clearing expired sessions and clients
 
-  This is done from a crontab on the server:
-
-  ```sh
-  crontab -l
-  MAILTO=user@some.domain       # change to a real email address
-  #
-  # On Sundays, clear expired sessions and then the unattached clients
-  0 0 * * 0 cd /var/django/ncharts; ./datavis-clear.sh
+Install `crontab.datavis` as the datavis user on the server:
+```sh
+sudo su - datavis -c "crontab /var/django/ncharts/crontab.datavis"
 ```
+
+This script clears expired sessions and unattached ClientState objects from the ncharts database once a week.
