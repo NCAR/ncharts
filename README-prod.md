@@ -204,9 +204,17 @@ You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn
   sudo systemctl start httpd.service
 ```
 
+### Set up redirect to ncharts
+
+Replace the base index.html of the server with a page that uses an HTML redirect to ncharts.
+
+```sh
+    sudo cp var/[datavis or datavis-dev]/www/html/index.html /var/www/html
+```
+
 ### Test!
 
-   <http://localhost/ncharts>
+   <http://localhost/>
 
 ### Clearing expired sessions and unattached ClientState objects
 
