@@ -209,7 +209,7 @@ You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn
 Replace the base index.html of the server with a page that uses an HTML redirect to ncharts.
 
 ```sh
-    sudo cp var/[datavis or datavis-dev]/www/html/index.html /var/www/html
+    sudo cp var/[eol-datavis-9 or eol-datavis-dev-9]/www/html/index.html /var/www/html
 ```
 
 ### Test!
