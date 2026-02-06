@@ -713,7 +713,7 @@ class ClientState(models.Model):
     # related ClientStates, due to related_name='+'.
     dataset = models.ForeignKey(
         Dataset,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         related_name='+')
 
     timezone = TimeZoneField(blank=False)
