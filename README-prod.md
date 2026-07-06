@@ -21,7 +21,7 @@ The following is for RedHat systems, such as CentOS or Fedora.
   sudo chmod g+sw $DJROOT
 ```
 
-  Add yourself to the apache group on the server machine.  Once you've done that, the sequence is the same as on a development server:
+  Add yourself to the datavis group on the server machine.  Once you've done that, the sequence is the same as on a development server:
 
   ```sh
   cd $DJROOT
