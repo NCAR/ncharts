@@ -15,7 +15,7 @@ As of Jan 25, python 3.12 is the most recent version available on yum. We want t
   On RHEL/Alma:
   ```sh
   sudo yum install python3.12
-        memcached netcdf-devel hdf5-devel postgresql-devel postgresql-server postgresql-contrib
+        memcached netcdf-devel hdf5-devel
 ```
 ```
   # tools for managing static files
