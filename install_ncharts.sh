@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # Script to work on automating ncharts install on a new server
-
-NCHARTS_DIR=$(dirname "$0")
-
+# Usage: install_ncharts.sh [hostname] where hostname is datavis or datavis-dev
 
 setup()
 {
@@ -39,17 +37,91 @@ key()
 	echo "Key file at $keyfile already exists."
     else
 	echo "Key file at $keyfile does not exist. Generating a new key..."
-	key=$(python3 -c 'import random; import string; print("".join([random.SystemRandom().choice(string.digits + string.ascii_letters + string.punctuation) for i in range(100)]))')
+	key=$(python3 -c 'import random; import string; print("".join([random.SystemRandom().choice(string.digits + string.ascii_letters) for i in range(100)]))')
 	sudo mkdir -p $keydir
 	sudo chmod 755 $keydir
 	cat <<EOF | sudo tee $keyfile
 [Service]
 Environment="EOL_DATAVIS_SECRET_KEY=$key"
-
 EOF
+	sudo chmod 644 $keyfile
     fi
 }
 
+database()
+{
+    # source key env variable
+    source /var/django/ncharts/key.sh
+    # create_sqlitedb needs to be interactive to create ncharts superuser account
+    cd $NCHARTS_DIR && ./create_sqlitedb.sh
+    cd $NCHARTS_DIR && ./load_db.sh
+}
+
+static()
+{
+    cd $NCHARTS_DIR && ./get_static_files.sh
+    cd $NCHARTS_DIR && ./static.sh
+}
+
+memcached()
+{
+    # Configure system to create /run/django on each boot
+    sudo cp $NCHARTS_DIR/usr/lib/tmpfiles.d/django.conf /usr/lib/tmpfiles.d
+    sudo systemd-tmpfiles --create /usr/lib/tmpfiles.d/django.conf
+
+    sudo cp $NCHARTS_DIR/etc/$HOSTNAME/systemd/system/memcached_django.service /etc/systemd/system
+    sudo systemctl daemon-reload
+    sudo systemctl enable memcached_django.service
+    sudo systemctl start memcached_django.service
+}
+
+gunicorn()
+{
+    sudo cp $NCHARTS_DIR/etc/$HOSTNAME/systemd/system/gunicorn.service /etc/systemd/system
+    sudo systemctl daemon-reload
+    sudo systemctl enable gunicorn.service
+    sudo systemctl start gunicorn.service
+}
+
+httpd()
+{
+    sudo cp -r /etc/httpd /etc/httpd.orig
+    sudo cp -r $NCHARTS_DIR/etc/$HOSTNAME/httpd /etc
+
+    sudo mkdir -p /etc/systemd/system/httpd.service.d
+    cat << EOD > /tmp/umask.conf
+[Service]
+UMask=0007
+EOD
+
+    sudo cp /tmp/umask.conf /etc/systemd/system/httpd.service.d
+    sudo systemctl daemon-reload
+
+    sudo systemctl enable httpd.service
+    sudo systemctl start httpd.service
+
+    sudo cp $NCHARTS_DIR/var/$HOSTNAME/www/html/index.html /var/www/html
+}
+
+cron()
+{
+    sudo -u datavis crontab $NCHARTS_DIR/crontab.datavis
+}
+
+NCHARTS_DIR=$(dirname "$0")
+
+if [ "$#" -ne 1 ]; then
+    echo "Supply hostname (datavis or datavis-dev) as an argument"
+    exit 1
+fi
+
+HOSTNAME=$1
+
 setup
 key
-
+database
+static
+memcached
+gunicorn
+httpd
+cron
