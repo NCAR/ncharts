@@ -42,12 +42,10 @@ if SECRET_KEY is None:
 # client's browser. Setting ALLOWED_HOSTS to the various names for datavis will
 # result in packets being ignored if they contain other than the following:
 #
-ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu',
-                 'eol-datavis-dev-9.eol.ucar.edu', 'localhost', '128.117.82.210', '127.0.0.1']
+ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210', '127.0.0.1']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://datavis-dev.eol.ucar.edu',
-    'https://eol-datavis-dev-9.eol.ucar.edu',
     'https://datavis.eol.ucar.edu',      # for prod, once it has a cert
     'http://datavis-dev.eol.ucar.edu',   # existing; safe to keep during rollout
     'http://datavis.eol.ucar.edu',       # existing
