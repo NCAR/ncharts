@@ -247,6 +247,17 @@
     },
     "model": "ncharts.project",
     "pk": "MARSHALL2023"
+},
+{
+    "fields": {
+        "location": "Daytona Beach, FL",
+        "timezones": ["US/Eastern", "UTC"],
+	"long_name": "2026 ISARRA flight week intercomparison tower",
+        "start_year": "2026",
+        "end_year": "2026"
+    },
+    "model": "ncharts.project",
+    "pk": "ISARRA2026"
 }
 
 
