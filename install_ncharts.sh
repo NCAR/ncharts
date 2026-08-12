@@ -6,7 +6,7 @@
 setup()
 {
     # install packages:
-    sudo yum install -y python3.12 memcached netcdf-devel hdf5-devel npm yarnpkg
+    sudo yum install -y python3.14 python3.14-pip memcached netcdf-devel hdf5-devel npm yarnpkg
 
     # set up python environment
     python -m pip install --user --upgrade pipenv
