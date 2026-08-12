@@ -69,7 +69,7 @@ memcached()
     sudo cp $NCHARTS_DIR/usr/lib/tmpfiles.d/django.conf /usr/lib/tmpfiles.d
     sudo systemd-tmpfiles --create /usr/lib/tmpfiles.d/django.conf
 
-    sudo cp $NCHARTS_DIR/etc/$HOSTNAME/systemd/system/memcached_django.service /etc/systemd/system
+    sudo cp $NCHARTS_DIR/etc/$HOSTTYPE/systemd/system/memcached_django.service /etc/systemd/system
     sudo systemctl daemon-reload
     sudo systemctl enable memcached_django.service
     sudo systemctl start memcached_django.service
@@ -77,7 +77,7 @@ memcached()
 
 gunicorn()
 {
-    sudo cp $NCHARTS_DIR/etc/$HOSTNAME/systemd/system/gunicorn.service /etc/systemd/system
+    sudo cp $NCHARTS_DIR/etc/$HOSTTYPE/systemd/system/gunicorn.service /etc/systemd/system
     sudo systemctl daemon-reload
     sudo systemctl enable gunicorn.service
     sudo systemctl start gunicorn.service
@@ -85,8 +85,7 @@ gunicorn()
 
 httpd()
 {
-    sudo cp -r /etc/httpd /etc/httpd.orig
-    sudo cp -r $NCHARTS_DIR/etc/$HOSTNAME/httpd /etc
+    sudo cp -r $NCHARTS_DIR/etc/$HOSTNAME/httpd/conf/vhosts /etc/httpd/conf
 
     sudo mkdir -p /etc/systemd/system/httpd.service.d
     cat << EOD > /tmp/umask.conf
@@ -100,7 +99,7 @@ EOD
     sudo systemctl enable httpd.service
     sudo systemctl start httpd.service
 
-    sudo cp $NCHARTS_DIR/var/$HOSTNAME/www/html/index.html /var/www/html
+    sudo cp $NCHARTS_DIR/var/$HOSTTYPE/www/html/index.html /var/www/html
 }
 
 cron()
@@ -110,13 +109,13 @@ cron()
 
 NCHARTS_DIR=$(dirname "$0")
 
-if [ "$#" -ne 1 ]; then
-    echo "Supply hostname (datavis or datavis-dev) as an argument"
+if [ "$#" -ne 2 ]; then
+    echo "Supply host type (datavis or datavis-dev) and host hame (e.g. eol-datavis-10) as arguments"
     exit 1
 fi
 
-HOSTNAME=$1
-
+HOSTTYPE=$1
+HOSTNAME=$2
 setup
 key
 database
