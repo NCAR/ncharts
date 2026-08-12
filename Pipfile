@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = ">=5.1.1"
+django = ">=5.2.16"
 netcdf4 = "*"
 django-timezone-field = "*"
 pymemcache = "*"
