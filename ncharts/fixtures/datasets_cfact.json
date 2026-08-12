@@ -60,32 +60,6 @@
         "start_time": "2021-11-01T00:00:00+00:00",
         "end_time": "2022-03-02T00:00:00+00:00",
         "location": "Heber Valley, UT",
-        "name": "qc_geo_tiltcor",
-        "long_name": "CFACT QC data, winds in geographic, tilted coordinates",
-        "project": "CFACT",
-        "url": "https://www.eol.ucar.edu/field_projects/cfact",
-        "status": "Preliminary"
-    },
-    "model": "ncharts.dataset",
-    "pk": 62
-},
-{
-    "fields": {
-        "directory": "/net/isf/isfs/projects/CFACT/ISFS/netcdf/qc_geo_tiltcor",
-        "filenames": "isfs_tc_%Y%m%d.nc"
-    },
-    "model": "ncharts.filedataset",
-    "pk": 62
-},
-{
-    "fields": {
-        "variables": [],
-        "platforms": [
-            "ISFS"
-        ],
-        "start_time": "2021-11-01T00:00:00+00:00",
-        "end_time": "2022-03-02T00:00:00+00:00",
-        "location": "Heber Valley, UT",
         "name": "qc_geo_tiltcor_grav",
         "long_name": "CFACT QC data, winds in geographic, Leica tilt corrected coordinates",
         "project": "CFACT",
@@ -124,7 +98,7 @@
 {
     "fields": {
         "directory": "/net/isf/isfs/projects/CFACT/ISFS/netcdf/qc_geo_tiltcor_planar",
-        "filenames": "isfs_tc_%Y%m%d.nc"
+        "filenames": "isfs_planar_%Y%m%d.nc"
     },
     "model": "ncharts.filedataset",
     "pk": 64

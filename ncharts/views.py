@@ -579,11 +579,9 @@ class DatasetView(View):
                 # will throw ValidationError if timezone doesn't exist
                 timezone = nc_models.TimeZone.objects.get(
                     tz=request.POST['timezone']).tz
-
-                start_time = timezone.localize(
-                    datetime.datetime.strptime(
-                        request.POST['start_time'], "%Y-%m-%d %H:%M"))
-
+                start_time = datetime.datetime.strptime(
+                    request.POST['start_time'], "%Y-%m-%dT%H:%M").replace(
+                    tzinfo=timezone)
                 delt = nc_forms.get_time_length(
                     request.POST['time_length_0'],
                     request.POST['time_length_units'])

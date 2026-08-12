@@ -6,11 +6,11 @@ Data plotting Web application, developed at NCAR EOL.
 
 The following is for RedHat systems, such as CentOS or Fedora.
 
-1. Install required packages
+### Install required packages
 
   This is the same as step one in setting up a development server. See `README-devel.md`.
 
-2. Decide where to put the django code and configuration.
+### Decide where to put the django code and configuration.
 
   We'll call that `$DJROOT`.  Files for production server at EOL have been put on `/var/django`:
 
@@ -29,55 +29,20 @@ The following is for RedHat systems, such as CentOS or Fedora.
   cd ncharts
 ```
 
-3. Create virtual environment
+### Create virtual environment
 
-  A virtual environment allows you to run specific versions of python packages without effecting other users on the system.  These commands will create a django virtual environment in `$DJROOT`:
+See `README-devel.md` for instructions on setting up a pipenv virtual environment with the appropriate packages installed.
 
-  ```sh
-  cd $DJROOT
-  mkdir virtualenv
-  cd virtualenv
-  virtualenv -p /usr/bin/python3 django
+You will then need to set group read/execute permissions on the virtual environment so that the datavis user can use it in production:
 
-  DJVIRT=$DJROOT/virtualenv/django
-  source $DJVIRT/bin/activate
+```sh
+ chmod -R g+rx .venv/
 ```
 
-4. Add other Python packages to virtual environment:
+### Setup postgres server
+  This is the same as in setting up a development server. See `README-devel.md`, if postgres is needed for the RAF database backend.
 
-  ```sh
-  source $DJVIRT/bin/activate
-
-  python3 -m pip install --upgrade django
-  python3 -m pip install --upgrade mod_wsgi
-  python3 -m pip install --upgrade numpy
-  python3 -m pip install --upgrade pytz
-  python3 -m pip install --upgrade netCDF4
-  python3 -m pip install --upgrade pylint_django
-  python3 -m pip install --upgrade psycopg2
-
-  python3 -m pip install django-datetime-widget
-  python3 -m pip install django-timezone-field
-
-  python3 -m pip install python3-memcached
-```
-
-  On RHEL:
-  ```sh
-  sudo mod_wsgi-express install-module
-  sudo sh -c "cat > /etc/httpd/conf.modules.d/10-wsgi-python3.conf"
-# NOTE: mod_wsgi_python3 can not coexist in the same apache process as
-# mod_wsgi (python2).  Only load if mod_wsgi is not already loaded.
-
-<IfModule !wsgi_module>
-    LoadModule wsgi_module modules/mod_wsgi-py34.cpython-34m.so
-</IfModule>
-```
-
-5. Setup postgres server
-  This is the same as step 5 in setting up a development server. See `README-devel.md`.
-
-6. Configuration
+### Configuration
 
   Production settings are set and managed in `datavis/settings/production.py`. `DEBUG` should be set to `False`, as the Django docs warn in several places that using `DEBUG = True` on a production server exposed to the WWW is a security hole.
 
@@ -85,67 +50,68 @@ The following is for RedHat systems, such as CentOS or Fedora.
 
   ```sh
   sudo mkdir /var/log/django
-  sudo chgrp apache /var/log/django
+  sudo chgrp datavis /var/log/django
   sudo chmod g+sw /var/log/django
 
-  sudo mkdir /var/run/django
-  sudo chgrp apache /var/run/django
-  sudo chmod g+sw /var/run/django
+  sudo mkdir /run/django
+  sudo chgrp apache /run/django
+  sudo chmod g+sw /run/django
 
   sudo mkdir /var/lib/django
-  sudo chgrp apache /var/lib/django
+  sudo chgrp datavis /var/lib/django
   sudo chmod g+sw /var/lib/django
   ```
 
   Configure the DATABASES in `datavis/settings/default.py` as discussed in `README-devel.md`.
 
-7. Create the key
+### Create the key
   A Django `SECRET_KEY` must be assigned via the `EOL_DATAVIS_SECRET_KEY` environment variable. To generate a new `SECRET_KEY`:
 
   ```sh
   key=$(python3 -c 'import random; import string; print("".join([random.SystemRandom().choice(string.digits + string.ascii_letters + string.punctuation) for i in range(100)]))')
   export EOL_DATAVIS_SECRET_KEY=$key
 ```
-The key can be passed to Apache from `systemd` by adding a `.conf` service file to `/etc/systemd/system/httpd.service.d/`, *e.g.* `datavis-secret-key.conf`:
+The key can be passed to gunicorn from `systemd` by adding a `.conf` service file to `/etc/systemd/system/gunicorn.service.d/`, *e.g.* `datavis-secret-key.conf`:
 
   ```
 [Service]
 Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 ```
-  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **Apache** will need to be restarted:
+  After updating the `.conf` service file, `systemd` will need to have its daemon reloaded and **gunicorn** will need to be restarted:
 
   ```sh
   sudo systemctl daemon-reload
-  sudo systemctl restart httpd
+  sudo systemctl restart gunicorn
 ```
-8. Initialize the database
+### Initialize the database
 
   This also runs the django migration command, which should also handle the situation when one of the models changes, or is added or deleted:
 
   ```sh
   cd $DJROOT/ncharts
-  ./create_pgdb.sh
-  ./load_db.sh
+  ./create_sqlitedb.sh
 ```
 
-  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, which should not match other passwords.
+  You will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. If the server will be exposed to the internet, you should enter a secure password, which should not match other passwords.
 
   Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history for ncharts:
 
   ```sh
-  ./delete_pgdb.sh
+  rm db.sqlite3
   rm -rf ncharts/migrations
 ```
 
   Then run the create script again.
 
-9. Load the models from the `.json` files in `ncharts/fixtures`:
+   > If using a postgres databse, you will need to run `create_pgdb.sh` instead of `create_sqlitedb.sh` to create a database, and run `delete_pgdb.sh` instead of deleting the sqlite file.
+
+### Load the models from the `.json` files in `ncharts/fixtures`:
 
   ```sh
   ./load_db.sh
 ```
 
-10. Fetch the static files
+### Fetch the static files
 
   To fetch the static files of the supporting software used by ncharts, such as jquery, bootstrap and highcharts do:
 
@@ -173,7 +139,7 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
 
   To see what static files are needed for ncharts, see the `<script>` tags in `ncharts/templates/ncharts/base.html`.
 
-11. Memcached:
+### Memcached
 
   The memory caching in django has been configured to use the memcached daemon, and a unix socket. The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings/production.py`:
 
@@ -184,26 +150,37 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   See above for creating and setting permissions on `VAR_RUN_DIR`.  To setup memcached, do:
 
   ```sh
-  # Configure system to create /var/run/django on each boot
+  # Configure system to create /run/django on each boot
   sudo cp usr/lib/tmpfiles.d/django.conf /usr/lib/tmpfiles.d
   systemd-tmpfiles --create /usr/lib/tmpfiles.d/django.conf
 
-  sudo cp etc/systemd/system/memcached_django.service /etc/systemd/system
-  sudo systemctl daemon.reload
+  sudo cp etc/[datavis-dev or datavis]/systemd/system/memcached_django.service /etc/systemd/system
+  sudo systemctl daemon-reload
   sudo systemctl enable memcached_django.service
   sudo systemctl start memcached_django.service
 ```
 
-12. Configure and start httpd server
+### Configure and start gunicorn server
+We are using [gunicorn](https://gunicorn.org/) to serve ncharts, so the Apache server will just forward requests to gunicorn. Gunicorn has been installed into the virtual environment when it was created. Add the service file to systemd and start the service:
+
+```sh
+sudo cp etc/[datavis-dev or datavis]/systemd/system/gunicorn.service /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable gunicorn.service
+sudo systemctl start gunicorn.service
+```
+You will have to add the secret key .conf file  to `/etc/systemd/system/gunicorn.service.d` as described above.
+
+### Configure and start httpd server
 
   Install the httpd configuration files:
 
   ```sh
-  sudo mv /etc/httpd /etc/httpd.orig
-  sudo cp -r etc/datavis/httpd /etc
+  sudo cp /etc/httpd /etc/httpd.orig
+  sudo cp -r etc/[datavis or datavis-dev]/httpd /etc
 ```
 
-  The httpd configuration file that sets up the wsgi python module for django is `etc/datavis/httpd/conf/vhosts/datavis.conf`, which is installed to `/etc/httpd/conf/vhosts`. The `WSGIScriptAlias` statement in this file tells httpd to run `/var/django/ncharts/datavis/wsgi.py` for all URLs. In this way a production server runs `wsgi.py` instead of `manage.py`, with `DJANGO_SETTINGS_MODULE` set to `datavis.settings.production`.  For information on wsgi, see the django documentation for the current version, for example: `https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/`.
+  The httpd configuration file that sets up the vhost for datavis is `etc/datavis/httpd/conf/vhosts/datavis.conf`, which is installed to `/etc/httpd/conf/vhosts`. The same configuration file exists for datavis-dev.
 
   Tweak the umask of the systemd service, so that apache group members can read/write the log files:
 
@@ -227,18 +204,23 @@ Environment="EOL_DATAVIS_SECRET_KEY=abc-123-CHANGE-ME"
   sudo systemctl start httpd.service
 ```
 
-13. Test!
+### Set up redirect to ncharts
 
-   <http://localhost/ncharts>
+Replace the base index.html of the server with a page that uses an HTML redirect to ncharts.
 
-14. Clearing expired sessions and unattached ClientState objects
-
-  This is done from a crontab on the server:
-
-  ```sh
-  crontab -l
-  MAILTO=user@some.domain       # change to a real email address
-  #
-  # On Sundays, clear expired sessions and then the unattached clients
-  0 0 * * 0 cd /var/django/ncharts; ./datavis-clear.sh
+```sh
+    sudo cp var/[eol-datavis-9 or eol-datavis-dev-9]/www/html/index.html /var/www/html
 ```
+
+### Test!
+
+   <http://localhost/>
+
+### Clearing expired sessions and clients
+
+Install `crontab.datavis` as the datavis user on the server:
+```sh
+sudo su - datavis -c "crontab /var/django/ncharts/crontab.datavis"
+```
+
+This script clears expired sessions and unattached ClientState objects from the ncharts database once a week.

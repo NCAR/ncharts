@@ -14,7 +14,8 @@ DEFAULT_LOG_DIR = LOG_DIR
 LOG_DIR = os.path.join(VAR_DIR, 'log/django')
 PROD_LOG_LEVEL = 'WARNING'
 
-VAR_RUN_DIR = os.path.join(VAR_DIR, 'run/django')
+#VAR_RUN_DIR = os.path.join(VAR_DIR, 'run/django')
+VAR_RUN_DIR = "/run/django"
 VAR_LIB_DIR = os.path.join(VAR_DIR, 'lib/django')
 
 # Update path to database if sqlite is used
@@ -41,17 +42,37 @@ if SECRET_KEY is None:
 # client's browser. Setting ALLOWED_HOSTS to the various names for datavis will
 # result in packets being ignored if they contain other than the following:
 #
-ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210']
+ALLOWED_HOSTS = ['datavis', 'datavis.eol.ucar.edu', 'datavis-dev.eol.ucar.edu', 'localhost', '128.117.82.210', '127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://datavis-dev.eol.ucar.edu',
+    'https://datavis.eol.ucar.edu',      # for prod, once it has a cert
+    'http://datavis-dev.eol.ucar.edu',   # existing; safe to keep during rollout
+    'http://datavis.eol.ucar.edu',       # existing
+]
+
+# ncharts runs behind Apache, which terminates TLS and proxies to gunicorn over
+# plain HTTP. Trust Apache's X-Forwarded-Proto so request.is_secure() is correct.
+# Apache sets the header with `RequestHeader set` (overwriting any client value),
+# so clients cannot spoof it.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# All HTTP is redirected to HTTPS at Apache, so cookies can be HTTPS-only.
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Leave the HTTP->HTTPS redirect to Apache (the :80 vhost). Do NOT set
+# SECURE_SSL_REDIRECT here; with the proxy header it is redundant and risks a loop.
 
 # People who should receive emails of ERRORs
 ADMINS = (
-    ('Gordon Maclean', 'gordondmaclean@gmail.com'),
+    ('Isabel Suhr', 'isabels@ucar.edu'),
     ('Gary Granger', 'granger@ucar.edu'),
 )
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'unix:' + os.path.join(VAR_RUN_DIR, 'django_memcached.sock'),
         # 'LOCATION': '127.0.0.1:11211',
         'TIMEOUT': 300, # 300 seconds is the default

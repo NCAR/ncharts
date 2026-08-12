@@ -17,8 +17,7 @@ from ncharts import models as nc_models
 from ncharts import forms as nc_forms
 from ncharts import netcdf as nc_netcdf
 
-from datetime import datetime, timedelta
-from pytz import timezone, utc
+from datetime import datetime, timedelta, timezone
 
 from django.conf import settings
 
@@ -33,12 +32,14 @@ class ModelTestCase(test.TestCase):
         mtntz = nc_models.TimeZone.objects.create(tz='US/Mountain')
 
         nc_models.Project.objects.create(
-            name="Weather"
+            name="Weather",
+            start_year=2013
         )
 
         proj = nc_models.Project.objects.create(
             name="SCP",
-            location='Pawnee Grasslands')
+            location='Pawnee Grasslands',
+            start_year=2012)
 
         proj.timezones.add(utctz)
         proj.timezones.add(mtntz)
@@ -53,8 +54,8 @@ class ModelTestCase(test.TestCase):
                 settings.BASE_DIR,
                 'ncharts/tests/data/netcdf_scp_geo_tilt_cor'),
             filenames='isfs_qc_gtc_%Y%m%d.nc',
-            start_time=datetime(2012, 9, 20, 0, 0, 0, tzinfo=utc),
-            end_time=datetime(2012, 10, 11, 0, 0, 0, tzinfo=utc),
+            start_time=datetime(2012, 9, 20, 0, 0, 0, tzinfo=timezone.utc),
+            end_time=datetime(2012, 10, 11, 0, 0, 0, tzinfo=timezone.utc),
             project=nc_models.Project.objects.get(name="SCP"))
 
 
@@ -72,8 +73,6 @@ class ModelTestCase(test.TestCase):
         isfs = nc_models.Platform.objects.filter(name="ISFS")[0]
         iss = nc_models.Platform.objects.filter(name="ISS")[0]
         spol = nc_models.Platform.objects.filter(name="S-Pol")[0]
-
-        mtn = timezone("US/Mountain")
 
         self.assertEqual(len(isfs.projects.all()), 0)
         self.assertEqual(len(iss.projects.all()), 0)
@@ -117,7 +116,7 @@ class ModelTestCase(test.TestCase):
         client_state = nc_models.ClientState.objects.create(
             dataset = dset,
             timezone = "US/Mountain",
-            start_time = datetime(2013, 9, 27, 0, 0, 0, tzinfo=utc),
+            start_time = datetime(2013, 9, 27, 0, 0, 0, tzinfo=timezone.utc),
             time_length = 86400,
             track_real_time = True
             )
@@ -148,10 +147,10 @@ class ModelTestCase(test.TestCase):
         dset = nc_models.FileDataset.objects.get(name='scp_geo_tilt_cor')
 
         delta = timedelta(days=ndays)
-        start_time = datetime(2012, 10, 1, 0, 0, 1, tzinfo=utc)
+        start_time = datetime(2012, 10, 1, 0, 0, 1, tzinfo=timezone.utc)
         end_time = start_time + delta
 
-        rvars = ['w_1m', 'w_2m_C', 'counts_2m_C']
+        rvars = ['w.1m', 'w.2m.C', 'counts_2m_C']
 
         ncset = dset.get_netcdf_dataset()
 
@@ -175,7 +174,7 @@ class ModelTestCase(test.TestCase):
 
         # rvars = ncvars[0:2]
 
-        sdim = {'station': [-1, 4]}
+        sdim = {'station': [4]}
         tsd = ncset.read_time_series(
             rvars, start_time, end_time, selectdim=sdim)
 
@@ -185,28 +184,29 @@ class ModelTestCase(test.TestCase):
         # print("len(tsd['time'][''])={}".format(len(tsd['time'][''])))
 
         # ndays of 5 minute data
-        self.assertEqual(len(tsd['time']['']), 86400/(5*60) * ndays)
-        self.assertEqual(len(tsd['data']['']), len(rvars))
+        self.assertEqual(len(tsd['']['time']), 86400/(5*60) * ndays)
+        self.assertEqual(len(tsd['']['data']), len(rvars))
 
-        for var in tsd['data']['']:
-            self.assertEqual(len(tsd['time']['']), tsd['data'][''][var].shape[0])
+        for var in tsd['']['data']:
+            self.assertEqual(len(tsd['']['time']), var.shape[0])
             self.assertTrue(
-                tsd['data'][''][var].shape[1:] == (1,) or
-                tsd['data'][''][var].shape[1:] == ())
+                var.shape[1:] == (1,) or
+                var.shape[1:] == ())
 
         # check some data values for a given time
-        xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=utc).timestamp()
+        xtime = datetime(2012, 10, 2, 0, 7, 30, tzinfo=timezone.utc).timestamp()
 
-        self.assertTrue(xtime in tsd['time'][''])
-        ixtime = tsd['time'][''].index(xtime)
+        self.assertTrue(xtime in tsd['']['time'])
+        ixtime = tsd['']['time'].index(xtime)
 
         ixtime_expected = int((xtime-start_time.timestamp()) / (5*60))
         self.assertEqual(ixtime, ixtime_expected)
 
         # print("tsd['data']['w_1m'][ixtime]=",tsd['data']['w_1m'][ixtime])
-        ntp.assert_almost_equal(tsd['data']['']['w_1m'][ixtime], -0.02494044)
-        ntp.assert_almost_equal(tsd['data']['']['counts_2m_C'][ixtime], 6000)
+        vmap = tsd['']['vmap']
+        ntp.assert_almost_equal(tsd['']['data'][vmap['w.1m']][ixtime], -0.02494044)
+        ntp.assert_almost_equal(tsd['']['data'][vmap['counts_2m_C']][ixtime], 6000)
 
-        ntp.assert_allclose(tsd['data']['']['w_1m'][ixtime], -0.02494044)
-        ntp.assert_allclose(tsd['data']['']['counts_2m_C'][ixtime], 6000)
+        ntp.assert_allclose(tsd['']['data'][vmap['w.1m']][ixtime], -0.02494044)
+        ntp.assert_allclose(tsd['']['data'][vmap['counts_2m_C']][ixtime], 6000)
 

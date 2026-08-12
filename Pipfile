@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = ">=5.2.16"
+netcdf4 = "*"
+django-timezone-field = "*"
+pymemcache = "*"
+gunicorn = "*"
+numpy = "*"
+psycopg2-binary = "*"
+psycopg2 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"
+python_full_version = ">=3.12.1"

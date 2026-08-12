@@ -14,14 +14,12 @@ import os
 import logging
 from collections import OrderedDict
 from copy import deepcopy
-import datetime
-
-import pytz
+from datetime import datetime, timezone, timedelta
 
 from django.db import models, transaction
 
 from django.core import exceptions as dj_exc
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 from django.core.validators import validate_comma_separated_integer_list
 
@@ -33,13 +31,12 @@ _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 # Categories of ISFS variables. Used in creating tabs
 ISFS_VARIABLE_TYPES = {
-    "Met": ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan", "Rainr", "Raina", "Tc"],
+    "Met": ["T", "RH", "P", "Spd", "Spd_max", "Dir", "U", "V", "Ifan", "Rainr", "Raina", "Tc", "q", "mr"],
     "Rad": ["Rnet", "Rsw", "Rlw", "Rpile", "Rpar", "Tcase", "Tdome", "Wetness"],
     "Soil": ["Tsoil", "dTsoil_dt", "Qsoil", "Gsoil", "Vheat", "Vpile", \
         "Tau63", "Lambdasoil", "asoil", "Cvsoil", "Gsfc"],
     "3D_Wind": ["u", "v", "w", "ldiag", "diagbits", "spd", "spd_max", "dir"],
-    "Scalar": ["tc", "t", "h2o", "co2", "kh2o", "o3", "q", "mr", "irgadiag", \
-        "p"],
+    "Gas": ["tc", "t", "h2o", "co2", "kh2o", "o3", "irgadiag", "p"],
     "Power": ["Vbatt", "Tbatt", "Iload", "Icharge", "Vmote", "Vdsm"],
     "GPS_Time": ["GPSnsat", "GPSstat", "Stratum", "Timeoffset"]
 }
@@ -50,7 +47,7 @@ ISFS_TABS = OrderedDict([
     ("Rad", {"tooltip":"Radiation Variables", "variables":[]}),
     ("Soil", {"tooltip":"Soil Variables", "variables":[]}),
     ("3D_Wind", {"tooltip":"3D Wind Variables", "variables":[]}),
-    ("Scalar", {"tooltip":"Fast Scalar Variables", "variables":[]}),
+    ("Gas", {"tooltip":"Gas Analyzer Variables", "variables":[]}),
     ("Power", {"tooltip":"Battery and Solar Power", "variables":[]}),
     ("GPS_Time", {"tooltip":"GPS and timekeeping", "variables":[]}),
     ("Other", {"tooltip":"Other Variables", "variables":[]}),
@@ -179,13 +176,13 @@ class Project(models.Model):
     long_name = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('More detailed description of the project'))
+        help_text=gettext_lazy('More detailed description of the project'))
 
     timezones = models.ManyToManyField(
         TimeZone,
         blank=True,
         related_name='+',
-        help_text=ugettext_lazy('Supported timezones for plotting data of this project'))
+        help_text=gettext_lazy('Supported timezones for plotting data of this project'))
 
     start_year = models.IntegerField()
 
@@ -205,7 +202,7 @@ class Project(models.Model):
         """
 
         res = {}
-        now = datetime.datetime.now()
+        now = datetime.now()
 
         for project in projects:
             if project.end_year is None:
@@ -235,7 +232,7 @@ class Platform(models.Model):
     long_name = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('More detailed description of the platform'))
+        help_text=gettext_lazy('More detailed description of the platform'))
 
     # This adds a platform_set attribute to Project.
     projects = models.ManyToManyField(Project)
@@ -300,22 +297,22 @@ class Dataset(models.Model):
 
     name = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('The name of a dataset should be unique within a project'))
+        help_text=gettext_lazy('The name of a dataset should be unique within a project'))
 
     long_name = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('More detailed description of a dataset'))
+        help_text=gettext_lazy('More detailed description of a dataset'))
 
     url = models.URLField(
         blank=True,
         max_length=200,
-        help_text=ugettext_lazy('The URL that specifies the complete project dataset'))
+        help_text=gettext_lazy('The URL that specifies the complete project dataset'))
 
     status = models.CharField(
         blank=True,
         max_length=256,
-        help_text=ugettext_lazy('Current status of the project dataset'))
+        help_text=gettext_lazy('Current status of the project dataset'))
 
     # This adds a dataset_set attribute to Project
     # on_delete=models.CASCADE (default behavior): when a project is
@@ -323,16 +320,16 @@ class Dataset(models.Model):
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
-        help_text=ugettext_lazy('A dataset is associated with one project'))
+        help_text=gettext_lazy('A dataset is associated with one project'))
 
     # This adds a dataset_set attribute to Platform
     platforms = models.ManyToManyField(
         Platform,
-        help_text=ugettext_lazy('A dataset is associated with one or more platforms'))
+        help_text=gettext_lazy('A dataset is associated with one or more platforms'))
 
     timezones = models.ManyToManyField(
         TimeZone,
-        help_text=ugettext_lazy('Overrides the timezones of the project'))
+        help_text=gettext_lazy('Overrides the timezones of the project'))
 
     start_time = models.DateTimeField()
 
@@ -340,12 +337,12 @@ class Dataset(models.Model):
 
     location = models.CharField(
         max_length=256, blank=True,
-        help_text=ugettext_lazy("Location for dataset if different than for project"))
+        help_text=gettext_lazy("Location for dataset if different than for project"))
 
     dset_type = models.CharField(
         blank=True,
         max_length=16,
-        help_text=ugettext_lazy('Type of dataset: time-series, sounding'))
+        help_text=gettext_lazy('Type of dataset: time-series, sounding'))
 
     # '+' tells django not to create a backwards relation from
     # Variable to Dataset
@@ -378,7 +375,7 @@ class Dataset(models.Model):
         #    self.start_time.isoformat())
         if self.start_time.tzinfo is None or \
                 self.start_time.tzinfo.utcoffset(self.start_time) is None:
-            self.start_time = pytz.utc.localize(self.start_time)
+            self.start_time = self.start_time.replace(tzinfo=timezone.utc)
             _logger.debug(
                 "Dataset localized start_time: %s",
                 self.start_time.isoformat())
@@ -397,7 +394,7 @@ class Dataset(models.Model):
         #       self.end_time.isoformat())
         if self.end_time.tzinfo is None or \
                 self.end_time.tzinfo.utcoffset(self.end_time) is None:
-            self.end_time = pytz.utc.localize(self.end_time)
+            self.end_time = self.end_time.replace(tzinfo=timezone.utc)
             _logger.debug(
                 "Dataset localized end_time: %s",
                 self.end_time.isoformat())
@@ -500,12 +497,12 @@ class FileDataset(Dataset):
 
     directory = models.CharField(
         max_length=256,
-        help_text=ugettext_lazy('Path to the directory containing the files for this dataset'))
+        help_text=gettext_lazy('Path to the directory containing the files for this dataset'))
 
     # format of file names, often containing timedate descriptors: %Y etc
     filenames = models.CharField(
         max_length=256,
-        help_text=ugettext_lazy('Format of file names, often containing ' \
+        help_text=gettext_lazy('Format of file names, often containing ' \
             'timedate descriptors such as %Y'))
 
     def get_fileset(self):
@@ -576,8 +573,8 @@ class FileDataset(Dataset):
     def get_series_tuples(
             self,
             series_name_fmt="",
-            start_time=pytz.utc.localize(datetime.datetime.min),
-            end_time=pytz.utc.localize(datetime.datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Get the names of the series between the start and end times.
         """
         if self.dset_type != "sounding":
@@ -594,8 +591,8 @@ class FileDataset(Dataset):
     def get_series_names(
             self,
             series_name_fmt="",
-            start_time=pytz.utc.localize(datetime.datetime.min),
-            end_time=pytz.utc.localize(datetime.datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Get the names of the series between the start and end times.
         """
         if self.dset_type != "sounding":
@@ -616,27 +613,27 @@ class DBDataset(Dataset):
 
     dbname = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database name'))
+        help_text=gettext_lazy('Database name'))
 
     host = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database host'))
+        help_text=gettext_lazy('Database host'))
 
     user = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database user'))
+        help_text=gettext_lazy('Database user'))
 
     password = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database password'))
+        help_text=gettext_lazy('Database password'))
 
     port = models.IntegerField(
         default=5432,
-        help_text=ugettext_lazy('Database port number, defaults to 5432'))
+        help_text=gettext_lazy('Database port number, defaults to 5432'))
 
     table = models.CharField(
         max_length=128,
-        help_text=ugettext_lazy('Database table name'))
+        help_text=gettext_lazy('Database table name'))
 
 
     def get_connection(self):
@@ -716,7 +713,7 @@ class ClientState(models.Model):
     # related ClientStates, due to related_name='+'.
     dataset = models.ForeignKey(
         Dataset,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         related_name='+')
 
     timezone = TimeZoneField(blank=False)
@@ -725,7 +722,7 @@ class ClientState(models.Model):
 
     time_length = models.FloatField(
         blank=False, validators=[validate_positive],
-        default=datetime.timedelta(days=1).total_seconds())
+        default=timedelta(days=1).total_seconds())
 
     track_real_time = models.BooleanField(default=False)
 

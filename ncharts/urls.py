@@ -10,10 +10,9 @@ The license and distribution terms for this file may be found in the
 file LICENSE in this package.
 """
 
-from django.conf.urls import url
+from django.urls import path
 
 from django.views.decorators.cache import never_cache
-from django.views.generic import TemplateView
 
 from ncharts import views
 
@@ -31,28 +30,28 @@ from ncharts import views
 app_name = 'ncharts'
 
 urlpatterns = [
-    url(r'^$', views.projects_platforms, name='projectsPlatforms'),
+    path('', views.projects_platforms, name='projectsPlatforms'),
 
-    url(r'^help/?$', views.StaticView.as_view(), {'page': 'ncharts/help.html'}),
+    path('help/', views.StaticView.as_view(), {'page': 'ncharts/help.html'}),
 
-    url(r'^projects/?$', views.projects, name='projects'),
+    path('projects/', views.projects, name='projects'),
 
-    url(r'^projects/(?P<project_name>[^/]+)/?$', views.project, name='project'),
+    path('projects/<project_name>/', views.project, name='project'),
 
     # Don't cache the dataset, so that we can display the user's
     # previous selection, and not what was cached.
-    url(r'^projects/(?P<project_name>[^/]+)/(?P<dataset_name>[^/]+)/?$',
+    path('projects/<project_name>/<dataset_name>/',
         never_cache(views.DatasetView.as_view()), name='dataset'),
 
-    url(r'^platforms/?$', views.platforms, name='platforms'),
+    path('platforms/', views.platforms, name='platforms'),
 
     # display list of projects for a platform, user selects project
-    url(r'^platforms/(?P<platform_name>[^/]+)/?$', views.platform,
+    path('platforms/<platform_name>/', views.platform,
         name='platform'),
 
-    url(r'^platforms/(?P<platform_name>[^/]+)/(?P<project_name>[^/]+)/?$',
+    path('platforms/<platform_name>/<project_name>/',
         views.platform_project, name='platformProject'),
 
-    url(r'^data/(?P<project_name>[^/]+)/(?P<dataset_name>[^/]+)/?$',
+    path('data/<project_name>/<dataset_name>/',
         never_cache(views.DataView.as_view()), name='ajax-data'),
 ]

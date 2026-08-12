@@ -14,7 +14,7 @@ file LICENSE in this package.
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import threading
 import operator
@@ -25,7 +25,6 @@ from functools import reduce as reduce_
 
 import numpy as np
 import netCDF4
-import pytz
 
 from ncharts import exceptions as nc_exc
 from ncharts import fileset as nc_fileset
@@ -51,7 +50,7 @@ def get_file_modtime(path):
         raise
 
     return datetime.fromtimestamp(
-        pstat.st_mtime, tz=pytz.utc)
+        pstat.st_mtime, tz=timezone.utc)
 
 def get_isfs_site(varname):
     """Use regular expression to extract a site name from an ISFS variable name.
@@ -196,8 +195,8 @@ class NetCDFDataset(object):
 
     def get_files(
             self,
-            start_time=pytz.utc.localize(datetime.min),
-            end_time=pytz.utc.localize(datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Return the fileset.File objects matching a time period.
 
         Args:
@@ -214,8 +213,8 @@ class NetCDFDataset(object):
 
     def get_filepaths(
             self,
-            start_time=pytz.utc.localize(datetime.min),
-            end_time=pytz.utc.localize(datetime.max)):
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc)):
         """Return the file path names matching the time period.
         Args:
             start_time: datetime.datetime of start of fileset scan.
@@ -731,10 +730,13 @@ class NetCDFDataset(object):
             if hasattr(var, "units") and 'since' in var.units:
                 try:
                     # times from netCDF4.num2date are timezone naive.
-                    # Use replace(tzinfo=pytz.UTC) to assign a timezone.
+                    # Use replace(tzinfo=timezone.utc) to assign a timezone,
+                    # which requires using python datetimes rather than cftime
                     tvals = [
-                        d.replace(tzinfo=pytz.UTC).timestamp() for d in
-                        netCDF4.num2date(var[:], var.units, 'standard')]
+                        d.replace(tzinfo=timezone.utc).timestamp() for d in
+                        netCDF4.num2date(var[:], var.units, 'standard',
+                                         only_use_python_datetimes=True,
+                                         only_use_cftime_datetimes=False)]
 
                 except IndexError as exc:
                     # most likely has a dimension of 0
@@ -806,8 +808,8 @@ class NetCDFDataset(object):
                     "%s: times in file are not ordered, start_time=%s,"
                     "end_time=%s, file times=%s - %s, istart=%d, iend=%d",
                     ncpath, start_time.isoformat(), end_time.isoformat(),
-                    datetime.fromtimestamp(tvals[0], tz=pytz.utc).isoformat(),
-                    datetime.fromtimestamp(tvals[-1], tz=pytz.utc).isoformat(),
+                    datetime.fromtimestamp(tvals[0], tz=timezone.utc).isoformat(),
+                    datetime.fromtimestamp(tvals[-1], tz=timezone.utc).isoformat(),
                     istart, iend)
                 return slice(0)
             elif debug:
@@ -816,10 +818,10 @@ class NetCDFDataset(object):
                     "start_time=%s, end_time=%s",
                     ncpath, istart,
                     datetime.fromtimestamp(
-                        tvals[istart], tz=pytz.utc).isoformat(),
+                        tvals[istart], tz=timezone.utc).isoformat(),
                     iend,
                     datetime.fromtimestamp(
-                        tvals[iend-1], tz=pytz.utc).isoformat(),
+                        tvals[iend-1], tz=timezone.utc).isoformat(),
                     start_time.isoformat(),
                     end_time.isoformat())
 
@@ -986,8 +988,8 @@ class NetCDFDataset(object):
     def read_time_series(
             self,
             variables=(),
-            start_time=pytz.utc.localize(datetime.min),
-            end_time=pytz.utc.localize(datetime.max),
+            start_time=datetime.min.replace(tzinfo=timezone.utc),
+            end_time=datetime.max.replace(tzinfo=timezone.utc),
             selectdim=None,
             size_limit=1000 * 1000 * 1000,
             series=None,
@@ -1014,7 +1016,7 @@ class NetCDFDataset(object):
                 named series.  If series_fmt is None, the series name
                 should be a list of one empty string, [''],
                 and all data are concatenated together in time order.
-            series_fmt: a datetime.strftime format to create a
+            series_name_fmt: a datetime.strftime format to create a
                 series name for the data found in each file, based
                 on the time associated with the file.
                 If series_name_fmt is None, all data is put in a dictionary

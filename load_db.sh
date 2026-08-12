@@ -7,13 +7,11 @@ if [ $# -gt 0 -a "$1" == -d ]; then
 fi
 
 if $prod; then
-    DJROOT=${DJROOT:-/var/django}
-    DJVIRT=${DJVIRT:-$DJROOT/virtualenv/django}
     export DJANGO_SETTINGS_MODULE=datavis.settings.production
-else
-    DJVIRT=${DJVIRT:-$HOME/virtualenvs/django}
 fi
 
+DJROOT=${DJROOT:-/var/django}
+DJVIRT=${DJVIRT:-$DJROOT/ncharts/.venv}
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
 

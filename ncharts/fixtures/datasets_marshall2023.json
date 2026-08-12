@@ -6,7 +6,7 @@
             "ISFS"
         ],
         "start_time": "2023-12-01T00:00:00+00:00",
-        "end_time": "2024-12-31T00:00:00+00:00",
+        "end_time": "2033-12-31T00:00:00+00:00",
         "location": "Marshall Field Site, Boulder, CO",
         "name": "noqc_instrument",
         "long_name": "MARSHALL2023, preliminary data, winds in instrument coordinates",
@@ -32,7 +32,7 @@
             "ISFS"
         ],
         "start_time": "2023-12-01T00:00:00+00:00",
-        "end_time": "2024-12-31T00:00:00+00:00",
+        "end_time": "2033-12-31T00:00:00+00:00",
         "location": "Marshall Field Site, Boulder, CO",
         "name": "noqc_geo",
         "long_name": "MARSHALL2023, preliminary data, winds in geographic coordinates",

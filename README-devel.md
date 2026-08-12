@@ -6,41 +6,26 @@ Data plotting Web application, developed at NCAR EOL.
 
 The following is for RedHat systems, such as CentOS or Fedora.
 
-1. Install required packages
+### Install required packages
 
-   As of Aug 2017, python34 is available from the EPEL repositories for
-   RHEL7 systems.
+To install the required RPMs:
 
-  To install the required RPMs:
+As of Jan 25, python 3.12 is the most recent version available on yum. We want to download it so pipenv can find and use a recent python version.
 
-  On RHEL7:
+  On RHEL/Alma:
   ```sh
-  sudo yum install python34 python34-libs python34-setuptools python34-devel
+  sudo yum install python3.12
         memcached netcdf-devel hdf5-devel postgresql-devel postgresql-server postgresql-contrib
-  sudo easy_install-3.4 pip
 ```
-
-  On Fedora:
-
-  ```sh
-  sudo yum install python3 python3-pip python3-memcached \
-        memcached python3-mod_wsgi python3-devel netcdf-devel hdf5-devel \
-        postgresql-devel postgresql-server postgresql-contrib
 ```
-
-  ```sh
-  sudo python3 -m pip install virtualenv
-
-  sudo python3 -m pip install virtualenvwrapper
-
   # tools for managing static files
   sudo yum install npm
-  sudo npm install -g bower
+  sudo yum install yarn
 ```
 
-2. Decide where to put the django code and configuration.
+### Decide where to put the django code and configuration.
 
-  We'll call that `$DJROOT`.  On a development server you can put it anywhere you want:
+We'll call that `$DJROOT`.  On a development server you can put it anywhere you want:
 
   ```sh
   export DJROOT=$HOME/git     # for example
@@ -48,62 +33,45 @@ The following is for RedHat systems, such as CentOS or Fedora.
   git clone https://github.com/ncareol/ncharts.git
   ```
 
-3. Create virtual environment
+### Create virtual environment
 
-  A virtual environment allows you to run specific versions of python packages without affecting other users on the system. These commands will create a django virtual environment in your `$HOME` directory:
+A virtual environment allows you to run specific versions of python packages without affecting other users on the system. These commands will create a django virtual environment in the ncharts directory.
 
-  ```sh
-  mkdir $HOME/virtualenvs
-  cd $HOME/virtualenvs
-  virtualenv -p /usr/bin/python3 django
+We use [pipenv](https://pipenv.pypa.io/en/latest/index.html) to manage the virtual environment, both the python version and the packages to be installed. So far, pipenv's recommended installation method has worked:
+
+`pip install --user --upgrade pipenv`
+
+Once `pipenv` is installed, it can look at the project's Pipfile and automatically install the specified versions of all the project's python dependencies.
+
+Setting the `PIPENV_VENV_IN_PROJECT` environment variable will have pipenv create the `.venv` directory within the current project, rather than in your user's home directory.
+
+```sh 
+PIPENV_VENV_IN_PROJECT=1 pipenv install
 ```
 
-  On Fedora, had to do:
+You may get errors about pipenv being unable to find the version of python required by the pipfile. If the python version you want to use isn't symlinked to `python` you can use the `--python` option in pipenv to specify the path to the version:
 
-  ```sh
-  virtualenv-3.4 -p /usr/bin/python3 django
+```sh
+PIPENV_VENV_IN_PROJECT=1 pipenv --python /bin/python3.12 install
 ```
-
    Activate that virtual environment:
 
   ```sh
-  source $HOME/virtualenvs/django/bin/activate
+pipenv shell
 ```
-  The activation needs to be done once for each shell. To make it easier, you can create an alias in your `$HOME/.bashrc`:
+Or activate the virtual environment to run a specific command with `pipenv run`. The activation needs to be done once for each shell. To make it easier, you can create an alias in your `$HOME/.bashrc`:
 
   ```sh
-  alias djvirt='source $HOME/virtualenvs/django/bin/activate'
+  alias djvirt='source $DJROOT/ncharts/.venv/bin/activate'
 ```
 
   If you have setup a virtual environment as above, the shell scripts described below, such as migrate_db.sh, load_db.sh, get_static_files.sh and runserver.sh will activate the virtual environment as necessary.
 
-4. Add other Python packages to virtual environment:
+### Setup postgres server
 
-  ```sh
-   source $HOME/virtualenvs/django/bin/activate
+> Note: as of 2/2025, ncharts is using the sqlite3 backend for the django database. Setting up postgres will only be necessary if using the RAF database backend as a data source.
 
-   python3 -m pip install --upgrade django
-
-   # to install a specific version of django
-   python3 -m pip install --upgrade django==1.11.17
-   python3 -m pip install --upgrade numpy
-   python3 -m pip install --upgrade pytz
-   python3 -m pip install --upgrade netCDF4
-   python3 -m pip install --upgrade pylint_django
-   python3 -m pip install --upgrade psycopg2
-```
-
-   Python3 version of django-datetime-widge and timezone support:
-
-  ```sh
-  python3 -m pip install django-datetime-widget
-  python3 -m pip install django-timezone-field
-  python3 -m pip install python3-memcached
-```
-
-5. Setup postgres server
-
-   The installation should have created `/var/lib/pgsql/data/pg_hba.conf`, with a first configuation line of
+The installation should have created `/var/lib/pgsql/data/pg_hba.conf`, with a first configuation line of
   ```sh
 local   all             all                                 peer
 ```
@@ -124,12 +92,12 @@ local   all             all                                 peer
   Initialize postgres, and start the server:
 
   ```sh
-   sudo postgresql-setup --initdb --init postgresql
+   sudo postgresql-setup --initdb
    sudo systemctl enable postgresql
    sudo systemctl start postgresql
 ```
 
-6. Configuration
+### Configuration
    ```sh
    cd $DJROOT/ncharts
 ```
@@ -147,24 +115,24 @@ local   all             all                                 peer
   The memcached socket is on `VAR_RUN_DIR`.
   If a sqlite database is used, it is on `VAR_LIB_DIR`.
 
-  For a postgres database, `datavis/settings/default.py` should contain:
-  ```sh
-  DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ncharts',
-        'CONN_MAX_AGE': 10,
-    }
-  }
-```
-
-  If, instead, a sqlite database is to be used, the settings are:
+  To use the sqlite3 database backend for ncharts (which is currently used in production), `datavis/settings/default.py` should contain:
   ```sh
   DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
         'OPTIONS': {'timeout': 60,},
+    }
+  }
+```
+
+  To use a postgres database instead, `datavis/settings/default.py` should contain:
+  ```sh
+  DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ncharts',
+        'CONN_MAX_AGE': 10,
     }
   }
 ```
@@ -179,27 +147,30 @@ local   all             all                                 peer
   python3 manage.py version 
 ```
 
-7. Initialize the database.
+### Initialize the database
 
   This runs the django migrate command, which should also handle the situation of a change in the models:
 
   ```sh
    cd $DJROOT/ncharts
-  ./create_pgdb.sh -d
+  ./create_sqlitedb.sh -d
 ```
 
   The -d option indicates this is a development server.  If the database has not been created yet, you will be prompted to enter an administrator's user name, email and password. You can use your own user name and email address. The security of the password is not critical for a development server if it is not exposed to the internet. I'd suggest not using your UCAS or EOL server password.
 
+  The -d option creates the database file `db.sqlite3` in the ncharts base directory.
+
   Migrations in django are a bit complicated. If the above script fails you may have to reset the migration history:
 
   ```sh
-  ./delete_pgdb.sh -d
+  rm db.sqlite3
   rm -rf ncharts/migrations
 ```
-
   Then run the create script again.
 
-8. Load the models from the .json files in ncharts/fixtures:
+  > If using a postgres databse, you will need to run `create_pgdb.sh` instead of `create_sqlitedb.sh` to create a database, and run `delete_pgdb.sh` instead of deleting the sqlite file.
+
+### Load the models from the .json files in ncharts/fixtures:
 
   ```sh
   ./load_db.sh -d
@@ -207,7 +178,7 @@ local   all             all                                 peer
 
   The `-d` option indicates this is a development server.
 
-9. Fetch the static files
+### Fetch the static files
 
   To fetch the static files of the supporting software such as jquery, bootstrap and highcharts do:
 
@@ -221,7 +192,7 @@ local   all             all                                 peer
 
   On development server, these static filies will be automatically found and served by the django.contrib.staticfiles django application.
 
-9. Memcached:
+### Memcached
 
   The memory caching in django has been configured to use the memcached daemon, and a unix socket.  The location of the unix socket is specified as `CACHES['LOCATION']` in `datavis/settings.py`:
 
@@ -238,17 +209,17 @@ local   all             all                                 peer
   memcached -s ./django_memcached.sock -d
 ```
 
-10. Start server:
+### Start server
 
   ```sh
   ./runserver.sh
 ```
 
-11. Test!
+### Test!
 
   <http://127.0.0.1:8000/ncharts>
 
-12. To test the production settings with a development server, set environment variables before running runserver.sh:
+To test the production settings with a development server, set environment variables before running runserver.sh:
 ```sh
 export DJANGO_SETTINGS_MODULE=datavis.settings.production
 export EOL_DATAVIS_SECRET_KEY=test

@@ -13,27 +13,17 @@ file LICENSE in this package.
 import datetime
 import sys
 import logging
-import pytz
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django import forms
 from django.contrib import messages
-
-# Support for the datetimewidget has declined.
-# https://github.com/asaglimbeni/django-datetime-widget
-# A simple pull request in Sep 2018 to support django 2.1
-# has not been incorporated, and the package that is easily
-# installed with pip does not have that fix.  It wouldn't be difficult
-# to build the package ourselves, but maybe it is time to switch
-# to some other widget.  For some alternatives, see:
-# https://simpleisbetterthancomplex.com/tutorial/2019/01/03/how-to-use-date-picker-with-django.html
-from datetimewidget import widgets as dt_widgets
 
 from ncharts import exceptions as nc_exc
 
 _logger = logging.getLogger(__name__)   # pylint: disable=invalid-name
 
 TIME_UNITS_CHOICES = ['day', 'hour', 'minute', 'second']
-TIME_LEN_CHOICES = [1, 2, 4, 5, 7, 8, 12, 24, 30]
+TIME_LEN_CHOICES = [1, 2, 4, 5, 7, 8, 12, 24, 30, 100, 365]
 
 class FloatWithChoiceWidget(forms.MultiWidget):
     """MultiWidget for use with FloatWithChoiceField.
@@ -139,10 +129,10 @@ def timezone_coerce(tzstr):
     """Function to coerce a string to a timezone.
     """
     try:
-        return pytz.timezone(tzstr)
-    except pytz.UnknownTimeZoneError as exc:
+        return ZoneInfo(tzstr)
+    except ZoneInfoNotFoundError as exc:
         _logger.error("timezone_coerce: %s", exc)
-    return pytz.utc
+    return ZoneInfo('UTC')
 
 class DataSelectionForm(forms.Form):
     """Form for selection of dataset parameters, such as time and variables.
@@ -164,14 +154,8 @@ class DataSelectionForm(forms.Form):
     # pickerPosition: bottom-right, bottom-left
     #       popup calendar box is to lower left or right of textbox & icon
     start_time = forms.DateTimeField(
-        widget=dt_widgets.DateTimeWidget(
-            bootstrap_version=3,
-            options={
-                'format': 'yyyy-mm-dd hh:ii',
-                'clearBtn': 0,
-                'todayBtn': 0,
-                'pickerPosition': 'bottom-right'
-            }))
+        widget=forms.TextInput(attrs={'type': 'datetime-local'})
+        )
 
     # this should only be enabled if the end time of the project
     # is in the future.
@@ -413,7 +397,7 @@ class DataSelectionForm(forms.Form):
 
         # the time fields are in the browser's timezone. Use those exact fields,
         # but interpret them in the dataset timezone
-        return timezone.localize(start_time.replace(tzinfo=None))
+        return start_time.replace(tzinfo=timezone)
 
 
     def too_much_data(self, exc):

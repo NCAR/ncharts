@@ -3,3 +3,4 @@ __pycache__
 log
 /.vagrant*
 static
+node_modules/

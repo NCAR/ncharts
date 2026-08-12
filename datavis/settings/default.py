@@ -62,8 +62,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'django.contrib.formtools',
-    'datetimewidget',
     'timezone_field',
     'ncharts',
 )
@@ -102,6 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
@@ -121,6 +120,11 @@ DATABASES = {
         'NAME': os.path.join(VAR_LIB_DIR, 'db.sqlite3'),
         'OPTIONS': {'timeout': 60,},
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'ncharts',
+    #     'CONN_MAX_AGE': 10,
+    # }
 }
 
 # Internationalization
@@ -180,7 +184,7 @@ LOGGING = {
         'requests': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_DIR, 'nchart_reqests.log'),
+            'filename': os.path.join(LOG_DIR, 'ncharts_requests.log'),
             'when': 'W6', 'interval': 1, 'backupCount': 0, 'utc': False,
             'formatter': 'request'
         },
@@ -236,3 +240,5 @@ LOGGING = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 INTERNAL_IPS = ['128.117', '127.0.0.1']
+
+DEFAULT_AUTO_FIELD= 'django.db.models.AutoField'

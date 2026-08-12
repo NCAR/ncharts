@@ -1,7 +1,7 @@
 from ncharts.models import Project, Platform, FileDataset, UserSelection, Variable, TimeZone
 
-from pytz import timezone, utc
-from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+from datetime import datetime
 
 from django.core import serializers
 
@@ -9,8 +9,8 @@ mtntz = TimeZone.objects.create(tz='US/Mountain')
 objs = TimeZone.objects.all()
 serializers.serialize('json',objs)
 
-mttz = timezone("US/Mountain")
-aztz = timezone("US/Arizona")
+mttz = ZoneInfo("US/Mountain")
+aztz = ZoneInfo("US/Arizona")
 
 proj = Project.objects.create(name='Weather')
 
@@ -60,7 +60,7 @@ proj = Project.objects.create(name='METCRAXII')
 
 isfs = Platform.objects.create(name='ISFS')
 
-tz = timezone("US/Arizona")
+tz = ZoneInfo("US/Arizona")
 
 dset = FileDataset.objects.create(name='5min',
     location='Meteor Crater',

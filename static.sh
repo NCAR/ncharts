@@ -5,13 +5,11 @@ prod=true
 
 if $prod; then
     export DJANGO_SETTINGS_MODULE=datavis.settings.production
-    DJROOT=${DJROOT:-/var/django}
-    DJVIRT=${DJVIRT:-$DJROOT/virtualenv/django}
     sudo chmod -R g+w /var/log/django
-else
-    DJVIRT=${DJVIRT:-$HOME/virtualenvs/django}
 fi
 
+DJROOT=${DJROOT:-/var/django}
+DJVIRT=${DJVIRT:-$DJROOT/ncharts/.venv}
 [ $VIRTUAL_ENV ] || source $DJVIRT/bin/activate
 
 [ -d static ] || mkdir static
