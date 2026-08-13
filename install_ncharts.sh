@@ -15,15 +15,15 @@ setup()
     chmod -R g+rx $NCHARTS_DIR/.venv/
 
     # set up dirs and permissions
-    sudo mkdir /var/log/django
+    sudo mkdir -p /var/log/django
     sudo chgrp datavis /var/log/django
     sudo chmod g+sw /var/log/django
 
-    sudo mkdir /run/django
+    sudo mkdir -p /run/django
     sudo chgrp datavis /run/django
     sudo chmod g+sw /run/django
 
-    sudo mkdir /var/lib/django
+    sudo mkdir -p /var/lib/django
     sudo chgrp datavis /var/lib/django
     sudo chmod g+sw /var/lib/django
 
