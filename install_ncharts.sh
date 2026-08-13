@@ -9,8 +9,8 @@ setup()
     sudo yum install -y python3.14 python3.14-pip memcached netcdf-devel hdf5-devel npm yarnpkg
 
     # set up python environment
-    python -m pip install --user --upgrade pipenv
-    cd $NCHARTS_DIR && PIPENV_VENV_IN_PROJECT=1 pipenv --python /bin/python3.12 install
+    python3.14 -m pip install --user --upgrade pipenv
+    cd $NCHARTS_DIR && PIPENV_VENV_IN_PROJECT=1 python3.14 -m pipenv --python /bin/python3.14 install
     # allow group read so datavis user can use venv
     chmod -R g+rx $NCHARTS_DIR/.venv/
 
