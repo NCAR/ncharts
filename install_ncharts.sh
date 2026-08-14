@@ -17,14 +17,17 @@ setup()
     # set up dirs and permissions
     sudo mkdir -p /var/log/django
     sudo chgrp datavis /var/log/django
+    sudo chown datavis /var/log/django
     sudo chmod g+sw /var/log/django
 
     sudo mkdir -p /run/django
     sudo chgrp datavis /run/django
+    sudo chown datavis /run/django
     sudo chmod g+sw /run/django
 
     sudo mkdir -p /var/lib/django
     sudo chgrp datavis /var/lib/django
+    sudo chown datavis /var/lib/django
     sudo chmod g+sw /var/lib/django
 
 }
