@@ -72,7 +72,7 @@ memcached()
     sudo cp $NCHARTS_DIR/etc/$HOSTTYPE/systemd/system/memcached_django.service /etc/systemd/system
     sudo systemctl daemon-reload
     sudo systemctl enable memcached_django.service
-    sudo systemctl start memcached_django.service
+    sudo systemctl restart memcached_django.service
 }
 
 gunicorn()
@@ -80,7 +80,7 @@ gunicorn()
     sudo cp $NCHARTS_DIR/etc/$HOSTTYPE/systemd/system/gunicorn.service /etc/systemd/system
     sudo systemctl daemon-reload
     sudo systemctl enable gunicorn.service
-    sudo systemctl start gunicorn.service
+    sudo systemctl restart gunicorn.service
 }
 
 httpd()
@@ -97,7 +97,7 @@ EOD
     sudo systemctl daemon-reload
 
     sudo systemctl enable httpd.service
-    sudo systemctl start httpd.service
+    sudo systemctl restart httpd.service
 
     sudo cp $NCHARTS_DIR/var/$HOSTTYPE/www/html/index.html /var/www/html
 }
