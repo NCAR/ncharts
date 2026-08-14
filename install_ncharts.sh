@@ -88,7 +88,7 @@ gunicorn()
 
 httpd()
 {
-    sudo cp -r $NCHARTS_DIR/etc/$HOSTNAME/httpd/conf/vhosts /etc/httpd/conf
+    sudo cp -r $NCHARTS_DIR/etc/$HOSTNAME/httpd/conf /etc/httpd
 
     sudo mkdir -p /etc/systemd/system/httpd.service.d
     cat << EOD > /tmp/umask.conf
