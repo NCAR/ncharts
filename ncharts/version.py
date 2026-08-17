@@ -22,7 +22,7 @@ def get_version():
 
     if path.isdir(path.join(d, '.git')):
         # Get the version using "git describe".
-        cmd = 'cd ' + path.abspath(d) + '; git describe --match %s[0-9]* --dirty' % PREFIX
+        cmd = 'cd ' + path.abspath(d) + '; /usr/bin/git describe --match %s[0-9]* --dirty' % PREFIX
         try:
             version = check_output(cmd,shell=True).decode().strip()
 

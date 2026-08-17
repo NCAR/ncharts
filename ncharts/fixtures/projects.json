@@ -250,14 +250,14 @@
 },
 {
     "fields": {
-        "location": "Foothills Lab, Boulder, CO",
-        "timezones": ["US/Mountain", "UTC"],
-	"long_name": "Foothills testing 2024",
-        "start_year": "2024",
-        "end_year": "2024"
+        "location": "Daytona Beach, FL",
+        "timezones": ["US/Eastern", "UTC"],
+	"long_name": "2026 ISARRA flight week intercomparison tower",
+        "start_year": "2026",
+        "end_year": "2026"
     },
     "model": "ncharts.project",
-    "pk": "fltest2024"
+    "pk": "ISARRA2026"
 }
 
 

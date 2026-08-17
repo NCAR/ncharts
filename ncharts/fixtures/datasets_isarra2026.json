@@ -1,0 +1,54 @@
+[
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2026-08-01T00:00:00+00:00",
+        "end_time": "2026-10-31T00:00:00+00:00",
+        "location": "Daytona Beach, FL",
+        "name": "noqc_instrument",
+        "long_name": "ISARRA2026, preliminary data, winds in instrument coordinates",
+        "project": "ISARRA2026",
+	"url": "https://www.eol.ucar.edu/observing_facilities/isfs",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 95
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/ISARRA2026/ISFS/netcdf/noqc_instrument",
+        "filenames": "isarra_isfs_5min_instr-coord_v0_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 95
+},
+{
+    "fields": {
+        "variables": [],
+        "platforms": [
+            "ISFS"
+        ],
+        "start_time": "2026-08-01T00:00:00+00:00",
+        "end_time": "2026-10-31T00:00:00+00:00",
+        "location": "Daytona Beach, FL",
+        "name": "noqc_geo",
+        "long_name": "ISARRA2026, preliminary data, winds in instrument coordinates",
+        "project": "ISARRA2026",
+	"url": "https://www.eol.ucar.edu/observing_facilities/isfs",
+	"status": "Preliminary"
+    },
+    "model": "ncharts.dataset",
+    "pk": 96
+},
+{
+    "fields": {
+        "directory": "/net/isf/isfs/projects/ISARRA2026/ISFS/netcdf/noqc_geo",
+        "filenames": "isarra_isfs_5min_geo_v0_%Y%m%d.nc"
+    },
+    "model": "ncharts.filedataset",
+    "pk": 96
+}
+]
