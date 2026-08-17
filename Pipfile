@@ -11,10 +11,9 @@ pymemcache = "*"
 gunicorn = "*"
 numpy = "*"
 psycopg2-binary = "*"
-psycopg2 = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
-python_full_version = ">=3.12.1"
+python_version = "3.14"
+
