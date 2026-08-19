@@ -40,8 +40,7 @@
 {
     "fields": {
         "projects": [
-            "DEEPWAVE",
-            "fltest2024"
+            "DEEPWAVE"
         ],
         "long_name": "Integrated Sounding System"
     }, 
