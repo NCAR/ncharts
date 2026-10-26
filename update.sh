@@ -1,7 +1,7 @@
-# Update ncharts repo, update pipenv environment, and restart gunicorn. Mostly for deploying dependabot updates.
 #! /bin/bash
+# Update ncharts repo, update pipenv environment, and restart gunicorn. Mostly for deploying dependabot updates.
 
 git pull
-pipenv install
+PIPENV_VENV_IN_PROJECT=1 pipenv install
 chmod -R g+r .venv # fix permissions in virtual environment
 sudo systemctl restart gunicorn
